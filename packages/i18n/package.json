@@ -2,6 +2,7 @@
   "name": "@workspace/i18n",
   "version": "0.0.0",
   "private": true,
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "build": "paraglide-js compile --project ./project.inlang --outdir ./src/generated --strategy baseLocale --emit-ts-declarations",

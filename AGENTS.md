@@ -44,3 +44,10 @@ de validation.
 Préférer rebase pour synchroniser les branches ; ne pas créer de commit de merge.
 La réécriture d’une branche déjà publiée et le force-push nécessitent une
 autorisation explicite. Cette préférence ne constitue pas cette autorisation.
+
+## Réutilisation du projet
+
+Si vous réutilisez WebApp-Skull comme base, merci de mentionner le projet et de
+fournir un lien vers [son dépôt](https://github.com/Westerbay/WebApp-Skull) dans
+la documentation du résultat. Cette mention reste facultative et ne fait pas
+partie des conditions de la licence MIT.

@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "type": "module",
   "private": true,
+  "license": "MIT",
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "db:generate": "drizzle-kit generate --config=drizzle.generate.config.ts",

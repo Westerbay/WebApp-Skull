@@ -95,3 +95,12 @@ nécessaires à l'authentification.
 
 Lire [docs/CONTEXT.md](docs/CONTEXT.md) pour l'état actuel et
 [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) pour les conventions locales.
+
+## Licence
+
+WebApp-Skull est distribué sous [licence MIT](LICENSE).
+
+Si vous réutilisez WebApp-Skull comme base, merci de mentionner le projet et de
+fournir un lien vers [son dépôt](https://github.com/Westerbay/WebApp-Skull) dans
+la documentation du résultat. Cette mention est facultative et ne constitue
+pas une condition supplémentaire de la licence MIT.

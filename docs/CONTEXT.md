@@ -22,6 +22,10 @@ des environnements distincts et recherche les secrets dans tout l’historique G
 Le domaine produit au-delà de l’authentification reste à définir. Ne pas ajouter
 une fonctionnalité de démonstration pour combler ce vide.
 
+Le projet est distribué sous [licence MIT](../LICENSE), avec Mathis Dubuisson
+comme titulaire du copyright. La citation du dépôt lors d’une réutilisation
+comme base est encouragée, mais reste facultative.
+
 ## Carte documentaire
 
 - [PRODUCT.md](PRODUCT.md) : capacités et règles utilisateur.
