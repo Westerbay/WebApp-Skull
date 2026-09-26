@@ -59,14 +59,115 @@ export async function createLogsTestHarness() {
     return "http://" + address
   }
 
+  const probes = []
+  let collectorStarted = false
+  const collectorOverride = directory + "/collector.yml"
+  const collectorCompose = (...args) =>
+    execFileSync(
+      "docker",
+      [
+        "compose",
+        "--env-file",
+        "/dev/null",
+        "-p",
+        project + "-collector",
+        "-f",
+        "compose.logs-collector.yml",
+        "-f",
+        collectorOverride,
+        ...args,
+      ],
+      {
+        cwd: root,
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "pipe"],
+        env: {
+          ...process.env,
+          APP_ENV: "staging",
+          LOKI_URL: "http://loki:3100/loki/api/v1/push",
+          LOKI_TOKEN_FILE: "",
+          LOKI_TENANT_ID: "",
+        },
+      }
+    )
+  const startDockerCollector = async () => {
+    await writeFile(
+      collectorOverride,
+      [
+        "networks:",
+        "  default:",
+        "    external: true",
+        "    name: " + project + "_default",
+        "",
+      ].join("\n")
+    )
+    collectorStarted = true
+    collectorCompose("up", "-d")
+  }
+  const createLogProbe = async (environment, enabled) => {
+    const name = project + "-" + environment + "-" + String(enabled)
+    const file = directory + "/" + name + ".jsonl"
+    await writeFile(
+      file,
+      JSON.stringify({
+        service_name: "skull-api",
+        environment,
+        level: 30,
+        time: Date.now(),
+        event:
+          "probe." + environment + "." + (enabled ? "enabled" : "disabled"),
+      }) + "\n"
+    )
+    probes.push(name)
+    execFileSync(
+      "docker",
+      [
+        "run",
+        "-d",
+        "--name",
+        name,
+        "--label",
+        "skull.logs=" + String(enabled),
+        "--label",
+        "skull.logs.environment=" + environment,
+        "--label",
+        "com.docker.compose.service=renamed-api",
+        "-v",
+        file + ":/probe.jsonl:ro",
+        "--entrypoint",
+        "/bin/sh",
+        "grafana/grafana:13.2.2",
+        "-c",
+        "sleep 3; cat /probe.jsonl; sleep 120",
+      ],
+      { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }
+    )
+  }
+
   const start = () => compose("up", "-d")
   const diagnostics = () =>
     compose("logs", "--tail", logsTestConfig.diagnosticTail, "alloy")
   const close = async () => {
-    compose("down", "--volumes", "--remove-orphans")
+    try {
+      if (collectorStarted)
+        collectorCompose("down", "--volumes", "--remove-orphans")
+    } finally {
+      for (const name of probes) {
+        execFileSync("docker", ["rm", "-f", name], { stdio: "ignore" })
+      }
+      compose("down", "--volumes", "--remove-orphans")
+    }
     await rm(directory, { recursive: true, force: true })
   }
-  return { directory, start, getServiceUrl, diagnostics, close }
+  return {
+    directory,
+    start,
+    getServiceUrl,
+    diagnostics,
+    close,
+    startDockerCollector,
+    createLogProbe,
+  }
 }
 
 export async function waitFor(check) {

@@ -33,8 +33,10 @@ comme base est encouragée, mais reste facultative.
 La stack locale optionnelle Alloy → Loki → Grafana collecte les logs JSON API,
 avec labels de service/environnement et rétention de sept jours. Elle possède
 son propre Compose et ses volumes. Un test isolé exerce le flux HTTP jusqu’à
-Grafana sans base ni fichier d’environnement. La configuration de collecte
-Docker est fournie pour préparer staging/prod ; leur déploiement reste à définir.
+Grafana sans base ni fichier d’environnement. Un fragment Compose de collecte
+Docker prépare staging/prod avec sélection explicite par environnement, labels
+stables et connexion Loki paramétrable. Son flux est testé localement dans des
+conteneurs éphémères ; aucun staging/prod n’est déployé.
 
 ## Carte documentaire
 

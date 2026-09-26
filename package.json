@@ -28,7 +28,8 @@
     "dev:logs": "node scripts/dev-logs.mjs",
     "logs:up": "node scripts/logs-stack.mjs up",
     "logs:down": "node scripts/logs-stack.mjs down",
-    "logs:test": "pnpm --filter @workspace/api^... build && pnpm --filter @workspace/api build && node scripts/test-logs.mjs"
+    "logs:test": "pnpm --filter @workspace/api^... build && pnpm --filter @workspace/api build && node scripts/test-logs.mjs",
+    "logs:test:docker": "node scripts/test-docker-logs.mjs"
   },
   "devDependencies": {
     "prettier": "3.8.3",

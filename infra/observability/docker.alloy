@@ -1,10 +1,11 @@
-// Deployment example: requires access to the Docker daemon on this host.
-// Opt in application containers with the label skull.logs=true.
+// Integration collector: only opt-in containers in the configured environment.
+// Loki/Grafana and network/access controls are provided by the target platform.
 discovery.docker "applications" {
   host = "unix:///var/run/docker.sock"
+  refresh_interval = "5s"
   filter {
     name = "label"
-    values = ["skull.logs=true"]
+    values = ["skull.logs=true", "skull.logs.environment=" + sys.env("APP_ENV")]
   }
 }
 
@@ -18,20 +19,22 @@ discovery.relabel "applications" {
 
 loki.source.docker "applications" {
   host = "unix:///var/run/docker.sock"
+  refresh_interval = "5s"
   targets = discovery.relabel.applications.output
+  labels = { environment = sys.env("APP_ENV") }
   forward_to = [loki.process.applications.receiver]
 }
 
 loki.process "applications" {
   stage.json {
     expressions = {
-      environment = "environment",
+      service_name = "service_name",
       time = "time",
     }
   }
   stage.labels {
     values = {
-      environment = "",
+      service_name = "",
     }
   }
   stage.timestamp {
@@ -45,5 +48,7 @@ loki.process "applications" {
 loki.write "remote" {
   endpoint {
     url = sys.env("LOKI_URL")
+    bearer_token_file = sys.env("LOKI_TOKEN_FILE")
+    tenant_id = sys.env("LOKI_TENANT_ID")
   }
 }

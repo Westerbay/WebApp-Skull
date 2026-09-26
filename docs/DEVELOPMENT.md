@@ -266,10 +266,74 @@ aucun `.env`. Ses conteneurs, volumes et fichiers sont supprimés à la fin.
 
 Cette stack est réservée au développement : Grafana autorise la consultation
 anonyme locale et Loki n’a pas d’authentification. Ne pas exposer ces ports en
-staging/prod. Pour ces environnements, conserver JSON/stdout, déployer un Alloy
-par hôte avec `docker.alloy`, `LOKI_URL` et le label `skull.logs=true` sur les
-conteneurs API. Monter le fichier comme configuration du collecteur et fournir
-explicitement le socket Docker de cet hôte ; ce privilège doit être maîtrisé.
-Prévoir accès authentifiés, TLS, stockage/rétention et surveillance du disque.
+staging/prod. Le fragment d’intégration décrit ci-dessous prépare ces environnements sans
+les déployer. Les accès Grafana/Loki, TLS, sauvegardes, stockage/rétention et
+surveillance du disque restent possédés par la plateforme cible.
 Un label d’environnement sert à filtrer, pas à isoler les permissions. Le stockage
 filesystem local ne fournit pas de haute disponibilité ni de sauvegarde externe.
+
+## Contrat d’intégration staging/prod
+
+`compose.logs-collector.yml` définit uniquement le collecteur Alloy. Il est
+indépendant du Compose de développement et ne crée ni application, ni DB,
+ni Loki/Grafana. Il n’expose aucun port sur l’hôte. Son nom de projet et son
+volume de positions sont distincts selon `APP_ENV` ; fournir staging ou production.
+
+La plateforme fournit ces paramètres au collecteur :
+
+| Paramètre         | Contrat                                                                            |
+| ----------------- | ---------------------------------------------------------------------------------- |
+| `APP_ENV`         | staging ou production, obligatoire, identique à l’API                              |
+| `LOKI_URL`        | URL complète de push, obligatoire, normalement HTTPS                               |
+| `LOKI_TOKEN_FILE` | Facultatif : chemin **dans le conteneur** d’un token Bearer monté en lecture seule |
+| `LOKI_TENANT_ID`  | Facultatif : tenant configuré par le backend Loki                                  |
+
+Sans token, la connexion ne fournit pas d’authentification : utiliser uniquement
+un endpoint privé adapté. Pour un token, la plateforme ajoute le montage secret
+au service `alloy`, par exemple `/chemin/gere-par-la-plateforme/token:/run/secrets/loki-token:ro`,
+puis configure `LOKI_TOKEN_FILE=/run/secrets/loki-token`. Aucun secret n’est
+versionné. Pour Basic Auth, OAuth ou une CA privée, adapter uniquement le bloc
+`endpoint`/`tls_config` de `docker.alloy` à la destination choisie, en suivant
+[la documentation Alloy](https://grafana.com/docs/alloy/latest/reference/components/loki/loki.write/).
+La validation TLS standard reste active.
+
+Le futur service API suit ce contrat de composition :
+
+```yaml
+services:
+  api:
+    # L’image et le démarrage sont fournis par le déploiement applicatif.
+    environment:
+      APP_ENV: ${APP_ENV}
+      LOG_FORMAT: json
+      LOG_LEVEL: info
+    labels:
+      skull.logs: "true"
+      skull.logs.environment: ${APP_ENV}
+    logging:
+      driver: local
+      options:
+        max-size: "10m"
+        max-file: "3"
+```
+
+Ne pas définir `LOG_FILE` hors développement. Le JSON API conserve
+`service_name=skull-api`, quelle que soit la clé du service Compose.
+Le collecteur exige les deux labels pour découvrir le conteneur ; il peut
+collecter d’autres projets sur le même daemon uniquement s’ils portent ces labels.
+Le socket Docker donne des privilèges élevés même en lecture seule : réserver
+cet accès au collecteur de confiance de la plateforme.
+
+Validation locale du fragment, sans démarrage ni fichier d’environnement :
+
+```bash
+APP_ENV=staging LOKI_URL=https://logs.example.invalid/loki/api/v1/push \
+  docker compose --env-file /dev/null -f compose.logs-collector.yml config --quiet
+pnpm logs:test:docker
+```
+
+`logs:test:docker` utilise exclusivement des ressources Docker locales possédées,
+des ports dynamiques et un Loki/Grafana éphémère. Il vérifie la collecte opt-in,
+l’exclusion d’un autre environnement et le maintien du label API malgré un service
+Compose renommé. Il ne contacte aucune destination staging/prod et nettoie
+ses conteneurs/volumes. Ce test et la collecte fichier sont séparés.

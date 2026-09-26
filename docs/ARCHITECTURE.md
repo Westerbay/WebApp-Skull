@@ -244,8 +244,14 @@ ses données et son état de compaction dans un volume, avec rétention de sept
 jours. Grafana provisionne la datasource et un dashboard de logs/erreurs.
 Seuls service et environnement sont indexés ; requestId reste dans le JSON.
 
-La configuration `infra/observability/docker.alloy` prépare la collecte des
-conteneurs explicitement marqués `skull.logs=true`. Elle est distincte de la
-collecte fichier locale et cible `LOKI_URL`. L’accès au socket Docker donne des
+Le fragment `compose.logs-collector.yml` prépare un Alloy autonome par
+environnement ; il ne lance ni application, ni Loki/Grafana. Il utilise
+`infra/observability/docker.alloy` pour sélectionner les conteneurs marqués
+`skull.logs=true` et `skull.logs.environment=APP_ENV`. Le label indexé
+`environment` vient du collecteur ; `service_name` vient du JSON applicatif,
+avec le service Compose comme fallback. Un renommage du service Compose ne
+change donc pas les requêtes Grafana de l’API. `LOKI_URL` désigne la destination
+externe ; un token fichier et un tenant sont optionnels. Les positions du
+collecteur persistent dans un volume propre au projet/environnement. L’accès au socket Docker donne des
 privilèges élevés même avec un montage en lecture seule ; il exige un collecteur
 et un hôte de confiance. Aucun socket n’est monté par le Compose local.
