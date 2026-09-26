@@ -5,14 +5,16 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "build": "paraglide-js compile --project ./project.inlang --outdir ./src/generated --strategy baseLocale --emit-ts-declarations",
-    "dev": "paraglide-js compile --project ./project.inlang --outdir ./src/generated --watch --strategy baseLocale --emit-ts-declarations",
+    "build": "node compile.mjs",
+    "dev": "node compile.mjs --watch",
     "typecheck": "tsc --noEmit"
   },
   "exports": {
     "./config": "./src/config.ts",
     "./messages": "./src/generated/messages.js",
-    "./runtime": "./src/generated/runtime.js"
+    "./runtime": "./src/generated/runtime.js",
+    "./server": "./src/generated/server.js",
+    "./routing": "./src/routing.ts"
   },
   "devDependencies": {
     "@inlang/paraglide-js": "2.23.1",

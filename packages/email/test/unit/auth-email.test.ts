@@ -1,30 +1,33 @@
+import { DEFAULT_LOCALE } from "@workspace/i18n/config"
 import { expect, it } from "vitest"
 import { renderAuthEmail } from "../../src/auth-email.js"
 import { email_expiry } from "@workspace/i18n/messages"
 import { createSmtpSender } from "../../src/sender.js"
 import { getEmailConfig } from "../../src/config.js"
 
-it("renders French HTML and plain text with the same supplied action and expiry", async () => {
+it("renders localized HTML and plain text with the same supplied action and expiry", async () => {
   const email = await renderAuthEmail({
     kind: "reset",
-    locale: "fr",
+    locale: DEFAULT_LOCALE,
     to: "person@example.test",
     url: "https://app.example.test/nouveau-mot-de-passe?token=fake",
   })
-  expect(email.html).toContain('lang="fr"')
+  expect(email.html).toContain(`lang="${DEFAULT_LOCALE}"`)
   expect(email.html).toContain(
     'href="https://app.example.test/nouveau-mot-de-passe?token=fake"'
   )
-  expect(email.text).toContain("Ce lien expire dans 1 heure.")
+  expect(email.text).toContain(email_expiry({ hours: 1 }))
   expect(email.text).toContain(
     "https://app.example.test/nouveau-mot-de-passe?token=fake"
   )
-  expect(email_expiry({ hours: 0 }, { locale: "fr" })).toBe(
-    "Ce lien expire dans 0 heure."
-  )
-  expect(email_expiry({ hours: 2 }, { locale: "fr" })).toBe(
-    "Ce lien expire dans 2 heures."
-  )
+  const pluralExamples = new Map([
+    ["en", ["This link expires in 0 hours.", "This link expires in 2 hours."]],
+    ["fr", ["Ce lien expire dans 0 heure.", "Ce lien expire dans 2 heures."]],
+  ])
+  const expected = pluralExamples.get(DEFAULT_LOCALE)
+  if (!expected) throw new Error("Missing plural expectations")
+  expect(email_expiry({ hours: 0 })).toBe(expected[0])
+  expect(email_expiry({ hours: 2 })).toBe(expected[1])
 })
 
 it("refuses an unlisted staging recipient before opening SMTP", async () => {
@@ -49,10 +52,10 @@ it("refuses an unlisted staging recipient before opening SMTP", async () => {
 it("announces the verification expiry in both email formats", async () => {
   const email = await renderAuthEmail({
     kind: "verification",
-    locale: "fr",
+    locale: DEFAULT_LOCALE,
     to: "person@example.test",
     url: "https://app.example.test/adresse-confirmee?token=fake",
   })
-  expect(email.html).toContain("Ce lien expire dans 24 heures.")
-  expect(email.text).toContain("Ce lien expire dans 24 heures.")
+  expect(email.html).toContain(email_expiry({ hours: 24 }))
+  expect(email.text).toContain(email_expiry({ hours: 24 }))
 })

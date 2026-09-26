@@ -1,3 +1,4 @@
+import { DEFAULT_LOCALE } from "@workspace/i18n/config"
 import { describe, expect, it } from "vitest"
 import { AuthEmailDispatcher } from "../../../../src/infrastructure/email/auth-email-dispatcher.js"
 import type { EmailEvent } from "../../../../src/infrastructure/email/auth-email-dispatcher.js"
@@ -6,7 +7,7 @@ const input = {
   kind: "verification",
   to: "test@example.test",
   url: "https://example.test?token=private-token",
-  locale: "fr",
+  locale: DEFAULT_LOCALE,
   requestId: "request-test-1",
 } as const
 

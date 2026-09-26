@@ -1,0 +1,13 @@
+export const templateProfiles = [
+  { id: "en", locales: ["en"], docsLocale: "en" },
+  { id: "fr", locales: ["fr"], docsLocale: "fr" },
+  { id: "multilingual", locales: ["en", "fr"], docsLocale: "en" },
+]
+
+if (import.meta.main) {
+  const include = templateProfiles.map(({ id, locales }) => ({
+    id,
+    locales: locales.join(","),
+  }))
+  console.log(JSON.stringify({ include }))
+}

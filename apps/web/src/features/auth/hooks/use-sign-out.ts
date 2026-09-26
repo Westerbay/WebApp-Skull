@@ -19,7 +19,7 @@ export function useSignOut() {
         return
       }
       await clearPrivateCache(router.options.context.queryClient)
-      await router.navigate({ to: "/connexion" })
+      await router.navigate({ to: "/sign-in" })
       await router.invalidate()
       toast.success(signed_out())
     } catch {

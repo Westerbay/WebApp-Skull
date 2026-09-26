@@ -1,0 +1,33 @@
+{
+  "prefixLocales": false,
+  "routes": [
+    {
+      "path": "/",
+      "localized": [["en", "/"]]
+    },
+    {
+      "path": "/sign-in",
+      "localized": [["en", "/sign-in"]]
+    },
+    {
+      "path": "/sign-up",
+      "localized": [["en", "/sign-up"]]
+    },
+    {
+      "path": "/verify-email",
+      "localized": [["en", "/verify-email"]]
+    },
+    {
+      "path": "/email-verified",
+      "localized": [["en", "/email-verified"]]
+    },
+    {
+      "path": "/forgot-password",
+      "localized": [["en", "/forgot-password"]]
+    },
+    {
+      "path": "/reset-password",
+      "localized": [["en", "/reset-password"]]
+    }
+  ]
+}

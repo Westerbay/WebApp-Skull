@@ -1,3 +1,4 @@
+import { getLocalizedCallbackUrl } from "@workspace/i18n/routing"
 import type { SignUpFormValues } from "../schemas/auth-form.types"
 import { useForm } from "@tanstack/react-form"
 import { useRouter } from "@tanstack/react-router"
@@ -22,14 +23,17 @@ export function useSignUpForm() {
     try {
       const result = await authClient.signUp.email({
         ...value,
-        callbackURL: `${window.location.origin}/adresse-confirmee`,
+        callbackURL: getLocalizedCallbackUrl(
+          "/email-verified",
+          window.location.origin
+        ),
       })
       if (result.error) {
         setServerError(authErrorMessage(result.error))
         return
       }
       await clearPrivateCache(router.options.context.queryClient)
-      await router.navigate({ to: "/verification-email" })
+      await router.navigate({ to: "/verify-email" })
       await router.invalidate()
     } catch {
       setServerError(network_error())

@@ -1,3 +1,4 @@
+import { getLocalizedCallbackUrl } from "@workspace/i18n/routing"
 import type { EmailFormValues } from "../schemas/auth-form.types"
 import { useForm } from "@tanstack/react-form"
 import { useState } from "react"
@@ -15,12 +16,18 @@ export function useEmailRequestForm(kind: "verification" | "reset") {
     if (kind === "verification") {
       return authClient.sendVerificationEmail({
         ...value,
-        callbackURL: `${window.location.origin}/adresse-confirmee`,
+        callbackURL: getLocalizedCallbackUrl(
+          "/email-verified",
+          window.location.origin
+        ),
       })
     }
     return authClient.requestPasswordReset({
       ...value,
-      redirectTo: `${window.location.origin}/nouveau-mot-de-passe`,
+      redirectTo: getLocalizedCallbackUrl(
+        "/reset-password",
+        window.location.origin
+      ),
     })
   }
 

@@ -10,42 +10,31 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AdresseConfirmeeRouteImport } from './routes/adresse-confirmee'
-import { Route as ConnexionRouteImport } from './routes/connexion'
-import { Route as InscriptionRouteImport } from './routes/inscription'
-import { Route as MotDePasseOublieRouteImport } from './routes/mot-de-passe-oublie'
-import { Route as NouveauMotDePasseRouteImport } from './routes/nouveau-mot-de-passe'
+import { Route as EmailVerifiedRouteImport } from './routes/email-verified'
+import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SignInRouteImport } from './routes/sign-in'
-import { Route as VerificationEmailRouteImport } from './routes/verification-email'
+import { Route as SignUpRouteImport } from './routes/sign-up'
+import { Route as VerifyEmailRouteImport } from './routes/verify-email'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdresseConfirmeeRoute = AdresseConfirmeeRouteImport.update({
-  id: '/adresse-confirmee',
-  path: '/adresse-confirmee',
+const EmailVerifiedRoute = EmailVerifiedRouteImport.update({
+  id: '/email-verified',
+  path: '/email-verified',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ConnexionRoute = ConnexionRouteImport.update({
-  id: '/connexion',
-  path: '/connexion',
+const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
   getParentRoute: () => rootRouteImport,
 } as any)
-const InscriptionRoute = InscriptionRouteImport.update({
-  id: '/inscription',
-  path: '/inscription',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const MotDePasseOublieRoute = MotDePasseOublieRouteImport.update({
-  id: '/mot-de-passe-oublie',
-  path: '/mot-de-passe-oublie',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const NouveauMotDePasseRoute = NouveauMotDePasseRouteImport.update({
-  id: '/nouveau-mot-de-passe',
-  path: '/nouveau-mot-de-passe',
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SignInRoute = SignInRouteImport.update({
@@ -53,85 +42,83 @@ const SignInRoute = SignInRouteImport.update({
   path: '/sign-in',
   getParentRoute: () => rootRouteImport,
 } as any)
-const VerificationEmailRoute = VerificationEmailRouteImport.update({
-  id: '/verification-email',
-  path: '/verification-email',
+const SignUpRoute = SignUpRouteImport.update({
+  id: '/sign-up',
+  path: '/sign-up',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VerifyEmailRoute = VerifyEmailRouteImport.update({
+  id: '/verify-email',
+  path: '/verify-email',
   getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/adresse-confirmee': typeof AdresseConfirmeeRoute
-  '/connexion': typeof ConnexionRoute
-  '/inscription': typeof InscriptionRoute
-  '/mot-de-passe-oublie': typeof MotDePasseOublieRoute
-  '/nouveau-mot-de-passe': typeof NouveauMotDePasseRoute
+  '/email-verified': typeof EmailVerifiedRoute
+  '/forgot-password': typeof ForgotPasswordRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/sign-in': typeof SignInRoute
-  '/verification-email': typeof VerificationEmailRoute
+  '/sign-up': typeof SignUpRoute
+  '/verify-email': typeof VerifyEmailRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/adresse-confirmee': typeof AdresseConfirmeeRoute
-  '/connexion': typeof ConnexionRoute
-  '/inscription': typeof InscriptionRoute
-  '/mot-de-passe-oublie': typeof MotDePasseOublieRoute
-  '/nouveau-mot-de-passe': typeof NouveauMotDePasseRoute
+  '/email-verified': typeof EmailVerifiedRoute
+  '/forgot-password': typeof ForgotPasswordRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/sign-in': typeof SignInRoute
-  '/verification-email': typeof VerificationEmailRoute
+  '/sign-up': typeof SignUpRoute
+  '/verify-email': typeof VerifyEmailRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/adresse-confirmee': typeof AdresseConfirmeeRoute
-  '/connexion': typeof ConnexionRoute
-  '/inscription': typeof InscriptionRoute
-  '/mot-de-passe-oublie': typeof MotDePasseOublieRoute
-  '/nouveau-mot-de-passe': typeof NouveauMotDePasseRoute
+  '/email-verified': typeof EmailVerifiedRoute
+  '/forgot-password': typeof ForgotPasswordRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/sign-in': typeof SignInRoute
-  '/verification-email': typeof VerificationEmailRoute
+  '/sign-up': typeof SignUpRoute
+  '/verify-email': typeof VerifyEmailRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/adresse-confirmee'
-    | '/connexion'
-    | '/inscription'
-    | '/mot-de-passe-oublie'
-    | '/nouveau-mot-de-passe'
+    | '/email-verified'
+    | '/forgot-password'
+    | '/reset-password'
     | '/sign-in'
-    | '/verification-email'
+    | '/sign-up'
+    | '/verify-email'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/adresse-confirmee'
-    | '/connexion'
-    | '/inscription'
-    | '/mot-de-passe-oublie'
-    | '/nouveau-mot-de-passe'
+    | '/email-verified'
+    | '/forgot-password'
+    | '/reset-password'
     | '/sign-in'
-    | '/verification-email'
+    | '/sign-up'
+    | '/verify-email'
   id:
     | '__root__'
     | '/'
-    | '/adresse-confirmee'
-    | '/connexion'
-    | '/inscription'
-    | '/mot-de-passe-oublie'
-    | '/nouveau-mot-de-passe'
+    | '/email-verified'
+    | '/forgot-password'
+    | '/reset-password'
     | '/sign-in'
-    | '/verification-email'
+    | '/sign-up'
+    | '/verify-email'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AdresseConfirmeeRoute: typeof AdresseConfirmeeRoute
-  ConnexionRoute: typeof ConnexionRoute
-  InscriptionRoute: typeof InscriptionRoute
-  MotDePasseOublieRoute: typeof MotDePasseOublieRoute
-  NouveauMotDePasseRoute: typeof NouveauMotDePasseRoute
+  EmailVerifiedRoute: typeof EmailVerifiedRoute
+  ForgotPasswordRoute: typeof ForgotPasswordRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   SignInRoute: typeof SignInRoute
-  VerificationEmailRoute: typeof VerificationEmailRoute
+  SignUpRoute: typeof SignUpRoute
+  VerifyEmailRoute: typeof VerifyEmailRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -143,39 +130,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/adresse-confirmee': {
-      id: '/adresse-confirmee'
-      path: '/adresse-confirmee'
-      fullPath: '/adresse-confirmee'
-      preLoaderRoute: typeof AdresseConfirmeeRouteImport
+    '/email-verified': {
+      id: '/email-verified'
+      path: '/email-verified'
+      fullPath: '/email-verified'
+      preLoaderRoute: typeof EmailVerifiedRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/connexion': {
-      id: '/connexion'
-      path: '/connexion'
-      fullPath: '/connexion'
-      preLoaderRoute: typeof ConnexionRouteImport
+    '/forgot-password': {
+      id: '/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof ForgotPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/inscription': {
-      id: '/inscription'
-      path: '/inscription'
-      fullPath: '/inscription'
-      preLoaderRoute: typeof InscriptionRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/mot-de-passe-oublie': {
-      id: '/mot-de-passe-oublie'
-      path: '/mot-de-passe-oublie'
-      fullPath: '/mot-de-passe-oublie'
-      preLoaderRoute: typeof MotDePasseOublieRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/nouveau-mot-de-passe': {
-      id: '/nouveau-mot-de-passe'
-      path: '/nouveau-mot-de-passe'
-      fullPath: '/nouveau-mot-de-passe'
-      preLoaderRoute: typeof NouveauMotDePasseRouteImport
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sign-in': {
@@ -185,11 +158,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SignInRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/verification-email': {
-      id: '/verification-email'
-      path: '/verification-email'
-      fullPath: '/verification-email'
-      preLoaderRoute: typeof VerificationEmailRouteImport
+    '/sign-up': {
+      id: '/sign-up'
+      path: '/sign-up'
+      fullPath: '/sign-up'
+      preLoaderRoute: typeof SignUpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/verify-email': {
+      id: '/verify-email'
+      path: '/verify-email'
+      fullPath: '/verify-email'
+      preLoaderRoute: typeof VerifyEmailRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -197,13 +177,12 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AdresseConfirmeeRoute: AdresseConfirmeeRoute,
-  ConnexionRoute: ConnexionRoute,
-  InscriptionRoute: InscriptionRoute,
-  MotDePasseOublieRoute: MotDePasseOublieRoute,
-  NouveauMotDePasseRoute: NouveauMotDePasseRoute,
+  EmailVerifiedRoute: EmailVerifiedRoute,
+  ForgotPasswordRoute: ForgotPasswordRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   SignInRoute: SignInRoute,
-  VerificationEmailRoute: VerificationEmailRoute,
+  SignUpRoute: SignUpRoute,
+  VerifyEmailRoute: VerifyEmailRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

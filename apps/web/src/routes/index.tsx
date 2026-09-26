@@ -19,7 +19,7 @@ export const Route = createFileRoute("/")({
       }
     } catch (error) {
       if (error instanceof AuthenticationRequiredError) {
-        throw redirect({ to: "/connexion", search: { redirect: "/" } })
+        throw redirect({ to: "/sign-in", search: { redirect: "/" } })
       }
 
       throw error

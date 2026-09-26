@@ -1,5 +1,8 @@
 import { spawn } from "node:child_process"
 import { setTimeout as delay } from "node:timers/promises"
+import * as messages from "@workspace/i18n/messages"
+import { DEFAULT_LOCALE } from "@workspace/i18n/config"
+import { isLocale, localizeHref } from "@workspace/i18n/runtime"
 import { expect as browserExpect, chromium } from "@playwright/test"
 import { expect, it } from "vitest"
 import { schema } from "@workspace/database"
@@ -15,16 +18,26 @@ import {
 } from "../support/auth.harness.js"
 import type { Page, Route } from "@playwright/test"
 
+const requestedLocale = process.env.AUTH_TEST_LOCALE ?? DEFAULT_LOCALE
+if (!isLocale(requestedLocale)) throw new Error("Unsupported test locale")
+const testLocale = requestedLocale
+
+function publicUrl(path: string) {
+  return new URL(localizeHref(path, { locale: testLocale }), origin).href
+}
+
 async function checkUsersPagination(page: Page) {
   const pageSize = usersTableConfig.pageSize
   const totalUsers = AUTH_FIXTURES.length + 1
   const lastPage = Math.ceil(totalUsers / pageSize)
   const lastPageSize = totalUsers % pageSize || pageSize
-  const table = page.getByRole("table", { name: "Utilisateurs" })
+  const table = page.getByRole("table", {
+    name: messages.users_title({}, { locale: testLocale }),
+  })
   let rejectNextPage = true
   let nextPageRequests = 0
 
-  async function handleUsersRequest(route: Route) {
+  const handleUsersRequest = async (route: Route) => {
     const url = new URL(route.request().url())
     if (url.searchParams.has("cursor")) {
       nextPageRequests += 1
@@ -45,47 +58,85 @@ async function checkUsersPagination(page: Page) {
   await browserExpect(table.locator("tbody tr")).toHaveCount(pageSize)
   const firstPage = await table.locator("tbody").textContent()
   await browserExpect(
-    page.getByRole("button", { name: "Précédent" })
+    page.getByRole("button", {
+      name: messages.users_previous({}, { locale: testLocale }),
+    })
   ).toBeDisabled()
   await page.route("**/api/users?*", handleUsersRequest)
   try {
-    await page.getByRole("button", { name: "Suivant" }).click()
+    await page
+      .getByRole("button", {
+        name: messages.users_next({}, { locale: testLocale }),
+      })
+      .click()
     await browserExpect(page.getByRole("alert")).toContainText(
-      "Impossible de charger les utilisateurs."
+      messages.users_error({}, { locale: testLocale })
     )
     expect(await table.locator("tbody").textContent()).toBe(firstPage)
-    await page.getByRole("button", { name: "Réessayer" }).click()
+    await page
+      .getByRole("button", { name: messages.retry({}, { locale: testLocale }) })
+      .click()
     await browserExpect(
-      page.getByRole("status").filter({ hasText: "Page 2" })
+      page.getByRole("status").filter({
+        hasText: messages.users_page({ page: 2 }, { locale: testLocale }),
+      })
     ).toBeVisible()
     await browserExpect(page.getByRole("alert")).toHaveCount(0)
     expect(await table.locator("tbody").textContent()).not.toBe(firstPage)
     const requestsAfterSecondPage = nextPageRequests
-    await page.getByRole("button", { name: "Précédent" }).click()
+    await page
+      .getByRole("button", {
+        name: messages.users_previous({}, { locale: testLocale }),
+      })
+      .click()
     await browserExpect(
-      page.getByRole("status").filter({ hasText: "Page 1" })
+      page.getByRole("status").filter({
+        hasText: messages.users_page({ page: 1 }, { locale: testLocale }),
+      })
     ).toBeVisible()
     expect(await table.locator("tbody").textContent()).toBe(firstPage)
     expect(nextPageRequests).toBe(requestsAfterSecondPage)
-    await page.getByRole("button", { name: "Suivant" }).click()
+    await page
+      .getByRole("button", {
+        name: messages.users_next({}, { locale: testLocale }),
+      })
+      .click()
     await browserExpect(
-      page.getByRole("status").filter({ hasText: "Page 2" })
+      page.getByRole("status").filter({
+        hasText: messages.users_page({ page: 2 }, { locale: testLocale }),
+      })
     ).toBeVisible()
     expect(nextPageRequests).toBe(requestsAfterSecondPage)
     let nextUnvisitedPage = 3
     if (lastPage >= nextUnvisitedPage) {
       rejectNextPage = true
-      await page.getByRole("button", { name: "Suivant" }).click()
+      await page
+        .getByRole("button", {
+          name: messages.users_next({}, { locale: testLocale }),
+        })
+        .click()
       await browserExpect(page.getByRole("alert")).toContainText(
-        "Impossible de charger les utilisateurs."
+        messages.users_error({}, { locale: testLocale })
       )
-      await page.getByRole("button", { name: "Précédent" }).click()
+      await page
+        .getByRole("button", {
+          name: messages.users_previous({}, { locale: testLocale }),
+        })
+        .click()
       await browserExpect(
-        page.getByRole("status").filter({ hasText: "Page 1" })
+        page.getByRole("status").filter({
+          hasText: messages.users_page({ page: 1 }, { locale: testLocale }),
+        })
       ).toBeVisible()
-      await page.getByRole("button", { name: "Réessayer" }).click()
+      await page
+        .getByRole("button", {
+          name: messages.retry({}, { locale: testLocale }),
+        })
+        .click()
       await browserExpect(
-        page.getByRole("status").filter({ hasText: "Page 3" })
+        page.getByRole("status").filter({
+          hasText: messages.users_page({ page: 3 }, { locale: testLocale }),
+        })
       ).toBeVisible()
       await browserExpect(page.getByRole("alert")).toHaveCount(0)
       nextUnvisitedPage += 1
@@ -95,21 +146,32 @@ async function checkUsersPagination(page: Page) {
       pageNumber <= lastPage;
       pageNumber += 1
     ) {
-      await page.getByRole("button", { name: "Suivant" }).click()
+      await page
+        .getByRole("button", {
+          name: messages.users_next({}, { locale: testLocale }),
+        })
+        .click()
       await browserExpect(
-        page.getByRole("status").filter({ hasText: `Page ${pageNumber}` })
+        page.getByRole("status").filter({
+          hasText: messages.users_page(
+            { page: pageNumber },
+            { locale: testLocale }
+          ),
+        })
       ).toBeVisible()
     }
     await browserExpect(table.locator("tbody tr")).toHaveCount(lastPageSize)
     await browserExpect(
-      page.getByRole("button", { name: "Suivant" })
+      page.getByRole("button", {
+        name: messages.users_next({}, { locale: testLocale }),
+      })
     ).toBeDisabled()
   } finally {
     await page.unroute("**/api/users?*", handleUsersRequest)
   }
 }
 
-it("completes French signup, verification, reset and logout in a mobile browser", async () => {
+it("completes localized signup, verification, reset and logout in a mobile browser", async () => {
   await database.db
     .update(schema.rateLimit)
     .set({ lastRequest: Date.now() - 60000 })
@@ -133,7 +195,7 @@ it("completes French signup, verification, reset and logout in a mobile browser"
     let ready = false
     for (let attempt = 0; attempt < 100; attempt++) {
       try {
-        ready = (await fetch(`${origin}/connexion`)).ok
+        ready = (await fetch(publicUrl("/sign-in"))).ok
       } catch {
         /* The owned Vite process is still starting. */
       }
@@ -150,10 +212,17 @@ it("completes French signup, verification, reset and logout in a mobile browser"
     page.on("pageerror", (error) => {
       browserErrors.push(error.message)
     })
-    await page.goto(`${origin}/inscription`)
-    await browserExpect(page.getByLabel("Nom", { exact: true })).toBeEnabled()
+    await page.goto(publicUrl("/sign-up"))
+    await browserExpect(
+      page.getByLabel(messages.name_label({}, { locale: testLocale }), {
+        exact: true,
+      })
+    ).toBeEnabled()
     expect(browserErrors).toEqual([])
-    await browserExpect(page.locator("html")).toHaveAttribute("lang", "fr")
+    await browserExpect(page.locator("html")).toHaveAttribute(
+      "lang",
+      testLocale
+    )
     await browserExpect(page.locator('meta[name="robots"]')).toHaveAttribute(
       "content",
       "noindex, nofollow"
@@ -162,13 +231,24 @@ it("completes French signup, verification, reset and logout in a mobile browser"
       path: "../../output/playwright/auth-inscription-mobile.png",
       fullPage: true,
     })
-    await page.getByLabel("Nom", { exact: true }).fill("Élodie")
-    await page.getByLabel("Adresse email").fill("browser@example.test")
-    const passwordInput = page.getByLabel("Mot de passe", { exact: true })
+    await page
+      .getByLabel(messages.name_label({}, { locale: testLocale }), {
+        exact: true,
+      })
+      .fill("Élodie")
+    await page
+      .getByLabel(messages.email_label({}, { locale: testLocale }))
+      .fill("browser@example.test")
+    const passwordInput = page.getByLabel(
+      messages.password_label({}, { locale: testLocale }),
+      {
+        exact: true,
+      }
+    )
     await passwordInput.fill(password)
     await browserExpect(passwordInput).toHaveAttribute("type", "password")
     const showPasswordButton = page.getByRole("button", {
-      name: "Afficher le mot de passe",
+      name: messages.password_show({}, { locale: testLocale }),
     })
     await browserExpect(showPasswordButton).toHaveAttribute(
       "aria-controls",
@@ -177,20 +257,46 @@ it("completes French signup, verification, reset and logout in a mobile browser"
     await showPasswordButton.click()
     await browserExpect(passwordInput).toHaveAttribute("type", "text")
     await browserExpect(passwordInput).toHaveValue(password)
-    await page.getByRole("button", { name: "Masquer le mot de passe" }).click()
+    await page
+      .getByRole("button", {
+        name: messages.password_hide({}, { locale: testLocale }),
+      })
+      .click()
     await browserExpect(passwordInput).toHaveAttribute("type", "password")
-    await page.getByRole("button", { name: "Créer mon compte" }).click()
-    await browserExpect(page).toHaveURL(`${origin}/verification-email`)
+    await page
+      .getByRole("button", {
+        name: messages.sign_up({}, { locale: testLocale }),
+      })
+      .click()
+    await browserExpect(page).toHaveURL(publicUrl("/verify-email"))
     await page.goto(await latestMailUrl())
     await browserExpect(
-      page.getByRole("heading", { name: "Adresse email confirmée" })
+      page.getByRole("heading", {
+        name: messages.verification_complete({}, { locale: testLocale }),
+      })
     ).toBeVisible()
-    await page.getByRole("link", { name: "Revenir à la connexion" }).click()
-    await page.getByLabel("Adresse email").fill("browser@example.test")
-    await page.getByLabel("Mot de passe", { exact: true }).fill(password)
-    await page.getByRole("button", { name: "Se connecter" }).click()
+    await page
+      .getByRole("link", {
+        name: messages.back_sign_in({}, { locale: testLocale }),
+      })
+      .click()
+    await page
+      .getByLabel(messages.email_label({}, { locale: testLocale }))
+      .fill("browser@example.test")
+    await page
+      .getByLabel(messages.password_label({}, { locale: testLocale }), {
+        exact: true,
+      })
+      .fill(password)
+    await page
+      .getByRole("button", {
+        name: messages.sign_in({}, { locale: testLocale }),
+      })
+      .click()
     await browserExpect(
-      page.getByRole("heading", { name: "Bonjour, Élodie" })
+      page.getByRole("heading", {
+        name: messages.welcome({ name: "Élodie" }, { locale: testLocale }),
+      })
     ).toBeVisible()
     await checkUsersPagination(page)
     await page.screenshot({
@@ -204,47 +310,75 @@ it("completes French signup, verification, reset and logout in a mobile browser"
         body: JSON.stringify({ code: "SERVICE_UNAVAILABLE" }),
       })
     )
-    await page.getByRole("button", { name: "Se déconnecter" }).click()
+    await page
+      .getByRole("button", {
+        name: messages.sign_out({}, { locale: testLocale }),
+      })
+      .click()
     await browserExpect(
-      page.getByRole("heading", { name: "Bonjour, Élodie" })
+      page.getByRole("heading", {
+        name: messages.welcome({ name: "Élodie" }, { locale: testLocale }),
+      })
     ).toBeVisible()
     await browserExpect(
       page.locator("[data-sonner-toast][data-type='error']")
     ).toHaveCount(1)
     await page.unroute("**/api/auth/sign-out")
-    await page.getByRole("button", { name: "Se déconnecter" }).click()
+    await page
+      .getByRole("button", {
+        name: messages.sign_out({}, { locale: testLocale }),
+      })
+      .click()
     await browserExpect(page).toHaveURL(
       (url) =>
         url.origin === origin &&
-        url.pathname === "/connexion" &&
+        url.pathname === localizeHref("/sign-in", { locale: testLocale }) &&
         (url.search === "" || url.searchParams.get("redirect") === "/")
     )
     await page.screenshot({
       path: "../../output/playwright/auth-connexion-mobile.png",
       fullPage: true,
     })
-    await page.getByRole("link", { name: "Mot de passe oublié ?" }).click()
-    await browserExpect(page).toHaveURL(`${origin}/mot-de-passe-oublie`)
+    await page
+      .getByRole("link", {
+        name: messages.forgot_password({}, { locale: testLocale }),
+      })
+      .click()
+    await browserExpect(page).toHaveURL(publicUrl("/forgot-password"))
     await browserExpect(
-      page.getByRole("heading", { name: "Retrouver votre accès" })
+      page.getByRole("heading", {
+        name: messages.forgot_title({}, { locale: testLocale }),
+      })
     ).toBeVisible()
-    await page.getByLabel("Adresse email").fill("browser@example.test")
-    await page.getByRole("button", { name: "Demander un lien" }).click()
-    await browserExpect(page.locator("main")).toContainText("Demande reçue")
+    await page
+      .getByLabel(messages.email_label({}, { locale: testLocale }))
+      .fill("browser@example.test")
+    await page
+      .getByRole("button", {
+        name: messages.send_reset({}, { locale: testLocale }),
+      })
+      .click()
+    await browserExpect(page.locator("main")).toContainText(
+      messages.email_request_received({}, { locale: testLocale })
+    )
     await page.goto(await latestMailUrl())
     await page
-      .getByLabel("Nouveau mot de passe", { exact: true })
+      .getByLabel(messages.new_password_label({}, { locale: testLocale }), {
+        exact: true,
+      })
       .fill("Browser-New-Password-2026!")
     await page
-      .getByLabel("Confirmer le mot de passe")
+      .getByLabel(messages.confirm_password_label({}, { locale: testLocale }))
       .fill("Browser-New-Password-2026!")
     await page
-      .getByRole("button", { name: "Enregistrer le mot de passe" })
+      .getByRole("button", {
+        name: messages.reset_submit({}, { locale: testLocale }),
+      })
       .click()
     await browserExpect(page).toHaveURL(
       (url) =>
         url.origin === origin &&
-        url.pathname === "/connexion" &&
+        url.pathname === localizeHref("/sign-in", { locale: testLocale }) &&
         (url.search === "" || url.searchParams.get("redirect") === "/")
     )
     const popoverColor = await page
@@ -256,13 +390,23 @@ it("completes French signup, verification, reset and logout in a mobile browser"
       "--normal-bg",
       popoverColor
     )
-    await page.getByLabel("Adresse email").fill("browser@example.test")
     await page
-      .getByLabel("Mot de passe", { exact: true })
+      .getByLabel(messages.email_label({}, { locale: testLocale }))
+      .fill("browser@example.test")
+    await page
+      .getByLabel(messages.password_label({}, { locale: testLocale }), {
+        exact: true,
+      })
       .fill("Browser-New-Password-2026!")
-    await page.getByRole("button", { name: "Se connecter" }).click()
+    await page
+      .getByRole("button", {
+        name: messages.sign_in({}, { locale: testLocale }),
+      })
+      .click()
     await browserExpect(
-      page.getByRole("heading", { name: "Bonjour, Élodie" })
+      page.getByRole("heading", {
+        name: messages.welcome({ name: "Élodie" }, { locale: testLocale }),
+      })
     ).toBeVisible()
     expect(
       await page.evaluate(

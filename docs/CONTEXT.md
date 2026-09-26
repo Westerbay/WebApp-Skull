@@ -1,55 +1,61 @@
-# Contexte
+# Context
 
-## État actuel
+## Current state
 
-L’application propose inscription, vérification d’adresse, connexion explicite,
-récupération de mot de passe et déconnexion. Les champs de mot de passe peuvent être affichés ; leur création dispose d’une jauge locale indicative. Better Auth possède les endpoints
-`/api/auth/*` ; NestJS protège `GET /api/me`. PostgreSQL stocke l’authentification
-et les compteurs de limitation Better Auth. Les controllers Nest possèdent leur
-propre quota en mémoire par processus ; les sondes de santé en sont exclues.
+The application supports signup, email verification, explicit signin, password
+reset and signout. Password visibility and a local strength meter are available.
+Better Auth owns `/api/auth/*`; NestJS protects `/api/me` and `/api/users`.
+PostgreSQL stores auth data and Better Auth rate limits. Nest controllers have
+separate in-memory quotas; health probes are exempt.
 
-Les écrans et les emails utilisent le catalogue français Paraglide. Les routes
-visibles sont françaises, sans préfixe de langue. Les emails sont capturés par
-Mailpit en développement ; aucun fournisseur réel n’est présupposé.
+The source repository uses English code, documentation, interface messages and
+internal routes. French documentation, messages and public pathnames live in
+`template/locales/fr`. Generated projects contain only the selected message
+catalogs and one documentation language. Single-language projects have no locale
+prefix; multilingual projects prefix every public route with its locale.
+Paraglide localizes URLs at the router boundary and isolates SSR locale state.
+Three profiles cover distribution: `en`, `fr` and `multilingual` (EN + FR).
+Documentation follows the profile, using English for the multilingual variant.
+Generation checks message and route coverage before creating output. CI covers
+all three profiles, with E2E in each active language.
 
-Les migrations et fixtures passent par une garde de cible locale alignée sur la
-configuration Compose. Deux comptes auth de référence et 60 profils Faker aux IDs réservés peuvent être recréés
-de façon déterministe et atomique. L’API journalise les
-requêtes avec Pino, expose une readiness PostgreSQL bornée et ferme ses
-ressources à l’arrêt. La CI rejoue contrôles rapides, intégration et E2E dans
-des environnements distincts et recherche les secrets dans tout l’historique Git.
+Local email is captured by Mailpit. Guarded migrations and seeds refuse remote
+or unverified databases. Two reference accounts and 60 deterministic Faker
+profiles demonstrate cursor pagination over four dashboard pages. Logs are
+sanitized; PostgreSQL readiness is bounded and resources close on shutdown.
+CI checks quality, secrets, real integration and mobile E2E in owned environments.
 
-L’accueil connecté démontre la pagination par curseur avec une liste des utilisateurs
-dans une TanStack Table et les actions Précédent/Suivant. Les contrats, la construction
-des pages serveur et le hook `useInfiniteQuery` sont réutilisables. Le domaine métier
-au-delà de cet exemple reste à définir. Les contraintes partagées, la taille
-d’affichage et les réglages Faker ont leurs modules propriétaires ; le tableau
-sépare son orchestration de ses composants de rendu.
+The connected dashboard demonstrates TanStack Table pagination. Contracts,
+server page construction and the `useInfiniteQuery` wrapper are reusable.
+Configuration stays with its owner; table orchestration and rendering are split.
+The business domain beyond this example remains undefined.
 
-Le projet est distribué sous [licence MIT](../LICENSE), avec Mathis Dubuisson
-comme titulaire du copyright. La citation du dépôt lors d’une réutilisation
-comme base est encouragée, mais reste facultative.
+The project uses the [MIT license](../LICENSE), copyright Mathis Dubuisson.
+Attribution when reusing the template is encouraged but optional.
 
-La stack locale optionnelle Alloy → Loki → Grafana collecte les logs JSON API,
-avec labels de service/environnement et rétention de sept jours. Elle possède
-son propre Compose et ses volumes. Un test isolé exerce le flux HTTP jusqu’à
-Grafana sans base ni fichier d’environnement. Un fragment Compose de collecte
-Docker prépare staging/prod avec sélection explicite par environnement, labels
-stables et connexion Loki paramétrable. Son flux est testé localement dans des
-conteneurs éphémères ; aucun staging/prod n’est déployé.
+The optional Alloy → Loki → Grafana stack collects API JSON logs with stable
+service/environment labels and seven-day retention. Its Compose and volumes
+are independent of the application database. An isolated test verifies real
+HTTP logs through Grafana. Docker collection for staging/production is prepared;
+those deployments remain undefined.
 
-## Carte documentaire
+## Documentation map
 
-- [PRODUCT.md](PRODUCT.md) : capacités et règles utilisateur.
-- [ARCHITECTURE.md](ARCHITECTURE.md) : frontières et flux techniques.
-- [DESIGN.md](DESIGN.md) : conventions d’interface.
-- [REUSE.md](REUSE.md) : catalogue des éléments partagés.
-- [DEVELOPMENT.md](DEVELOPMENT.md) : environnement et commandes.
+- [PRODUCT.md](PRODUCT.md): user capabilities and rules.
+- [ARCHITECTURE.md](ARCHITECTURE.md): boundaries and flows.
+- [DESIGN.md](DESIGN.md): interface conventions.
+- [REUSE.md](REUSE.md): shared capabilities.
+- [DEVELOPMENT.md](DEVELOPMENT.md): commands and local workflows.
 
-## Limite actuelle
+## Current limitations
 
-Le suivi des envois email est local au processus, sans file durable ni garantie
-de livraison après un crash. Aucun environnement de staging ou fournisseur SMTP
-réel n’est exercé par la CI. Le rate limit Nest n’est pas partagé entre les
-instances ; un déploiement multi-instance exigera un adaptateur de stockage
-commun.
+Email tracking is process-local, without a durable queue or delivery guarantee
+after a crash. CI does not exercise real staging SMTP. Nest rate limits are not
+shared between replicas. Localization covers interface/email messages and page
+pathnames; no translated-content domain is included.
+A normal Git clone downloads the source language packs; generated archives
+contain only the requested languages and no repository history.
+
+The standalone Docker collector integration uses explicit environment/opt-in
+labels and a configurable Loki endpoint, optional token file and tenant. Its
+flow is verified with owned local containers; staging/production are not deployed.
