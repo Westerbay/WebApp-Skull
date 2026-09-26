@@ -22,7 +22,9 @@ des environnements distincts et recherche les secrets dans tout l’historique G
 L’accueil connecté démontre la pagination par curseur avec une liste des utilisateurs
 dans une TanStack Table et les actions Précédent/Suivant. Les contrats, la construction
 des pages serveur et le hook `useInfiniteQuery` sont réutilisables. Le domaine métier
-au-delà de cet exemple reste à définir.
+au-delà de cet exemple reste à définir. Les contraintes partagées, la taille
+d’affichage et les réglages Faker ont leurs modules propriétaires ; le tableau
+sépare son orchestration de ses composants de rendu.
 
 ## Carte documentaire
 

@@ -7,9 +7,9 @@ import {
 } from "@nestjs/swagger"
 import { ZodResponse } from "nestjs-zod"
 import { ApiErrorDto } from "../../infrastructure/http/api-error.dto.js"
-import { LIST_USERS } from "./list-users.js"
+import { LIST_USERS } from "./users.types.js"
 import { UsersPageDto, UsersQueryDto } from "./users.dto.js"
-import type { ListUsers } from "./list-users.js"
+import type { ListUsers } from "./users.types.js"
 
 @Controller("api/users")
 export class UsersController {

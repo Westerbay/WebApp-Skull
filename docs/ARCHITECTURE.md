@@ -93,13 +93,23 @@ serveur retire la ligne de contrôle et renvoie `{ items, nextCursor }`, avec
 il n’exige pas que cette ligne existe encore. La pagination ne fige pas un
 snapshot : des insertions avant le curseur nécessitent un rechargement.
 Le lecteur est injecté dans la composition API ; la génération OpenAPI injecte
-un lecteur inerte sans connexion DB.
+un lecteur inerte sans connexion DB. Le token d’injection et le type du lecteur
+restent dans `users.types.ts`, sans import runtime de l’adaptateur Drizzle.
+
+Les bornes et la valeur par défaut appartiennent à
+`packages/contracts/src/pagination.constraints.ts`. La taille d’affichage est
+choisie dans `features/users/users.config.ts` et passée à la requête ainsi
+qu’à TanStack Table ; elle reprend par défaut la valeur du contrat. Les réglages
+Faker sont possédés par `seeds/auth/fixtures.config.ts`.
 
 Le hook transverse configure `initialPageParam` et `getNextPageParam` pour
 `useInfiniteQuery` et conserve les options TanStack Query. La feature utilisateurs
 possède la clé privée incluant la taille de page, la requête OpenAPI et son signal
 d’annulation. TanStack Table affiche une seule page en pagination manuelle ;
-Suivant charge si nécessaire et Précédent utilise le cache. Les changements
+Le hook `useUsersTable` possède la navigation, les handlers et le modèle de table ;
+les composants séparent composition, rendu des lignes, navigation et feedback.
+Suivant charge si nécessaire et Précédent utilise le cache. Réessayer après une
+erreur de page suivante charge cette page et y navigue après succès. Les changements
 d’identité purgent ces pages avec les autres queries privées.
 
 ## Santé

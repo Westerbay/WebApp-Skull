@@ -110,6 +110,17 @@ L’exemple complet est dans `apps/api/src/modules/users` et
 `cursorInfiniteQueryOptions` peuvent aussi servir au préchargement et aux tests.
 Aucun total ni accès direct à une page arbitraire n’est calculé.
 
+Les limites et le défaut de l’API se règlent dans
+`packages/contracts/src/pagination.constraints.ts`. La taille d’affichage du
+dashboard se règle dans `apps/web/src/features/users/users.config.ts` ; elle
+alimente le hook de requête et le modèle TanStack Table. Garder cette taille
+dans les bornes du contrat. Le nombre de profils, la graine Faker, le domaine
+email et la fréquence des adresses non vérifiées se règlent dans
+`apps/api/src/seeds/auth/fixtures.config.ts`. Une modification de graine ou de
+domaine change la signature des fixtures ; une réduction du nombre de profils
+laisse des anciennes réservations hors de la sélection : nettoyer les anciennes fixtures
+avec leur configuration actuelle avant de la modifier, puis relancer le seed.
+
 ## Emails locaux
 
 Mailpit écoute par défaut en SMTP sur `1025` et son interface sur

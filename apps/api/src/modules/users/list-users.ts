@@ -3,18 +3,15 @@ import { schema } from "@workspace/database"
 import { createCursorPage } from "../../infrastructure/pagination/cursor-page.js"
 import type { Database } from "@workspace/database"
 import type { CurrentUser } from "@workspace/contracts/identity"
-import type {
-  CursorPage,
-  CursorPagination,
-} from "@workspace/contracts/pagination"
+import type { CursorPagination } from "@workspace/contracts/pagination"
+import type { ListUsers } from "./users.types.js"
 
-export const LIST_USERS = Symbol("LIST_USERS")
-export type ListUsers = (
-  query: CursorPagination
-) => Promise<CursorPage<CurrentUser>>
+function getUserCursor(user: CurrentUser) {
+  return user.id
+}
 
 export function createListUsers(database: Database): ListUsers {
-  return async ({ cursor, limit }) => {
+  async function listUsers({ cursor, limit }: CursorPagination) {
     const rows = await database
       .select({
         id: schema.user.id,
@@ -26,6 +23,8 @@ export function createListUsers(database: Database): ListUsers {
       .where(cursor === undefined ? undefined : gt(schema.user.id, cursor))
       .orderBy(asc(schema.user.id))
       .limit(limit + 1)
-    return createCursorPage(rows, limit, (user) => user.id)
+    return createCursorPage(rows, limit, getUserCursor)
   }
+
+  return listUsers
 }

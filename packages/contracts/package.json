@@ -21,6 +21,7 @@
     "./common": "./src/common.ts",
     "./identity": "./src/identity.ts",
     "./pagination": "./src/pagination.ts",
-    "./users": "./src/users.ts"
+    "./users": "./src/users.ts",
+    "./pagination/constraints": "./src/pagination.constraints.ts"
   }
 }

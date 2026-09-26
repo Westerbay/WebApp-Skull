@@ -103,6 +103,8 @@ Le champ auth-input possède aussi le bouton d’affichage du mot de passe, l’
 
 ## Pagination
 
+- `packages/contracts/src/pagination.constraints.ts` : bornes de `cursor`/`limit`
+  et taille par défaut du contrat, partagées entre schéma et consommateurs.
 - `packages/contracts/src/pagination.ts` : paramètres bornés `cursor`/`limit`,
   factory `cursorPageSchema` et type `CursorPage<T>` pour `{ items, nextCursor }`.
 - `apps/api/src/infrastructure/pagination/cursor-page.ts` : construction d’une

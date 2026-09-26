@@ -1,11 +1,12 @@
 import { Faker, en, fr } from "@faker-js/faker"
+import { authFixturesConfig } from "./fixtures.config.js"
 import type { AuthFixture } from "./scenario.js"
 
 export function createDemoAuthFixtures(password: string): Array<AuthFixture> {
   const faker = new Faker({ locale: [fr, en] })
-  faker.seed(20260926)
-  return Array.from({ length: 60 }, (_, index) => {
-    const number = String(index + 1).padStart(3, "0")
+  faker.seed(authFixturesConfig.randomSeed)
+  return Array.from({ length: authFixturesConfig.demoCount }, (_, index) => {
+    const number = String(index + 1).padStart(authFixturesConfig.idDigits, "0")
     const firstName = faker.person.firstName()
     const lastName = faker.person.lastName()
     return {
@@ -13,10 +14,14 @@ export function createDemoAuthFixtures(password: string): Array<AuthFixture> {
       accountId: `seed-auth-account-demo-${number}`,
       name: `${firstName} ${lastName}`,
       email: faker.internet
-        .email({ firstName, lastName, provider: "example.test" })
+        .email({
+          firstName,
+          lastName,
+          provider: authFixturesConfig.emailDomain,
+        })
         .replace("@", `.${number}@`)
         .toLowerCase(),
-      emailVerified: index % 5 !== 0,
+      emailVerified: index % authFixturesConfig.unverifiedEvery !== 0,
       password,
     }
   })

@@ -1,19 +1,30 @@
+import { cursorPaginationConstraints } from "@workspace/contracts/pagination/constraints"
 import { describe, expect, it } from "vitest"
 import { cursorPaginationSchema } from "@workspace/contracts/pagination"
 import { createCursorPage } from "../../../../src/infrastructure/pagination/cursor-page.js"
 
 it("bounds pagination parameters and rejects empty cursors", () => {
-  expect(cursorPaginationSchema.parse({})).toEqual({ limit: 20 })
+  expect(cursorPaginationSchema.parse({})).toEqual({
+    limit: cursorPaginationConstraints.defaultLimit,
+  })
   expect(cursorPaginationSchema.parse({ limit: "2", cursor: "abc" })).toEqual({
     limit: 2,
     cursor: "abc",
   })
-  for (const limit of [0, 101, 1.5, "no", ""]) {
+  for (const limit of [
+    cursorPaginationConstraints.minLimit - 1,
+    cursorPaginationConstraints.maxLimit + 1,
+    1.5,
+    "no",
+    "",
+  ]) {
     expect(cursorPaginationSchema.safeParse({ limit }).success).toBe(false)
   }
   expect(cursorPaginationSchema.safeParse({ cursor: "" }).success).toBe(false)
   expect(
-    cursorPaginationSchema.safeParse({ cursor: "x".repeat(257) }).success
+    cursorPaginationSchema.safeParse({
+      cursor: "x".repeat(cursorPaginationConstraints.maxCursorLength + 1),
+    }).success
   ).toBe(false)
 })
 

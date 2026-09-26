@@ -54,3 +54,9 @@ au clavier. La navigation Précédent/Suivant annonce la page courante et désac
 les actions indisponibles ou pendant une requête. Une erreur laisse les lignes
 déjà chargées visibles et propose Réessayer ; le chargement et la liste vide ont
 un libellé explicite. Les textes restent dans le catalogue français.
+
+La feature sépare l’orchestration dans un hook, les colonnes dans leur module
+et les composants de rendu, de navigation et de feedback. Les handlers sont
+nommés avant le JSX et passés directement aux propriétés d’événement. Les
+fonctions de rendu des cellules sont également définies hors de la configuration
+des colonnes. Le typage utilise les génériques et annotations sans assertion.

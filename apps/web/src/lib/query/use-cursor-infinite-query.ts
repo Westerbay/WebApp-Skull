@@ -20,14 +20,24 @@ export type CursorQueryOptions<
   "initialPageParam" | "getNextPageParam"
 >
 
+function getNextPageCursor<T>(page: CursorPage<T>): string | undefined {
+  return page.nextCursor ?? undefined
+}
+
 export function cursorInfiniteQueryOptions<
   T,
   TData = InfiniteData<CursorPage<T>, string | undefined>,
 >(options: CursorQueryOptions<T, TData>) {
-  return infiniteQueryOptions({
+  return infiniteQueryOptions<
+    CursorPage<T>,
+    Error,
+    TData,
+    QueryKey,
+    string | undefined
+  >({
     ...options,
-    initialPageParam: undefined as string | undefined,
-    getNextPageParam: (page: CursorPage<T>) => page.nextCursor ?? undefined,
+    initialPageParam: undefined,
+    getNextPageParam: getNextPageCursor<T>,
   })
 }
 

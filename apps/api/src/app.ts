@@ -29,13 +29,13 @@ import {
 } from "./modules/health/readiness.js"
 import { IdentityController } from "./modules/identity/identity.controller.js"
 import { UsersController } from "./modules/users/users.controller.js"
-import { LIST_USERS } from "./modules/users/list-users.js"
+import { LIST_USERS } from "./modules/users/users.types.js"
 import type { INestApplication } from "@nestjs/common"
 import type { RequestHandler } from "express"
 import type { Logger } from "pino"
 import type { GetSession } from "./infrastructure/auth/session.js"
 
-import type { ListUsers } from "./modules/users/list-users.js"
+import type { ListUsers } from "./modules/users/users.types.js"
 
 export type ApiDependencies = Readonly<{
   authHandler: RequestHandler
