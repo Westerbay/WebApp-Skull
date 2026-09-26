@@ -3,7 +3,7 @@
 ## État actuel
 
 L’application propose inscription, vérification d’adresse, connexion explicite,
-récupération de mot de passe et déconnexion. Better Auth possède les endpoints
+récupération de mot de passe et déconnexion. Les champs de mot de passe peuvent être affichés ; leur création dispose d’une jauge locale indicative. Better Auth possède les endpoints
 `/api/auth/*` ; NestJS protège `GET /api/me`. PostgreSQL stocke l’authentification
 et les compteurs de limitation Better Auth. Les controllers Nest possèdent leur
 propre quota en mémoire par processus ; les sondes de santé en sont exclues.

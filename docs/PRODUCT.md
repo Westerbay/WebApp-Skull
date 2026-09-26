@@ -26,3 +26,5 @@ un nouveau lien de vérification ou un changement de mot de passe.
 
 Aucun domaine métier supplémentaire, rôles, OAuth, MFA, stockage de fichiers,
 file de jobs durable ou fournisseur email imposé.
+
+Le mot de passe peut être affiché ou masqué dans chaque champ. Une jauge indicative accompagne sa création à l’inscription et au reset ; elle ne change pas les critères d’acceptation.

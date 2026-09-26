@@ -6,7 +6,9 @@ const root = resolve(import.meta.dirname, "..")
 const envFile = resolve(root, ".env")
 
 if (!existsSync(envFile)) {
-  throw new Error("Missing .env: copy .env.example before running pnpm setup")
+  throw new Error(
+    "Missing .env: copy .env.example before running pnpm run setup"
+  )
 }
 
 function run(command, arguments_) {

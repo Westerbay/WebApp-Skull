@@ -185,3 +185,5 @@ SQL : l’adaptateur Drizzle 1.7.4 utilise un sous-select d’identifiants dont 
 prédicat de compteur n’est pas réévalué après attente du verrou. Le test de
 requêtes parallèles protège ce correctif. Better Auth conserve les règles, la
 normalisation IP et la réponse 429 ; les entrées expirées sont purgées.
+
+La robustesse est calculée localement par zxcvbn-ts dans la feature auth web, avec les dictionnaires commun, anglais et français. Aucun mot de passe n’est envoyé à un service d’évaluation. Le score reste indicatif et ne participe pas à la validation.

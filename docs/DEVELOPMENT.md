@@ -51,7 +51,7 @@ le retrait des anciennes technologies et les versions des images/actions.
 
 ## Migrations et fixtures
 
-`pnpm setup` exige un `.env` local, démarre les services Compose puis applique
+`pnpm run setup` exige un `.env` local, démarre les services Compose puis applique
 les migrations. Avant de charger le client DB, le CLI exige `APP_ENV=development`,
 un hôte loopback et une URL concordant avec les variables Compose `POSTGRES_DB`,
 `POSTGRES_USER`, `POSTGRES_PASSWORD` et `POSTGRES_PORT` (valeurs de

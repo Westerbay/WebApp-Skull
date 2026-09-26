@@ -35,7 +35,6 @@
   "new_password_label": "Nouveau mot de passe",
   "confirm_password_label": "Confirmer le mot de passe",
   "invalid_email": "Saisissez une adresse email valide.",
-  "password_length": "Utilisez entre {min} et {max} caractères.",
   "name_length": "Saisissez au moins {min} caractères.",
   "password_mismatch": "Les mots de passe ne correspondent pas.",
   "invalid_credentials": "Adresse email ou mot de passe incorrect.",
@@ -67,5 +66,15 @@
   "verify_action": "Confirmer mon adresse email",
   "verify_description": "Confirmez cette adresse pour terminer la création de votre compte.",
   "page_error_title": "Impossible d’afficher cette page",
-  "retry": "Réessayer"
+  "retry": "Réessayer",
+  "password_min_length": "Utilisez au moins {min} caractères.",
+  "password_max_length": "Utilisez au maximum {max} caractères.",
+  "password_show": "Afficher le mot de passe",
+  "password_hide": "Masquer le mot de passe",
+  "password_strength_label": "Robustesse du mot de passe",
+  "password_strength_0": "Très faible",
+  "password_strength_1": "Faible",
+  "password_strength_2": "Moyenne",
+  "password_strength_3": "Forte",
+  "password_strength_4": "Très forte"
 }
