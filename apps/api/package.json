@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "type": "module",
   "private": true,
+  "license": "MIT",
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "db:seed": "pnpm --filter @workspace/api^... build && pnpm build && node --env-file-if-exists=../../.env dist/cli/seed.js",
