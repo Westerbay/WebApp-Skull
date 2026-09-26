@@ -98,3 +98,5 @@ source et sa règle d'usage.
   reset et déconnexion ; ne pas importer une route depuis un hook.
 - `apps/web/src/lib/auth/redirect.ts` : `getSafeInternalRedirect`, validation restrictive d’un retour interne.
 - `apps/web/src/lib/seo/private-head.ts` : métadonnées auth/privé sans indexation.
+
+Le champ auth-input possède aussi le bouton d’affichage du mot de passe, l’aide et l’option showStrength pour les champs de création. Le composant password-strength est partagé par l’inscription et le reset.

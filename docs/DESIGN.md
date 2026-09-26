@@ -37,3 +37,5 @@ Les formulaires restent désactivés jusqu’à l’hydratation React et déclar
 `method="post"` en défense : aucune soumission HTML précoce ne doit placer un
 mot de passe dans l’URL. Le header observe le store Better Auth pour suivre
 les transitions de session indépendamment de la purge du cache privé.
+
+Les champs de mot de passe disposent d’un bouton œil accessible au clavier. L’aide affiche seulement le minimum requis ; le maximum apparaît en erreur après dépassement. À l’inscription et au reset, une jauge avec libellé accessible indique la robustesse sans bloquer la soumission.

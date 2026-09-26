@@ -33,7 +33,7 @@ Prérequis : Node.js 24, pnpm 12 et Docker.
 ```bash
 pnpm install --frozen-lockfile
 cp .env.example .env
-pnpm setup
+pnpm run setup
 pnpm dev
 ```
 
@@ -68,7 +68,7 @@ pnpm dev:infra       # démarre PostgreSQL et Mailpit
 pnpm dev:down        # arrête les services sans supprimer leurs données
 ```
 
-`pnpm setup` démarre PostgreSQL et applique les migrations seulement après
+`pnpm run setup` démarre PostgreSQL et applique les migrations seulement après
 validation de la cible locale. Il ne crée aucune donnée applicative. Le seed
 auth est séparé, explicite et réservé aux cibles de développement ou de test
 vérifiées. Les emails locaux sont consultables dans Mailpit.
