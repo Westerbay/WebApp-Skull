@@ -100,3 +100,19 @@ source et sa règle d'usage.
 - `apps/web/src/lib/seo/private-head.ts` : métadonnées auth/privé sans indexation.
 
 Le champ auth-input possède aussi le bouton d’affichage du mot de passe, l’aide et l’option showStrength pour les champs de création. Le composant password-strength est partagé par l’inscription et le reset.
+
+## Pagination
+
+- `packages/contracts/src/pagination.constraints.ts` : bornes de `cursor`/`limit`
+  et taille par défaut du contrat, partagées entre schéma et consommateurs.
+- `packages/contracts/src/pagination.ts` : paramètres bornés `cursor`/`limit`,
+  factory `cursorPageSchema` et type `CursorPage<T>` pour `{ items, nextCursor }`.
+- `apps/api/src/infrastructure/pagination/cursor-page.ts` : construction d’une
+  page à partir de `limit + 1` lignes ; fournir le curseur du dernier élément
+  visible et garder le même ordre unique dans la requête.
+- `apps/web/src/lib/query/use-cursor-infinite-query.ts` : hook
+  `useCursorInfiniteQuery` et factory `cursorInfiniteQueryOptions` ; fournir
+  clé et queryFn, transmettre le signal d’annulation, inclure filtres et taille
+  dans la clé et utiliser le préfixe privé pour les données liées à une session.
+  Les paramètres de curseur sont configurés automatiquement ; les autres options
+  TanStack Query restent disponibles.

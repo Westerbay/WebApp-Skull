@@ -28,14 +28,19 @@ import {
   READINESS_TIMEOUT,
 } from "./modules/health/readiness.js"
 import { IdentityController } from "./modules/identity/identity.controller.js"
+import { UsersController } from "./modules/users/users.controller.js"
+import { LIST_USERS } from "./modules/users/users.types.js"
 import type { INestApplication } from "@nestjs/common"
 import type { RequestHandler } from "express"
 import type { Logger } from "pino"
 import type { GetSession } from "./infrastructure/auth/session.js"
 
+import type { ListUsers } from "./modules/users/users.types.js"
+
 export type ApiDependencies = Readonly<{
   authHandler: RequestHandler
   getSession: GetSession
+  listUsers: ListUsers
   databaseReady: () => Promise<void>
   allowedOrigin?: string
   readinessTimeoutMs?: number
@@ -50,8 +55,9 @@ export async function createApiApp(
 
   @Module({
     imports: [httpLogging.module, ThrottlerModule.forRoot(apiThrottlerOptions)],
-    controllers: [HealthController, IdentityController],
+    controllers: [HealthController, IdentityController, UsersController],
     providers: [
+      { provide: LIST_USERS, useValue: dependencies.listUsers },
       { provide: AUTH_SESSION_READER, useValue: dependencies.getSession },
       { provide: DATABASE_READINESS, useValue: dependencies.databaseReady },
       {

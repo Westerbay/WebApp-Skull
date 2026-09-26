@@ -52,6 +52,22 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  "/api/users": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get: operations["UsersController_list"]
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
 }
 export type webhooks = Record<string, never>
 export interface components {
@@ -72,6 +88,16 @@ export interface components {
       /** Format: email */
       email: string
       emailVerified: boolean
+    }
+    UsersPageDto_Output: {
+      items: {
+        id: string
+        name: string
+        /** Format: email */
+        email: string
+        emailVerified: boolean
+      }[]
+      nextCursor: string | null
     }
   }
   responses: never
@@ -163,6 +189,55 @@ export interface operations {
       }
       /** @description Too many requests */
       429: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["ApiErrorDto"]
+        }
+      }
+    }
+  }
+  UsersController_list: {
+    parameters: {
+      query?: {
+        cursor?: string
+        limit?: number
+      }
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["UsersPageDto_Output"]
+        }
+      }
+      /** @description Invalid pagination parameters */
+      400: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["ApiErrorDto"]
+        }
+      }
+      /** @description Authentication required */
+      401: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["ApiErrorDto"]
+        }
+      }
+      /** @description Verified email required */
+      403: {
         headers: {
           [name: string]: unknown
         }

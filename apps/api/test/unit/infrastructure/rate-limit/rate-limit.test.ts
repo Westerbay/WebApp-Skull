@@ -27,6 +27,7 @@ async function createRateLimitTestApp(
   const app = await createApiApp({
     authHandler,
     getSession: () => Promise.resolve(authenticatedSession),
+    listUsers: async () => ({ items: [], nextCursor: null }),
     databaseReady: () => Promise.resolve(),
   })
   openApps.add(app)

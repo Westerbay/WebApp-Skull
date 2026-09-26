@@ -3,6 +3,8 @@ import { setTimeout as delay } from "node:timers/promises"
 import { expect as browserExpect, chromium } from "@playwright/test"
 import { expect, it } from "vitest"
 import { schema } from "@workspace/database"
+import { usersTableConfig } from "../../../web/src/features/users/users.config.js"
+import { AUTH_FIXTURES } from "../../src/seeds/auth/scenario.js"
 import {
   api,
   database,
@@ -11,6 +13,101 @@ import {
   password,
   webPort,
 } from "../support/auth.harness.js"
+import type { Page, Route } from "@playwright/test"
+
+async function checkUsersPagination(page: Page) {
+  const pageSize = usersTableConfig.pageSize
+  const totalUsers = AUTH_FIXTURES.length + 1
+  const lastPage = Math.ceil(totalUsers / pageSize)
+  const lastPageSize = totalUsers % pageSize || pageSize
+  const table = page.getByRole("table", { name: "Utilisateurs" })
+  let rejectNextPage = true
+  let nextPageRequests = 0
+
+  async function handleUsersRequest(route: Route) {
+    const url = new URL(route.request().url())
+    if (url.searchParams.has("cursor")) {
+      nextPageRequests += 1
+      if (rejectNextPage) {
+        rejectNextPage = false
+        await route.fulfill({
+          status: 503,
+          contentType: "application/json",
+          body: JSON.stringify({ code: "SERVICE_UNAVAILABLE" }),
+        })
+        return
+      }
+    }
+    await route.continue()
+  }
+
+  await browserExpect(table).toBeVisible()
+  await browserExpect(table.locator("tbody tr")).toHaveCount(pageSize)
+  const firstPage = await table.locator("tbody").textContent()
+  await browserExpect(
+    page.getByRole("button", { name: "Précédent" })
+  ).toBeDisabled()
+  await page.route("**/api/users?*", handleUsersRequest)
+  try {
+    await page.getByRole("button", { name: "Suivant" }).click()
+    await browserExpect(page.getByRole("alert")).toContainText(
+      "Impossible de charger les utilisateurs."
+    )
+    expect(await table.locator("tbody").textContent()).toBe(firstPage)
+    await page.getByRole("button", { name: "Réessayer" }).click()
+    await browserExpect(
+      page.getByRole("status").filter({ hasText: "Page 2" })
+    ).toBeVisible()
+    await browserExpect(page.getByRole("alert")).toHaveCount(0)
+    expect(await table.locator("tbody").textContent()).not.toBe(firstPage)
+    const requestsAfterSecondPage = nextPageRequests
+    await page.getByRole("button", { name: "Précédent" }).click()
+    await browserExpect(
+      page.getByRole("status").filter({ hasText: "Page 1" })
+    ).toBeVisible()
+    expect(await table.locator("tbody").textContent()).toBe(firstPage)
+    expect(nextPageRequests).toBe(requestsAfterSecondPage)
+    await page.getByRole("button", { name: "Suivant" }).click()
+    await browserExpect(
+      page.getByRole("status").filter({ hasText: "Page 2" })
+    ).toBeVisible()
+    expect(nextPageRequests).toBe(requestsAfterSecondPage)
+    let nextUnvisitedPage = 3
+    if (lastPage >= nextUnvisitedPage) {
+      rejectNextPage = true
+      await page.getByRole("button", { name: "Suivant" }).click()
+      await browserExpect(page.getByRole("alert")).toContainText(
+        "Impossible de charger les utilisateurs."
+      )
+      await page.getByRole("button", { name: "Précédent" }).click()
+      await browserExpect(
+        page.getByRole("status").filter({ hasText: "Page 1" })
+      ).toBeVisible()
+      await page.getByRole("button", { name: "Réessayer" }).click()
+      await browserExpect(
+        page.getByRole("status").filter({ hasText: "Page 3" })
+      ).toBeVisible()
+      await browserExpect(page.getByRole("alert")).toHaveCount(0)
+      nextUnvisitedPage += 1
+    }
+    for (
+      let pageNumber = nextUnvisitedPage;
+      pageNumber <= lastPage;
+      pageNumber += 1
+    ) {
+      await page.getByRole("button", { name: "Suivant" }).click()
+      await browserExpect(
+        page.getByRole("status").filter({ hasText: `Page ${pageNumber}` })
+      ).toBeVisible()
+    }
+    await browserExpect(table.locator("tbody tr")).toHaveCount(lastPageSize)
+    await browserExpect(
+      page.getByRole("button", { name: "Suivant" })
+    ).toBeDisabled()
+  } finally {
+    await page.unroute("**/api/users?*", handleUsersRequest)
+  }
+}
 
 it("completes French signup, verification, reset and logout in a mobile browser", async () => {
   await database.db
@@ -81,6 +178,7 @@ it("completes French signup, verification, reset and logout in a mobile browser"
     await browserExpect(
       page.getByRole("heading", { name: "Bonjour, Élodie" })
     ).toBeVisible()
+    await checkUsersPagination(page)
     await page.screenshot({
       path: "../../output/playwright/auth-home-mobile.png",
       fullPage: true,

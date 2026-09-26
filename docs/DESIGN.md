@@ -44,3 +44,19 @@ Privilégier les balises HTML natives correspondant au contenu et aux actions.
 La jauge de robustesse utilise un élément `meter` natif ; ses segments visuels
 sont décoratifs et masqués aux technologies d’assistance. Les `div` restent
 adaptées aux conteneurs de mise en page sans signification propre.
+
+## Tableau des utilisateurs
+
+Le dashboard conserve le message d’accueil et affiche une table HTML native
+pilotée par TanStack Table. Les colonnes ont des en-têtes et la table une légende.
+Sur mobile, seul le conteneur du tableau défile horizontalement ; il est accessible
+au clavier. La navigation Précédent/Suivant annonce la page courante et désactive
+les actions indisponibles ou pendant une requête. Une erreur laisse les lignes
+déjà chargées visibles et propose Réessayer ; le chargement et la liste vide ont
+un libellé explicite. Les textes restent dans le catalogue français.
+
+La feature sépare l’orchestration dans un hook, les colonnes dans leur module
+et les composants de rendu, de navigation et de feedback. Les handlers sont
+nommés avant le JSX et passés directement aux propriétés d’événement. Les
+fonctions de rendu des cellules sont également définies hors de la configuration
+des colonnes. Le typage utilise les génériques et annotations sans assertion.

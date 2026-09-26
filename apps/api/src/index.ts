@@ -6,6 +6,7 @@ import {
   createSmtpSender,
   getEmailConfig,
 } from "@workspace/email"
+import { createListUsers } from "./modules/users/list-users.js"
 import { createApiApp } from "./app.js"
 import { getEnv } from "./config/env.js"
 import { createAuth } from "./infrastructure/auth/auth.js"
@@ -51,6 +52,7 @@ const app = await createApiApp({
       },
     }
   },
+  listUsers: createListUsers(database.db),
   databaseReady: database.ready,
   allowedOrigin: env.WEB_URL,
   logger,

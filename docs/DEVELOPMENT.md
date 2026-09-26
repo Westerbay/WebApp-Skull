@@ -68,7 +68,12 @@ pnpm db:seed -- --scenario auth
 
 `DATABASE_FIXTURE_MODE=enabled` doit être présent. La commande recrée
 `verified@example.test` et `unverified@example.test` avec le mot de passe local
-public `Local-Only-Auth-2026!`. Elle supprime puis recrée tout compte reconnu par
+public `Local-Only-Auth-2026!`, ainsi que 60 profils français générés par Faker
+avec la graine `20260926`, le même mot de passe local et des emails uniques sous
+`example.test`. Ces 62 comptes permettent de parcourir quatre pages du dashboard.
+Les deux comptes de référence gardent leurs noms et identifiants historiques.
+Le hachage est séquentiel pour borner la consommation mémoire.
+Elle supprime puis recrée tout compte reconnu par
 sa signature afin de restaurer ses valeurs, ne crée aucune session durable
 et peut être relancée. Une adresse réservée occupée par un compte ne correspondant
 pas exactement à la fixture provoque un refus avant toute mutation.
@@ -81,12 +86,40 @@ une collision. Le hachage Better Auth est terminé avant que la transaction
 remplace les utilisateurs et comptes reconnus.
 
 Le nettoyage est volontaire, utilise la même garde et supprime uniquement ces
-deux adresses avec leurs dépendances auth et jetons de réinitialisation, dans
+62 comptes reconnus avec leurs dépendances auth et jetons de réinitialisation, dans
 une transaction :
 
 ```bash
 pnpm db:seed -- --scenario auth --clean
 ```
+
+## Ajouter une liste paginée
+
+1. Définir la réponse avec `cursorPageSchema(schema)` dans `packages/contracts`.
+2. Valider les paramètres avec `cursorPaginationSchema` dans un DTO Nest.
+3. Utiliser un ordre unique et stable, le même prédicat de curseur et une lecture
+   de `limit + 1` lignes ; appeler `createCursorPage(rows, limit, cursorOf)`.
+4. Régénérer OpenAPI avec `pnpm api:generate`.
+5. Appeler `useCursorInfiniteQuery` avec la clé de query (préfixe `private` pour
+   les données de session), la taille dans la clé, et une `queryFn` qui transmet
+   `pageParam` comme curseur et `signal` au client HTTP. Le hook garde les options
+   natives (`enabled`, `select`, `staleTime`, etc.).
+
+L’exemple complet est dans `apps/api/src/modules/users` et
+`apps/web/src/features/users`. Les options produites par
+`cursorInfiniteQueryOptions` peuvent aussi servir au préchargement et aux tests.
+Aucun total ni accès direct à une page arbitraire n’est calculé.
+
+Les limites et le défaut de l’API se règlent dans
+`packages/contracts/src/pagination.constraints.ts`. La taille d’affichage du
+dashboard se règle dans `apps/web/src/features/users/users.config.ts` ; elle
+alimente le hook de requête et le modèle TanStack Table. Garder cette taille
+dans les bornes du contrat. Le nombre de profils, la graine Faker, le domaine
+email et la fréquence des adresses non vérifiées se règlent dans
+`apps/api/src/seeds/auth/fixtures.config.ts`. Une modification de graine ou de
+domaine change la signature des fixtures ; une réduction du nombre de profils
+laisse des anciennes réservations hors de la sélection : nettoyer les anciennes fixtures
+avec leur configuration actuelle avant de la modifier, puis relancer le seed.
 
 ## Emails locaux
 

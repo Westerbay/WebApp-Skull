@@ -13,14 +13,18 @@ visibles sont françaises, sans préfixe de langue. Les emails sont capturés pa
 Mailpit en développement ; aucun fournisseur réel n’est présupposé.
 
 Les migrations et fixtures passent par une garde de cible locale alignée sur la
-configuration Compose. Deux comptes auth aux IDs réservés peuvent être recréés
+configuration Compose. Deux comptes auth de référence et 60 profils Faker aux IDs réservés peuvent être recréés
 de façon déterministe et atomique. L’API journalise les
 requêtes avec Pino, expose une readiness PostgreSQL bornée et ferme ses
 ressources à l’arrêt. La CI rejoue contrôles rapides, intégration et E2E dans
 des environnements distincts et recherche les secrets dans tout l’historique Git.
 
-Le domaine produit au-delà de l’authentification reste à définir. Ne pas ajouter
-une fonctionnalité de démonstration pour combler ce vide.
+L’accueil connecté démontre la pagination par curseur avec une liste des utilisateurs
+dans une TanStack Table et les actions Précédent/Suivant. Les contrats, la construction
+des pages serveur et le hook `useInfiniteQuery` sont réutilisables. Le domaine métier
+au-delà de cet exemple reste à définir. Les contraintes partagées, la taille
+d’affichage et les réglages Faker ont leurs modules propriétaires ; le tableau
+sépare son orchestration de ses composants de rendu.
 
 Le projet est distribué sous [licence MIT](../LICENSE), avec Mathis Dubuisson
 comme titulaire du copyright. La citation du dépôt lors d’une réutilisation
