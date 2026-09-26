@@ -57,6 +57,7 @@ export function SignUpForm() {
               <AuthInput
                 name={field.name}
                 label={password_label()}
+                showStrength
                 type="password"
                 autoComplete="new-password"
                 value={field.state.value}

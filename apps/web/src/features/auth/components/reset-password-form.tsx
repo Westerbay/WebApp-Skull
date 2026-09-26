@@ -28,6 +28,7 @@ export function ResetPasswordForm({ token }: { token: string }) {
               <AuthInput
                 name={field.name}
                 label={new_password_label()}
+                showStrength
                 type="password"
                 autoComplete="new-password"
                 value={field.state.value}

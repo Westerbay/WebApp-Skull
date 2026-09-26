@@ -1,7 +1,8 @@
 import { z } from "zod"
 import {
   invalid_email,
-  password_length,
+  password_min_length,
+  password_max_length,
   name_length,
   password_mismatch,
 } from "@workspace/i18n/messages"
@@ -9,14 +10,16 @@ import { authPasswordConstraints } from "@workspace/contracts/auth/constraints"
 import { authFormConstraints } from "./auth-form.constraints"
 
 export const emailSchema = z.object({ email: z.email(invalid_email()) })
-const passwordLengthMessage = password_length({
-  min: authPasswordConstraints.minLength,
-  max: authPasswordConstraints.maxLength,
-})
 const password = z
   .string()
-  .min(authPasswordConstraints.minLength, passwordLengthMessage)
-  .max(authPasswordConstraints.maxLength, passwordLengthMessage)
+  .min(
+    authPasswordConstraints.minLength,
+    password_min_length({ min: authPasswordConstraints.minLength })
+  )
+  .max(
+    authPasswordConstraints.maxLength,
+    password_max_length({ max: authPasswordConstraints.maxLength })
+  )
 export const signInSchema = emailSchema.extend({ password })
 export const signUpSchema = signInSchema.extend({
   name: z
