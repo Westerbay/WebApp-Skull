@@ -14,11 +14,10 @@ internal routes. French documentation, messages and public pathnames live in
 catalogs and one documentation language. Single-language projects have no locale
 prefix; multilingual projects prefix every public route with its locale.
 Paraglide localizes URLs at the router boundary and isolates SSR locale state.
-A declarative locale registry feeds generation, archives and CI profiles.
-Generation validates catalogs and routes before creating output. Required route
-parameters such as `:slug` retain their values through localization; translated
-content values remain a domain concern. CI covers each language and a combined
-multilingual project, with E2E in each selected language.
+Three profiles cover distribution: `en`, `fr` and `multilingual` (EN + FR).
+Documentation follows the profile, using English for the multilingual variant.
+Generation checks message and route coverage before creating output. CI covers
+all three profiles, with E2E in each active language.
 
 Local email is captured by Mailpit. Guarded migrations and seeds refuse remote
 or unverified databases. Two reference accounts and 60 deterministic Faker
@@ -52,8 +51,8 @@ those deployments remain undefined.
 
 Email tracking is process-local, without a durable queue or delivery guarantee
 after a crash. CI does not exercise real staging SMTP. Nest rate limits are not
-shared between replicas. Dynamic content slugs require future domain data keyed
-by stable content IDs; static pathname localization does not translate content.
+shared between replicas. Localization covers interface/email messages and page
+pathnames; no translated-content domain is included.
 A normal Git clone downloads the source language packs; generated archives
 contain only the requested languages and no repository history.
 

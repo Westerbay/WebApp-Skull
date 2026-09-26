@@ -220,54 +220,46 @@ recompile les messages. Conserver les règles de pluriel dans le catalogue.
 
 ## Profils linguistiques
 
-La génération crée les dossiers parents absents, mais refuse toujours un dossier
-de destination existant ; elle ne remplace jamais un projet déjà généré.
+Le dépôt de maintenance propose trois profils :
 
-Dans le dépôt source de maintenance, `pnpm template:create -- --locales fr
---docs-locale fr --output output/mon-app` génère un projet français uniquement.
-`--locales en,fr` prépare un projet multilingue ; la première langue est la
-langue par défaut. La documentation est choisie indépendamment des langues du
-produit. Les commandes de génération appartiennent au dépôt de maintenance et
-ne sont pas recopiées dans les projets générés.
+| Profil         | Interface et emails | Routes publiques               | Documentation |
+| -------------- | ------------------- | ------------------------------ | ------------- |
+| `en`           | Anglais             | `/sign-in`                     | Anglais       |
+| `fr`           | Français            | `/connexion`                   | Français      |
+| `multilingual` | Anglais + français  | `/en/sign-in`, `/fr/connexion` | Anglais       |
 
-Le registre `template/locales.json` déclare les langues disponibles, les chemins
-des catalogues et les dossiers de documentation facultatifs. Sans `--docs-locale`,
-la documentation suit la première langue si elle existe, sinon la langue source.
-Pour ajouter une langue au dépôt de maintenance, créer ses `messages.json` et
-`routes.json` sous `template/locales/de` puis déclarer leurs chemins dans le
-registre. Toutes les clés de messages (emails inclus), variables et règles de
-pluriel doivent être conservées. Le catalogue de routes couvre chaque route interne.
-La propriété `documentation` est facultative ; l’omettre garde la documentation
-source. Aucun changement du générateur ou du workflow n’est nécessaire.
+```bash
+pnpm template:create -- --profile en --output output/english-app
+pnpm template:create -- --profile fr --output output/mon-app
+pnpm template:create -- --profile multilingual --output output/bilingual-app
+pnpm template:check
+pnpm template:archives
+```
 
-`pnpm template:check` compile les profils avec Paraglide et vérifie les URL.
-La CI de distribution découvre toutes les langues du registre et un profil combiné ;
-elle exécute les contrôles, l’intégration et les E2E dans chaque langue sélectionnée.
-Les incohérences de clés, routes, paramètres ou documentation échouent avant création
-du dossier de sortie. La compilation et le typage valident les messages.
-Le workflow CI applicatif est copié tel quel, les tests de distribution restant
-dans le dépôt de maintenance.
+Le profil par défaut est `en`. Le bilingue utilise l’anglais par défaut et
+la langue de l’URL pendant la navigation. `scripts/template-profiles.mjs` définit
+ces trois profils pour la génération, les archives et la CI. La documentation
+suit le profil ; il n’y a pas d’option indépendante ni de combinaison libre.
 
-`pnpm template:archives` produit une archive par langue et une archive multilingue
-sous `output/templates`. Chaque archive ne contient que ses catalogues et sa documentation,
-sans historique Git, dépendances, caches ou fichier `.env` réel. Un clone Git
-classique télécharge aussi les ressources sources des autres langues.
+Le générateur vérifie la couverture des messages et routes avant création,
+crée les parents absents et refuse un dossier de sortie existant. Il ne lit
+aucun fichier d’environnement réel et ne contacte aucune base. Les projets
+générés n’embarquent ni packs sources, ni outils de génération, ni historique Git,
+ni dépendances ou caches. Installer leurs dépendances avant de les construire.
+Les trois archives sont produites sous `output/templates`.
 
-Les chemins internes restent anglais. `packages/i18n/routing.json` possède les
-chemins publics ; `prefixLocales` est faux pour une langue et vrai pour plusieurs.
-Dans une application déjà générée, ajouter un catalogue, déclarer la langue dans Inlang, compléter tous les chemins
-et reconstruire Paraglide pour activer une autre langue. Les callbacks auth et
-les emails conservent la langue de l’URL. Les endpoints API ne sont pas traduits.
-Le mapping accepte les segments statiques et les paramètres nommés obligatoires :
-`/posts/:slug` peut devenir `/articles/:slug`. Les noms des paramètres restent
-identiques ; leur valeur, la query et le fragment sont conservés. Les segments
-optionnels, wildcards et regex personnalisées sont refusés dans le catalogue ;
-le compilateur possède la route de repli. Le fichier de route TanStack utilise
-sa syntaxe `$slug`, tandis que `:slug` appartient au mapping Paraglide.
-Un slug de contenu `hello` ne devient pas automatiquement `bonjour` :
-le futur domaine devra stocker les slugs par langue associés à un ID stable.
+Les routes internes restent anglaises. Dans le dépôt de maintenance, traduire
+le chemin d’une page dans `template/locales/fr/routes.json`. Dans une application
+générée, modifier `packages/i18n/routing.json` : chaque chemin interne configuré
+doit avoir une correspondance par langue active. Paraglide réécrit les URL à la
+frontière du routeur, sans duplication des pages, et conserve query et fragment.
+La configuration vérifie couverture et doublons ; Paraglide possède le traitement
+des patterns. Les mappings spécifiques précèdent la route de repli finale.
 
-`AUTH_TEST_LOCALE` permet de choisir une langue supportée pour le parcours E2E multilingue.
+Messages d’interface et emails partagent les catalogues. Les callbacks auth
+conservent la langue de l’URL. Les endpoints API et données ne sont pas traduits.
+La CI vérifie les trois projets générés avec les contrôles, l’intégration et
+les E2E dans chaque langue active. `AUTH_TEST_LOCALE` sélectionne la langue E2E.
 
 ## Tester les logs avec Grafana
 

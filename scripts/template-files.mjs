@@ -1,7 +1,6 @@
 import { cp, lstat, mkdir } from "node:fs/promises"
-import { dirname, resolve } from "node:path"
+import { dirname, relative, resolve } from "node:path"
 import { execFileSync } from "node:child_process"
-import { resolveSourcePath } from "./template-registry.mjs"
 
 const excluded = [
   "template/",
@@ -55,4 +54,12 @@ export async function copyTemplateFiles(source, destination, files) {
     await mkdir(dirname(target), { recursive: true })
     await cp(resolve(source, file), target)
   }
+}
+
+function resolveSourcePath(root, path) {
+  const target = resolve(root, path)
+  const inside = relative(root, target)
+  if (inside === ".." || inside.startsWith("../") || inside.startsWith("..\\"))
+    throw new Error("Unsafe source path")
+  return target
 }

@@ -18,65 +18,44 @@ and applies guarded migrations; it never seeds implicitly.
 
 ## Language profiles and archives
 
-These commands run in the maintainer repository. Generation creates missing
-parent directories and refuses an existing output directory. It does not read
-real environment files or connect to a DB.
+The maintainer repository offers three profiles:
+
+| Profile        | Interface and email | Public routes                  | Documentation |
+| -------------- | ------------------- | ------------------------------ | ------------- |
+| `en`           | English             | `/sign-in`                     | English       |
+| `fr`           | French              | `/connexion`                   | French        |
+| `multilingual` | English + French    | `/en/sign-in`, `/fr/connexion` | English       |
 
 ```bash
-pnpm template:create -- --locales en --output output/english-app
-pnpm template:create -- --locales fr --docs-locale fr --output output/french-app
-pnpm template:create -- --locales en,fr --docs-locale fr --output output/bilingual-app
+pnpm template:create -- --profile en --output output/english-app
+pnpm template:create -- --profile fr --output output/french-app
+pnpm template:create -- --profile multilingual --output output/bilingual-app
 pnpm template:check
 pnpm template:archives
 ```
 
-The first interface locale is the default; documentation is independent.
-Without `--docs-locale`, use the first interface language's documentation when
-available, otherwise the source documentation. `template/locales.json` owns
-language availability, catalog paths and optional documentation directories.
-Only selected catalogs and one documentation set are copied. Generated projects
-omit source packs, template tooling, Git history, dependencies and caches.
-Install their dependencies normally before building. Archives are emitted in
-`output/templates`; archive generation also refuses existing profile directories.
-Download a generated language archive to avoid downloading other language packs;
-a normal Git clone includes all source packs.
+The default profile is `en`. The multilingual profile defaults to English;
+the URL selects the active language. `scripts/template-profiles.mjs` defines
+the three profiles for generation, archives and CI. There are no independent
+documentation options or arbitrary locale combinations.
 
-To add a distribution language, create `template/locales/de/messages.json` and
-`routes.json`, then add an entry to `template/locales.json`:
+Generation checks message and route coverage before creating output, creates
+missing parent directories and refuses existing output directories. It never
+reads real environment files or connects to a database. Generated projects omit
+source packs, template tooling, Git history, dependencies and caches. Install
+dependencies normally before building. Archives are written to `output/templates`
+and contain only the selected profile; a Git clone includes all source packs.
 
-```json
-"de": {
-  "messages": "template/locales/de/messages.json",
-  "routes": "template/locales/de/routes.json"
-}
-```
+Internal routes stay English. To translate a page pathname, add its public path
+to `template/locales/fr/routes.json` in the maintainer repository. In a generated
+application, edit `packages/i18n/routing.json`. Every configured internal path
+needs a mapping for each active language. Paraglide rewrites the URLs at the router
+boundary without duplicating pages, preserving query parameters and fragments.
+The shared configuration checks coverage and duplicate paths; pattern handling
+belongs to Paraglide. Keep specific mappings before the final fallback.
 
-This entry belongs under `locales`. Use canonical language tags such as `de` or
-`pt-BR`. Translate every source message key, including email messages, and retain
-message inputs and plural rules. Map every internal route to a public pathname.
-Add `documentation` only when all eight documents are translated; otherwise it
-falls back to the source language. No generator or workflow changes are needed.
-`pnpm template:check` validates generated profiles with the real Paraglide compiler.
-`pnpm template:archives` and the distribution CI discover all registry locales
-and a combined multilingual profile. Missing keys, route collisions, mismatched
-route parameters and unavailable documentation fail before output is created.
-Paraglide compilation/type checks validate message syntax in generated projects.
-
-To add a runtime language in an already generated application, add its message catalog, update Inlang locales
-and the matching public paths in `packages/i18n/routing.json`, then rebuild.
-Every internal route needs a public path for every selected locale. With multiple
-locales, `prefixLocales` is true and every route uses a locale prefix. With one
-locale, keep it false. Do not duplicate route components or rename internal
-English paths. Callback URLs use the shared localization helper. API URLs and
-parameters are never translated. Route mappings support static path segments
-and required named segments, for example `/posts/:slug` to `/articles/:slug`.
-Parameter names must match; the slug value, query and fragment are preserved.
-Optional segments, wildcards and custom regexes are refused in this catalog;
-the compiler owns the fallback route. A TanStack page uses its own `$slug`
-file-route syntax; `:slug` belongs to the Paraglide mapping.
-New dynamic content needs stable IDs and per-locale stored slugs.
-`hello` does not automatically become `bonjour`: a content feature must resolve
-the target slug from the content ID and target language.
+Interface and email text comes from the same catalogs. Auth callbacks retain
+the URL language. API endpoints and data are not translated.
 
 ## Validation
 
@@ -193,9 +172,9 @@ CI uses Node 24.21.0 and pnpm 12.4.1, SHA-pinned actions and versioned images.
 Independent jobs run secret scanning, quality, integration and E2E; service tests
 own ephemeral infrastructure. Gitleaks 8.30.1 is downloaded from its official
 release, verified with SHA-256 and scans complete Git history with redaction.
-The template distribution workflow tests the generator, then discovers profiles
-from the locale registry. Each generated profile runs `pnpm check`, integration
-tests and E2E in every selected language, including the multilingual profile.
+The template distribution workflow tests the generator and the three profiles
+defined in `scripts/template-profiles.mjs`. Each generated project runs
+`pnpm check`, integration tests and E2E in every active language.
 It produces archive artifacts without publishing a release automatically.
 Generated application CI is copied unchanged; distribution tests stay in the
 maintainer-only workflow.

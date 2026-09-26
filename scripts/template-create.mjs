@@ -8,13 +8,11 @@ const { values } = parseArgs({
   args: arguments_,
   options: {
     output: { type: "string" },
-    locales: { type: "string" },
-    "docs-locale": { type: "string" },
+    profile: { type: "string", default: "en" },
   },
 })
 const output = await generateTemplate({
   output: values.output,
-  locales: values.locales?.split(","),
-  docsLocale: values["docs-locale"],
+  profile: values.profile,
 })
 console.log(`Template generated at ${output}`)

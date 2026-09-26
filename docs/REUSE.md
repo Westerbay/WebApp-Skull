@@ -35,16 +35,14 @@
 - `packages/i18n/routing-config.mjs`: shared route validation and URL pattern
   construction, used by generation and runtime compilation.
 - `packages/i18n/compile.mjs`: URL-based runtime compilation and declarations.
-- `template/locales.json`: declarative distribution language registry.
-- `scripts/template-registry.mjs`: registry loading and profile discovery for
-  generation, archives and CI; documentation can fall back to the source locale.
-- `scripts/template-plan.mjs`: configuration/catalog preparation before writes.
+- `scripts/template-profiles.mjs`: the three distribution profiles shared by
+  generation, archives and CI.
 - `scripts/template-files.mjs`: source file selection and destination creation.
 - `packages/i18n/messages/en.json`: source runtime messages for UI and email.
 - `template/locales/fr`: optional French documentation, messages and paths;
   never import these packs from application runtime code.
-- `scripts/template-generator.mjs`: generation with selected interface locales
-  and one independent documentation language. Existing output is never replaced.
+- `scripts/template-generator.mjs`: profile validation, preparation and generation.
+  Existing output is never replaced.
 - `apps/api/src/infrastructure/auth/email-locale.ts`: supported callback locale
   constrained to the configured web origin, with base-locale fallback.
 

@@ -211,19 +211,18 @@ par défaut et les locales supportées depuis ce runtime généré. Le mapping d
 L’identité publique reste JSON dans `packages/config`, les contraintes sont dans
 leurs modules TypeScript.
 
-`packages/i18n/routing-config.mjs` valide la couverture des langues, l’unicité
-des chemins et la conservation des paramètres `:slug`. Le générateur et le
-compilateur partagent ce contrat. Les segments statiques et paramètres nommés
-obligatoires sont supportés ; les chemins spécifiques précèdent leurs voisins
-dynamiques et la route de repli arrive en dernier. Les valeurs de paramètres ne
-sont pas traduites. Les slugs de contenu nécessiteront un ID stable et des
-traductions stockées par le futur domaine.
+`packages/i18n/routing-config.mjs` vérifie la couverture des langues et les
+doublons de chemins. Le générateur et le compilateur partagent cette configuration ;
+le traitement et l’ordre des patterns restent ceux de Paraglide. La route de
+repli arrive en dernier, la query et le fragment sont conservés. Le périmètre
+couvre les chemins des pages, sans domaine de contenus traduits.
 
-Dans le dépôt de maintenance, `template/locales.json` déclare les packs et leur
-documentation facultative. Le générateur compose préparation/validation,
-copie des fichiers et écriture JSON, sans remplacement de texte dans le code ou
-la CI, ni modification des fixtures selon la langue. Les profils d’archives
-et de CI proviennent du même registre.
+Dans le dépôt de maintenance, `scripts/template-profiles.mjs` définit `en`,
+`fr` et `multilingual` (EN + FR, anglais par défaut). La documentation suit
+le profil ; le bilingue utilise l’anglais. Le générateur prépare et valide les
+données puis copie les fichiers et écrit le JSON. `template-files.mjs` possède
+la sélection/copie, sans remplacement de texte dans le code ou la CI.
+Génération, archives et CI partagent les trois profils.
 
 Dans le profil français, les URL `/connexion`, `/inscription`, `/verification-email`,
 `/adresse-confirmee`, `/mot-de-passe-oublie` et `/nouveau-mot-de-passe` sont privées

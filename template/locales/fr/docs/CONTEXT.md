@@ -56,8 +56,8 @@ commun.
 La documentation et les messages français sont une variante générée depuis un
 socle anglais commun. Les archives n’embarquent que les langues sélectionnées.
 Le routage multilingue et le SSR utilisent Paraglide à la frontière du routeur,
-sans duplication des pages. Les paramètres nommés des routes sont validés et
-leurs valeurs conservées. Les slugs traduits de contenu restent à définir
-avec le futur domaine métier. Le dépôt de maintenance découvre langues, archives
-et profils CI via un registre déclaratif ; les contrôles couvrent aussi le profil
-multilingue et son parcours E2E dans chaque langue.
+sans duplication des pages. Le dépôt de maintenance propose trois profils :
+`en`, `fr` et `multilingual` (EN + FR). La documentation suit le profil,
+avec l’anglais pour le bilingue. La CI vérifie les trois variantes et les E2E
+dans chaque langue active. Le périmètre couvre les chemins des pages et les
+messages, sans domaine de contenus traduits.

@@ -78,21 +78,20 @@ stay with their owners.
 
 The source locale is English. `packages/i18n/messages/en.json` is the active
 catalog. French packs are outside the runtime under `template/locales/fr`.
-`template/locales.json` declares packs and optional documentation directories.
-The generator orchestrates a preparation module (catalogs, documentation and
-configuration validated before output), a filesystem module (safe file selection
-and copy), and structured JSON writes. It copies only requested catalogs and one
-documentation set, configures Inlang, and emits `routing.json`. There is no source
-text replacement, CI rewriting or locale-specific fixture mutation. Profiles for
-archives and distribution CI are derived from the same registry. Generated archives contain no packs,
-Git history, dependencies, real environment files or compiler output.
+`scripts/template-profiles.mjs` defines three profiles: `en`, `fr` and
+`multilingual` (EN + FR, English default). Documentation follows the profile;
+the multilingual variant uses English. The generator prepares and validates
+catalogs/configuration before copying files and writing JSON. Filesystem selection
+and copying stay in `template-files.mjs`. The CLI, archives and distribution CI
+consume the same profiles. Generated archives contain no source packs, Git history,
+dependencies, real environment files or compiler output. Application code and CI
+are copied without text replacements.
 
 English file routes form one stable internal tree. `routing.json` maps each
-internal path to public paths. `routing-config.mjs` validates locale coverage,
-unique path shapes and matching named parameters, then builds patterns for
-Paraglide. Both generation and `compile.mjs` use this contract. Static segments
-and required `:parameter` segments are supported; specific paths precede dynamic
-siblings and the compiler's fallback comes last. Parameter values are preserved.
+internal path to public paths. `routing-config.mjs` checks locale coverage and
+duplicate paths, then builds patterns for Paraglide; it does not parse or reorder
+patterns itself. Generation and `compile.mjs` share this configuration.
+The fallback comes last; query parameters and fragments are preserved.
 Single-language projects omit prefixes; multilingual projects prefix all
 locales. TanStack Router rewrites incoming and outgoing URLs with Paraglide.
 The Start server entry uses `paraglideMiddleware`, so concurrent SSR requests
@@ -107,9 +106,8 @@ and `/reset-password` before localization. Redirect targets reject external,
 ambiguous encoded and backslash paths. Auth metadata remains noindex and
 no-referrer; there is no artificial sitemap or canonical.
 
-Dynamic translated content slugs must be stored per locale against one stable
-content ID. They are not produced by static pathname mappings. A future public
-content feature must also define canonical URLs and language alternatives.
+Localization covers page pathnames; the template includes no translated-content
+domain or content-slug storage.
 
 ## Email, logging and lifecycle
 

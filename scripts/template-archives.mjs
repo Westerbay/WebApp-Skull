@@ -3,10 +3,7 @@ import { execFileSync } from "node:child_process"
 import { mkdir } from "node:fs/promises"
 import { resolve } from "node:path"
 import { generateTemplate } from "./template-generator.mjs"
-import {
-  getTemplateProfiles,
-  readLocaleRegistry,
-} from "./template-registry.mjs"
+import { templateProfiles } from "./template-profiles.mjs"
 
 const arguments_ = process.argv.slice(2)
 if (arguments_[0] === "--") arguments_.shift()
@@ -16,11 +13,10 @@ const { values } = parseArgs({
 })
 const directory = resolve(values.output)
 await mkdir(directory, { recursive: true })
-for (const profile of getTemplateProfiles(await readLocaleRegistry())) {
+for (const profile of templateProfiles) {
   const output = await generateTemplate({
     output: resolve(directory, profile.id),
-    locales: profile.locales.split(","),
-    docsLocale: profile.docsLocale,
+    profile: profile.id,
   })
   execFileSync(
     "tar",

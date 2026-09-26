@@ -32,19 +32,19 @@ is English-only. French resources are optional source packs. To create a project
 from the maintainer repository without copying unused languages:
 
 ```bash
-pnpm template:create -- --locales en --output output/my-english-app
-pnpm template:create -- --locales fr --docs-locale fr --output output/mon-app
-pnpm template:create -- --locales en,fr --docs-locale en --output output/multilingual-app
+pnpm template:create -- --profile en --output output/my-english-app
+pnpm template:create -- --profile fr --output output/mon-app
+pnpm template:create -- --profile multilingual --output output/multilingual-app
 pnpm template:archives
 ```
 
 The output directory must not already exist. Generated projects keep English
 code identifiers, selected catalogs and one documentation language. French-only
 URLs use `/connexion`; multilingual URLs use `/en/sign-in` and `/fr/connexion`.
-`template/locales.json` declares available language packs. Archives in
-`output/templates` include one per language (`webapp-skull-en.tar.gz`,
-`webapp-skull-fr.tar.gz`) and `webapp-skull-multilingual.tar.gz` when multiple
-languages are available. Each contains only its selected catalogs and documentation,
+Three profiles are defined in `scripts/template-profiles.mjs`. Documentation
+follows the profile, with English for the multilingual variant. Archives in
+`output/templates` are `webapp-skull-en.tar.gz`, `webapp-skull-fr.tar.gz` and
+`webapp-skull-multilingual.tar.gz`. Each contains its catalogs and documentation,
 with no Git history, dependencies or real `.env`.
 A normal clone downloads the maintainer's source packs; use an archive to avoid
 that download. Distribution archives are built by the template workflow.
