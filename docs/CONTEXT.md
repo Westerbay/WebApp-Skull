@@ -8,18 +8,13 @@ Better Auth owns `/api/auth/*`; NestJS protects `/api/me` and `/api/users`.
 PostgreSQL stores auth data and Better Auth rate limits. Nest controllers have
 separate in-memory quotas; health probes are exempt.
 
-The source repository uses English code, documentation, interface messages and
-internal routes. French documentation, messages and public pathnames live in
-`template/locales/fr`. Generated projects contain only the selected message
-catalogs and one documentation language. Single-language projects have no locale
-prefix; multilingual projects prefix every public route with its locale.
-Paraglide localizes URLs at the router boundary and isolates SSR locale state.
-Three profiles cover distribution: `en`, `fr` and `multilingual` (EN + FR).
-Documentation follows the profile, using English for the multilingual variant.
-Generation checks message and route coverage before creating output. CI covers
-all three profiles extracted from their source ZIPs, with E2E in each active
-language. PRs/manual runs provide direct ZIP artifacts; a pushed `v*` tag publishes
-a GitHub Release only after all three profiles pass.
+The active catalogs in `packages/i18n/messages` provide interface and email
+translations. `packages/i18n/project.inlang/settings.json` defines the supported
+locales and default language; `routing.json` defines public paths.
+Single-language projects have no locale prefix; multilingual projects prefix
+every public route with its locale. Internal routes and code identifiers stay
+English. Paraglide localizes URLs at the router boundary and isolates SSR locale
+state.
 
 Local email is captured by Mailpit. Guarded migrations and seeds refuse remote
 or unverified databases. Two reference accounts and 60 deterministic Faker
@@ -55,8 +50,6 @@ Email tracking is process-local, without a durable queue or delivery guarantee
 after a crash. CI does not exercise real staging SMTP. Nest rate limits are not
 shared between replicas. Localization covers interface/email messages and page
 pathnames; no translated-content domain is included.
-A normal Git clone downloads the source language packs; generated archives
-contain only the requested languages and no repository history.
 
 The standalone Docker collector integration uses explicit environment/opt-in
 labels and a configurable Loki endpoint, optional token file and tenant. Its

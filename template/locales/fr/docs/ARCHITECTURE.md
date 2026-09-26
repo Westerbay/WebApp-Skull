@@ -212,22 +212,10 @@ L’identité publique reste JSON dans `packages/config`, les contraintes sont d
 leurs modules TypeScript.
 
 `packages/i18n/routing-config.mjs` vérifie la couverture des langues et les
-doublons de chemins. Le générateur et le compilateur partagent cette configuration ;
+doublons de chemins. Le compilateur utilise cette configuration ;
 le traitement et l’ordre des patterns restent ceux de Paraglide. La route de
 repli arrive en dernier, la query et le fragment sont conservés. Le périmètre
 couvre les chemins des pages, sans domaine de contenus traduits.
-
-Dans le dépôt de maintenance, `scripts/template-profiles.mjs` définit `en`,
-`fr` et `multilingual` (EN + FR, anglais par défaut). La documentation suit
-le profil ; le bilingue utilise l’anglais. Le générateur prépare et valide les
-données puis copie les fichiers et écrit le JSON. `template-files.mjs` possède
-la sélection/copie, sans remplacement de texte dans le code ou la CI.
-Génération, archives et CI partagent les trois profils. `template-archives.mjs`
-crée les ZIP depuis des projets fraîchement générés, avant installation/build.
-La CI extrait et teste ces mêmes ZIP, puis les transfère sans archive supplémentaire.
-Sur un push de tag `v*`, un job distinct avec `contents: write` récupère les trois
-ZIP validés, crée une release brouillon, joint les fichiers puis la publie.
-Les PR et lancements manuels restent en lecture seule et ne publient aucune release.
 
 Dans le profil français, les URL `/connexion`, `/inscription`, `/verification-email`,
 `/adresse-confirmee`, `/mot-de-passe-oublie` et `/nouveau-mot-de-passe` sont privées

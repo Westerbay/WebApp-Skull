@@ -1,4 +1,5 @@
 import { format } from "prettier"
+import { execFileSync } from "node:child_process"
 import { mkdir, readFile, writeFile } from "node:fs/promises"
 import { resolve } from "node:path"
 import { fileURLToPath } from "node:url"
@@ -48,6 +49,18 @@ export async function generateTemplate({ output, profile = "en" }) {
     plan.routing
   )
   await writeJson(resolve(destination, "package.json"), plan.manifest)
+  // Let pnpm prune unused entries without installing packages or running scripts.
+  execFileSync(
+    "pnpm",
+    [
+      "install",
+      "--lockfile-only",
+      "--offline",
+      "--ignore-scripts",
+      "--no-frozen-lockfile",
+    ],
+    { cwd: destination, stdio: "pipe" }
+  )
   return destination
 }
 
@@ -84,10 +97,14 @@ async function prepareTemplate({ locales, docsLocale }) {
   for (const document of documents)
     documentation.set(
       document,
-      await readFile(resolve(source, docsRoot, document), "utf8")
+      (await readFile(resolve(source, docsRoot, document), "utf8")).replace(
+        /<!-- template-maintainers:start -->[\s\S]*?<!-- template-maintainers:end -->\n*/g,
+        ""
+      )
     )
   const settings = await readJson("packages/i18n/project.inlang/settings.json")
   const manifest = await readJson("package.json")
+  delete manifest.devDependencies.fflate
   for (const name of Object.keys(manifest.scripts))
     if (name.startsWith("template:")) delete manifest.scripts[name]
   return {

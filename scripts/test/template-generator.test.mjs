@@ -27,7 +27,7 @@ const requireI18n = createRequire(
 )
 const { compile } = await import(requireI18n.resolve("@inlang/paraglide-js"))
 
-for (const { id, locales, docsLocale } of templateProfiles) {
+for (const { id, locales } of templateProfiles) {
   test(`generates the ${id} profile with working translated URLs`, async () => {
     const temporary = await mkdtemp(join(tmpdir(), "skull-template-test-"))
     try {
@@ -58,7 +58,11 @@ for (const { id, locales, docsLocale } of templateProfiles) {
       for (const name of names) {
         assert.ok(!/\.(zip|tgz|tar\.gz)$/.test(name), `Nested archive: ${name}`)
         assert.ok(
-          !name.startsWith("template/") && !name.startsWith("scripts/template-")
+          !name.startsWith("template/") &&
+            !name.startsWith("scripts/template-") &&
+            !name.startsWith("scripts/test/template-") &&
+            name !== ".github/workflows/templates.yml",
+          `Maintainer-only ZIP entry: ${name}`
         )
         assert.ok(
           !name
@@ -96,11 +100,44 @@ for (const { id, locales, docsLocale } of templateProfiles) {
           )
         )
       const readme = await readFile(join(output, "README.md"), "utf8")
-      const docsRoot = docsLocale === "fr" ? "template/locales/fr" : "."
-      assert.equal(
-        readme,
-        await readFile(join(source, docsRoot, "README.md"), "utf8")
+      const manifest = await readJson(join(output, "package.json"))
+      assert.equal(manifest.devDependencies.fflate, undefined)
+      assert.ok(
+        !Object.keys(manifest.scripts).some((name) =>
+          name.startsWith("template:")
+        )
       )
+      const lockfile = await readFile(join(output, "pnpm-lock.yaml"), "utf8")
+      assert.ok(!lockfile.includes("fflate"))
+      execFileSync(
+        "pnpm",
+        [
+          "install",
+          "--frozen-lockfile",
+          "--lockfile-only",
+          "--offline",
+          "--ignore-scripts",
+        ],
+        { cwd: output }
+      )
+      assert.equal(
+        await readFile(join(output, "pnpm-lock.yaml"), "utf8"),
+        lockfile
+      )
+      assert.ok(names.some((name) => name.startsWith("apps/api/test/")))
+      assert.ok(names.some((name) => name.startsWith("apps/web/test/")))
+      for (const name of names.filter(
+        (name) => name === "README.md" || name.startsWith("docs/")
+      )) {
+        const content = Buffer.from(entries[name]).toString("utf8")
+        assert.doesNotMatch(
+          content,
+          /template:|scripts\/template-|template\/locales|template-maintainers:|webapp-skull-.*\.zip|v0\.1\.0/,
+          `Maintainer instructions in ${name}`
+        )
+      }
+      assert.ok(readme.includes("packages/i18n"))
+      assert.ok(readme.includes("https://github.com/Westerbay/WebApp-Skull"))
       assert.equal(
         await readFile(join(output, ".github/workflows/ci.yml"), "utf8"),
         await readFile(join(source, ".github/workflows/ci.yml"), "utf8")

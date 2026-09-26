@@ -25,33 +25,21 @@ Web: `http://localhost:3000`; API: `http://localhost:3001`; Swagger: `/docs` on 
 API; health: `/health/live`; Mailpit: `http://localhost:8025`; PostgreSQL: port 5433.
 Setup starts infrastructure and applies guarded migrations without seeding.
 
-## Language profiles
+## Languages
 
-This source repository uses English code and documentation. Its default product
-is English-only. French resources are optional source packs. To create a project
-from the maintainer repository without copying unused languages:
+Active catalogs live in `packages/i18n/messages`; supported languages and the
+default are configured in `packages/i18n/project.inlang/settings.json`.
+Public paths are configured in `packages/i18n/routing.json`. Single-language
+projects omit locale prefixes; multilingual projects prefix every language.
+Code identifiers and internal routes stay English.
 
-```bash
-pnpm template:create -- --profile en --output output/my-english-app
-pnpm template:create -- --profile fr --output output/mon-app
-pnpm template:create -- --profile multilingual --output output/multilingual-app
-pnpm template:archives
-```
+<!-- template-maintainers:start -->
 
-The output directory must not already exist. Generated projects keep English
-code identifiers, selected catalogs and one documentation language. French-only
-URLs use `/connexion`; multilingual URLs use `/en/sign-in` and `/fr/connexion`.
-Three profiles are defined in `scripts/template-profiles.mjs`. Documentation
-follows the profile, with English for the multilingual variant. Archives in
-`output/templates` are `webapp-skull-en.zip`, `webapp-skull-fr.zip` and
-`webapp-skull-multilingual.zip`. Each contains its catalogs and documentation,
-with no Git history, dependencies or real `.env`.
-A normal clone downloads the maintainer's source packs; use an archive to avoid
-that download. Each ZIP contains the project directly, including required dotfiles.
-The template workflow tests the extracted ZIPs and uploads them without another
-archive wrapper. Pushing a `v*` tag publishes the three validated ZIPs together
-in a [GitHub Release](https://github.com/Westerbay/WebApp-Skull/releases).
-PRs and manual workflow runs produce artifacts only.
+Maintaining the source template? See the [distribution guide](template/README.md)
+for profile generation, archive validation and versioned releases.
+This tooling and its documentation are excluded from generated applications.
+
+<!-- template-maintainers:end -->
 
 ## Commands
 
@@ -88,7 +76,6 @@ packages/email       server email templates and transport
 packages/i18n        selected catalogs and generated Paraglide runtime
 packages/ui          shared primitives and styles
 docs                 current project documentation
-template             optional source language packs (maintainer repository only)
 ```
 
 Better Auth owns `/api/auth`; Nest OpenAPI is consumed by the typed web client.

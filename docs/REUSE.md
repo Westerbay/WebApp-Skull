@@ -27,24 +27,15 @@
   hooks, AuthPanel and AuthInput. Unique IDs associate labels/help/errors.
   PasswordInput owns visibility; PasswordStrength is shared by signup/reset.
 
-## Localization and distribution
+## Localization
 
 - `packages/i18n/src/config.ts`: default/supported locales from generated runtime.
 - `packages/i18n/src/routing.ts`: localized paths and external callback URLs.
 - `packages/i18n/routing.json`: internal-to-public pathname mappings.
 - `packages/i18n/routing-config.mjs`: shared route validation and URL pattern
-  construction, used by generation and runtime compilation.
+  construction for runtime compilation.
 - `packages/i18n/compile.mjs`: URL-based runtime compilation and declarations.
-- `scripts/template-profiles.mjs`: the three distribution profiles shared by
-  generation, archives and CI.
-- `scripts/template-files.mjs`: source file selection and destination creation.
-- `scripts/template-archives.mjs`: fresh project ZIP creation shared by local
-  distribution and CI; includes required dotfiles and preserves file permissions.
-- `packages/i18n/messages/en.json`: source runtime messages for UI and email.
-- `template/locales/fr`: optional French documentation, messages and paths;
-  never import these packs from application runtime code.
-- `scripts/template-generator.mjs`: profile validation, preparation and generation.
-  Existing output is never replaced.
+- `packages/i18n/messages/<locale>.json`: active UI and email catalogs.
 - `apps/api/src/infrastructure/auth/email-locale.ts`: supported callback locale
   constrained to the configured web origin, with base-locale fallback.
 

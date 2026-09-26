@@ -218,42 +218,11 @@ tar --extract --gzip --file "$gitleaks_dir/gitleaks.tar.gz" --directory "$gitlea
 Paraglide typées ; les sorties ne sont pas versionnées. En mode dev, le watcher
 recompile les messages. Conserver les règles de pluriel dans le catalogue.
 
-## Profils linguistiques
+## Routes publiques
 
-Le dépôt de maintenance propose trois profils :
-
-| Profil         | Interface et emails | Routes publiques               | Documentation |
-| -------------- | ------------------- | ------------------------------ | ------------- |
-| `en`           | Anglais             | `/sign-in`                     | Anglais       |
-| `fr`           | Français            | `/connexion`                   | Français      |
-| `multilingual` | Anglais + français  | `/en/sign-in`, `/fr/connexion` | Anglais       |
-
-```bash
-pnpm template:create -- --profile en --output output/english-app
-pnpm template:create -- --profile fr --output output/mon-app
-pnpm template:create -- --profile multilingual --output output/bilingual-app
-pnpm template:check
-pnpm template:archives
-```
-
-Le profil par défaut est `en`. Le bilingue utilise l’anglais par défaut et
-la langue de l’URL pendant la navigation. `scripts/template-profiles.mjs` définit
-ces trois profils pour la génération, les archives et la CI. La documentation
-suit le profil ; il n’y a pas d’option indépendante ni de combinaison libre.
-
-Le générateur vérifie la couverture des messages et routes avant création,
-crée les parents absents et refuse un dossier de sortie existant. Il ne lit
-aucun fichier d’environnement réel et ne contacte aucune base. Les projets
-générés n’embarquent ni packs sources, ni outils de génération, ni historique Git,
-ni dépendances ou caches. Installer leurs dépendances avant de les construire.
-Les trois ZIP sont produits sous `output/templates` et contiennent directement
-les projets, fichiers cachés requis inclus. `pnpm template:archives -- --profile fr
---output output/dist` génère seulement le ZIP français. La commande utilise Node.js
-sans utilitaire d’archivage externe et ne remplace aucun ZIP ou projet existant.
-
-Les routes internes restent anglaises. Dans le dépôt de maintenance, traduire
-le chemin d’une page dans `template/locales/fr/routes.json`. Dans une application
-générée, modifier `packages/i18n/routing.json` : chaque chemin interne configuré
+Les langues actives et la langue par défaut sont configurées dans
+`packages/i18n/project.inlang/settings.json`. Les routes internes restent anglaises.
+Modifier `packages/i18n/routing.json` : chaque chemin interne configuré
 doit avoir une correspondance par langue active. Paraglide réécrit les URL à la
 frontière du routeur, sans duplication des pages, et conserve query et fragment.
 La configuration vérifie couverture et doublons ; Paraglide possède le traitement
@@ -261,31 +230,6 @@ des patterns. Les mappings spécifiques précèdent la route de repli finale.
 
 Messages d’interface et emails partagent les catalogues. Les callbacks auth
 conservent la langue de l’URL. Les endpoints API et données ne sont pas traduits.
-La CI crée les ZIP puis vérifie les projets extraits avec les contrôles,
-l’intégration et les E2E dans chaque langue active. `AUTH_TEST_LOCALE` sélectionne
-la langue E2E. Les artifacts sont les ZIP eux-mêmes, sans enveloppe supplémentaire.
-
-## Publier une release des templates
-
-Les PR et `Run workflow` exécutent les validations et fournissent les artifacts.
-Seul un push de tag `v*` publie une release, après réussite des trois profils.
-Choisir une version inutilisée sur le commit voulu, normalement `main` fusionné :
-
-```bash
-git tag v0.1.0
-git push origin v0.1.0
-```
-
-La release contient `webapp-skull-en.zip`, `webapp-skull-fr.zip` et
-`webapp-skull-multilingual.zip`. Télécharger ces fichiers ; les archives
-`Source code` automatiques de GitHub contiennent le dépôt de maintenance.
-
-Seul le job de publication sur tag possède `contents: write`. Il vérifie que
-le tag distant existe et contrôle les trois ZIP validés avant de créer un
-brouillon, joindre tous les fichiers puis publier avec des notes générées.
-Une erreur d’upload laisse un brouillon ; aucune release existante n’est écrasée.
-Inspecter un éventuel brouillon avant de relancer une publication échouée.
-Aucun package npm n’est publié.
 
 ## Tester les logs avec Grafana
 
