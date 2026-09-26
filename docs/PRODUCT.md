@@ -1,36 +1,38 @@
-# Produit
+# Product
 
-## Capacités
+## Capabilities
 
-Créer un compte avec nom, email et mot de passe ; confirmer l’adresse avec le
-lien reçu ; se connecter et consulter son espace ; se déconnecter ; demander
-un nouveau lien de vérification ou un changement de mot de passe.
+Create an account with a name, email and password; verify the address through
+an email link; sign in and view the account dashboard; sign out; request another
+verification link or reset a password.
 
-L’accueil connecté présente un tableau d’exemple des utilisateurs (nom, email et
-statut de vérification), par pages de 20. Suivant charge une page supplémentaire ;
-Précédent revient à une page déjà chargée.
+The dashboard shows a sample user table with names, emails and verification
+status in pages of 20. Next loads another page; Previous returns to cached data.
+Passwords can be shown or hidden. Signup and reset show an advisory strength
+meter that does not change acceptance rules.
 
-## Règles
+## Rules
 
-- L’adresse doit être vérifiée avant la connexion et l’accès aux routes privées.
-- L’inscription et la vérification ne connectent pas automatiquement.
-- Le mot de passe contient entre 8 et 128 caractères, sans transformation.
-- Le lien de vérification est valable 24 heures ; le reset, une heure.
-- Un reset réussi révoque les sessions et exige une nouvelle connexion.
-- La session dure 7 jours et peut être renouvelée après un jour.
-- Les demandes d’email ne révèlent pas si un compte existe. Une demande reçue
-  ne garantit pas que le message a été livré ; le renvoi reste disponible.
-- Better Auth limite les tentatives sensibles à 5 par minute par adresse réseau
-  et endpoint ; son plafond général est de 100 par minute.
-- Les controllers Nest acceptent 120 requêtes par minute et pair réseau par
-  endpoint ; `/api/me` en accepte 30. Les sondes de santé restent disponibles.
-- Tout compte connecté avec une adresse vérifiée peut consulter cette liste
-  d’exemple, y compris les emails. Aucun rôle administrateur n’est défini.
-- Interface et chemins français, aucune seconde langue activée.
+- Verification is required before signin and access to private routes.
+- Signup and verification do not automatically sign in.
+- Passwords contain 8–128 characters and are not transformed.
+- Verification links expire after 24 hours; reset links after one hour.
+- A successful reset revokes sessions and requires signin again.
+- Sessions last seven days and can renew after one day.
+- Email requests do not disclose whether an account exists. Acceptance does
+  not guarantee delivery; users can request another link.
+- Better Auth allows five sensitive requests per minute per network address
+  and endpoint, with a general limit of 100.
+- Nest allows 120 requests per minute per peer and endpoint; `/api/me` allows 30. Health probes remain available.
+- Any signed-in user with a verified address can read the sample user list,
+  including emails. There is no administrator role.
+- English is the source default. French projects have French screens, emails,
+  documentation and public paths while retaining English code identifiers.
+- Multilingual projects select locale from the public URL. Auth action links
+  preserve that locale; the API endpoints remain untranslated.
 
-## Limites
+## Limits
 
-Aucun domaine métier supplémentaire, rôles, OAuth, MFA, stockage de fichiers,
-file de jobs durable ou fournisseur email imposé.
-
-Le mot de passe peut être affiché ou masqué dans chaque champ. Une jauge indicative accompagne sa création à l’inscription et au reset ; elle ne change pas les critères d’acceptation.
+No additional business domain, roles, OAuth, MFA, file storage, durable jobs or
+mandatory external email provider is defined. Documentation language is a
+project creation choice, independent of the interface languages.

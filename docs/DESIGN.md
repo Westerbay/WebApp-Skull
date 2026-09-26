@@ -1,78 +1,48 @@
 # Design
 
-L'interface utilise les tokens Tailwind définis dans
-`packages/ui/src/styles/globals.css` et les primitives de `packages/ui`.
+Use the shared Tailwind tokens and primitives in `packages/ui`. Keep labels and
+errors associated with unique field IDs. Show async loading states and preserve
+keyboard navigation, the skip link and usability on narrow screens. Product
+screens must not expose infrastructure vocabulary.
 
-- Conserver les labels associés aux champs et les erreurs accessibles.
-- Montrer explicitement les états de chargement des actions asynchrones.
-- Maintenir le parcours au clavier et le lien d'évitement vers le contenu.
-- Garder les pages utilisables sur écran étroit avant d'ajouter des variantes.
-- Ne pas exposer de vocabulaire d'infrastructure dans les écrans produit.
-- Rediriger une identité sans session admissible vers la connexion avant de
-  rendre le contenu de l'accueil.
-- Afficher une erreur de déconnexion sans retirer prématurément l'identité ;
-  après succès, vider les données privées avant la navigation.
+## Authentication
 
-Les nouveaux motifs réellement partagés rejoignent `packages/ui`. Un composant
-propre à une fonctionnalité reste près de cette fonctionnalité.
+Use a readable single column, explicit labels and controls at least 44px high.
+Validation errors stay by the field; submission errors stay in the form. Email
+acceptance does not promise delivery. A root Sonner announces signout and reset
+success; do not show the same error both inline and in a toast. Disable actions
+while submitting without losing entered values.
 
-## Authentification
+Forms remain disabled until hydration and declare `method="post"`, preventing
+early native submissions from exposing passwords in URLs. The header observes
+the Better Auth session store independently from query cache invalidation.
+Passwords have a keyboard-accessible visibility button. Help shows the minimum;
+maximum length appears as an error. Signup/reset use an advisory native `meter`
+inside `figure` with a `figcaption`; visual segments are decorative.
 
-Les écrans reprennent une colonne lisible, des champs de 44 px minimum, des
-labels explicites et les tokens existants. Chaque instance de champ utilise
-un identifiant unique pour associer label, aide et erreurs, même si plusieurs
-formulaires utilisent le même nom de champ. Les erreurs de validation restent
-près des champs, les erreurs de soumission dans le formulaire. La demande
-email reçue reste visible dans son écran et ne promet pas de livraison.
+## Localization
 
-Une instance Sonner à la racine annonce la déconnexion et le succès du reset.
-Une même erreur ne doit pas apparaître à la fois dans un toast et dans le
-formulaire. Désactiver les actions pendant l’envoi sans perdre les valeurs.
+Every visible string belongs to the active Paraglide catalogs, including mapped
+provider errors. Use locale-aware plurals. English code identifiers and internal
+route paths remain stable in every project profile. Localize public URL paths,
+HTML language, metadata and email action links consistently. In a multilingual
+project, links preserve the current locale and URL is the SSR source of truth.
+Auth routes remain noindex and no-referrer. Do not include tokens in metadata.
 
-Tout texte utilisateur appartient au catalogue français, y compris les erreurs
-provider mappées par code. Utiliser les pluriels Paraglide, jamais un suffixe
-assemblé dans un composant. Chaque route possède titre, description et noindex.
-Les pages avec tokens utilisent `no-referrer` et n’incluent jamais leurs
-paramètres dans les métadonnées.
+## User table
 
-Les formulaires restent désactivés jusqu’à l’hydratation React et déclarent
-`method="post"` en défense : aucune soumission HTML précoce ne doit placer un
-mot de passe dans l’URL. Le header observe le store Better Auth pour suivre
-les transitions de session indépendamment de la purge du cache privé.
+Use a native HTML table with headings and caption. Only its named scrollable
+`section` overflows horizontally on mobile; it is keyboard-accessible. Previous
+and Next announce the current page and disable unavailable or pending actions.
+Errors keep loaded rows and offer Retry. Loading and empty states are explicit.
 
-Les champs de mot de passe disposent d’un bouton œil accessible au clavier. L’aide affiche seulement le minimum requis ; le maximum apparaît en erreur après dépassement. À l’inscription et au reset, une jauge avec libellé accessible indique la robustesse sans bloquer la soumission.
+The feature separates orchestration, columns, rendering, navigation and feedback.
+Handlers and render callbacks are named before JSX/options. Nested functions use
+`const fn = () => {}`. Props and form values use explicit interfaces or native
+library types instead of `ComponentProps`, `Pick`, `Partial`, `Omit`, `ReturnType`
+and type-level `typeof`. Use `if` for complex choices and ternaries only for
+simple values. Toaster CSS variables belong in the shared stylesheet.
 
-Privilégier les balises HTML natives correspondant au contenu et aux actions.
-La jauge de robustesse utilise un élément `meter` natif ; ses segments visuels
-sont décoratifs et masqués aux technologies d’assistance. Les `div` restent
-adaptées aux conteneurs de mise en page sans signification propre.
-
-## Tableau des utilisateurs
-
-Le dashboard conserve le message d’accueil et affiche une table HTML native
-pilotée par TanStack Table. Les colonnes ont des en-têtes et la table une légende.
-Sur mobile, seul le conteneur du tableau défile horizontalement ; il est accessible
-au clavier. La navigation Précédent/Suivant annonce la page courante et désactive
-les actions indisponibles ou pendant une requête. Une erreur laisse les lignes
-déjà chargées visibles et propose Réessayer ; le chargement et la liste vide ont
-un libellé explicite. Les textes restent dans le catalogue français.
-
-La feature sépare l’orchestration dans un hook, les colonnes dans leur module
-et les composants de rendu, de navigation et de feedback. Les handlers sont
-nommés avant le JSX et passés directement aux propriétés d’événement. Les
-fonctions de rendu des cellules sont également définies hors de la configuration
-des colonnes. Le typage utilise les génériques et annotations sans assertion.
-
-## Lisibilité du code d’interface
-
-Les props et valeurs de formulaire utilisent des interfaces explicites ou les
-types natifs des bibliothèques. Éviter les types dérivés avec `ComponentProps`,
-`Pick`, `Partial`, `Omit`, `ReturnType` et `typeof`. Les callbacks déclarés dans
-un composant ou un hook utilisent `const handleAction = () => {}`.
-
-Réserver les ternaires aux choix simples de valeurs ; utiliser des `if` pour
-construire des objets, tableaux ou éléments JSX et pour choisir une opération.
-Les variables CSS du toaster sont définies dans la feuille de styles commune.
-Utiliser les éléments HTML adaptés : une jauge avec sa légende forme un
-`figure` avec `figcaption`, un conteneur nommé de tableau forme une `section`.
-Les conteneurs purement visuels peuvent rester des `div`.
+Use native elements with the correct meaning; purely visual wrappers can remain
+`div`. Shared UI patterns belong in `packages/ui`; feature-specific components
+stay with their feature. Do not split a component merely by tag or line count.

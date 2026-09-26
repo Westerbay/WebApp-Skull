@@ -1,9 +1,9 @@
 import { schema } from "@workspace/database"
 import { authPasswordConstraints } from "@workspace/contracts/auth/constraints"
 import projectConfig from "@workspace/config/project" with { type: "json" }
-import { DEFAULT_LOCALE } from "@workspace/i18n/config"
 import { betterAuth } from "better-auth"
 import { drizzleAdapter } from "better-auth/adapters/drizzle"
+import { getAuthEmailLocale } from "./email-locale.js"
 
 import { createRateLimitStore } from "./rate-limit-store.js"
 import { authConfig } from "./auth.config.js"
@@ -85,7 +85,7 @@ export function createAuth(
           kind: "verification",
           to: user.email,
           url,
-          locale: DEFAULT_LOCALE,
+          locale: getAuthEmailLocale(url, env.WEB_URL),
           requestId: request?.headers.get("x-request-id") ?? undefined,
         })
         return Promise.resolve()
@@ -105,7 +105,7 @@ export function createAuth(
           kind: "reset",
           to: user.email,
           url,
-          locale: DEFAULT_LOCALE,
+          locale: getAuthEmailLocale(url, env.WEB_URL),
           requestId: request?.headers.get("x-request-id") ?? undefined,
         })
         return Promise.resolve()

@@ -1,0 +1,9 @@
+{
+  "/": "/",
+  "/sign-in": "/connexion",
+  "/sign-up": "/inscription",
+  "/verify-email": "/verification-email",
+  "/email-verified": "/adresse-confirmee",
+  "/forgot-password": "/mot-de-passe-oublie",
+  "/reset-password": "/nouveau-mot-de-passe"
+}

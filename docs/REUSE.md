@@ -1,133 +1,97 @@
-# Réutilisation
+# Reuse
 
-## Configuration et contrats transverses
+## Shared contracts and identity
 
-- `packages/config/src/project.json` : identité publique du produit (nom et
-  description), commune au web et à l'API. Les réglages techniques restent dans
-  le module qui les possède.
-- `packages/contracts/src/common.ts` : schéma de l'enveloppe d'erreur échangée
-  entre le web et l'API.
+- `packages/config/src/project.json`: product name and description; technical
+  settings stay with their owner.
+- `packages/contracts/src/common.ts`: HTTP error envelope.
+- `packages/contracts/src/identity.ts`: public current-user shape.
+- `packages/contracts/src/auth.constraints.ts`: password bounds and token
+  lifetimes shared by validation, Better Auth and email rendering.
 
-## Interface
+## Web and interface
 
-Les primitives réutilisables se trouvent dans
-`packages/ui/src/components`. Réutiliser notamment `Button`, `Card`, `Field`,
-`Input`, `Spinner`, `Tabs` et `Sonner` avant de créer une variante locale.
-Les styles et tokens communs sont dans `packages/ui/src/styles/globals.css`.
+- `packages/ui/src/components`: reusable Button, Card, Field, Input, Spinner,
+  Tabs and Sonner primitives; shared tokens/styles in `src/styles/globals.css`.
+- `apps/web/src/lib/auth/auth-client.ts`: Better Auth client.
+- `apps/web/src/lib/auth/current-user.ts`: identity query, fresh protected-route
+  verification and private cache purge on authentication transitions.
+- `apps/web/src/lib/query/query-client.ts` and `query.config.ts`: query defaults.
+- `apps/web/src/lib/query/query-keys.ts`: `privateQueryKeyPrefix`; build private
+  keys with feature and parameters. Public queries survive identity changes.
+- `apps/web/src/lib/api/client.ts`, `config.ts`, `http-status.ts`: typed HTTP
+  client with cookies, public API URL and named HTTP statuses.
+- `apps/web/src/lib/auth/redirect.ts`: restrictive internal redirect validation.
+- `apps/web/src/lib/seo/private-head.ts`: auth/private noindex metadata.
+- `apps/web/src/features/auth`: schemas, explicit form types, named action
+  hooks, AuthPanel and AuthInput. Unique IDs associate labels/help/errors.
+  PasswordInput owns visibility; PasswordStrength is shared by signup/reset.
 
-## Web
+## Localization and distribution
 
-- `apps/web/src/lib/auth/auth-client.ts` : client Better Auth partagé.
-- `apps/web/src/lib/auth/current-user.ts` : requête d'identité, vérification
-  fraîche avant une route protégée et purge de tout cache privé lors d'une
-  connexion ou déconnexion.
-- `apps/web/src/lib/api/client.ts` : client OpenAPI typé, configuré avec les
-  cookies de session.
-- `apps/web/src/lib/query/query-client.ts` : configuration TanStack Query ; les réglages partagés sont dans `query.config.ts`.
-- `apps/web/src/lib/query/query-keys.ts` : préfixe `privateQueryKeyPrefix` pour
-  toutes les queries dépendant de la session ou contenant des données privées.
-  Construire leurs clés avec `[...privateQueryKeyPrefix, feature, ...identifiants]`.
-  Les transitions d’identité annulent puis retirent seulement ce préfixe ;
-  les queries publiques, y compris celles en cours, sont conservées.
-- `apps/web/src/lib/api/config.ts` : URL publique de l'API.
-- `apps/web/src/lib/api/http-status.ts` : statuts nommés utilisés par le client.
-- `apps/web/src/features/auth/schemas/auth-form.constraints.ts` : contrainte du nom
-  propre aux formulaires d’authentification. Les schémas utilisent directement
-  les bornes de mot de passe du contrat auth partagé.
+- `packages/i18n/src/config.ts`: default/supported locales from generated runtime.
+- `packages/i18n/src/routing.ts`: localized paths and external callback URLs.
+- `packages/i18n/routing.json`: internal-to-public pathname mappings.
+- `packages/i18n/compile.mjs`: URL-based runtime compilation and declarations.
+- `packages/i18n/messages/en.json`: source runtime messages for UI and email.
+- `template/locales/fr`: optional French documentation, messages and paths;
+  never import these packs from application runtime code.
+- `scripts/template-generator.mjs`: generation with selected interface locales
+  and one independent documentation language. Existing output is never replaced.
+- `apps/api/src/infrastructure/auth/email-locale.ts`: supported callback locale
+  constrained to the configured web origin, with base-locale fallback.
 
-- `packages/contracts/src/auth.constraints.ts` : bornes du mot de passe et durées des jetons partagées
-  entre validation web, configuration serveur Better Auth et contenu des emails.
+## Server and email
 
-## Serveur
-
-- `apps/api/src/infrastructure/auth/guard.ts` : protection globale Nest et
-  décorateurs `Public` et `CurrentUser`.
-- `apps/api/src/infrastructure/auth/auth.config.ts` : durées de session et de
-  jetons, fenêtre et quotas du rate limit Better Auth.
-- `packages/contracts/src/identity.ts` : forme publique de l'identité courante.
-- `apps/api/src/infrastructure/http/http-error.filter.ts` : enveloppe d'erreur
-  des controllers Nest ; ne pas l'appliquer aux routes Better Auth.
-- `apps/api/src/infrastructure/rate-limit/rate-limit.decorators.ts` : décorateurs
-  `RateLimit` et `SkipRateLimit` pour remplacer ou désactiver le quota global sur
-  un controller ou une méthode Nest.
-- `apps/api/src/infrastructure/rate-limit/rate-limit.config.ts` : quota Nest par
-  défaut et règles propres aux endpoints. Le tracker natif utilise l’adresse
-  Express non proxifiée et normalise IPv6. Les quotas Better Auth restent dans
-  `infrastructure/auth/auth.config.ts`.
-- `packages/database/src/client.ts` : création et fermeture du client Drizzle.
-- `packages/database/src/config.ts` : réglages du pool PostgreSQL.
-- `packages/database/src/target.ts` : garde commune exécutée avant toute
-  ouverture de connexion par les CLI migration et seed.
-- `apps/api/src/modules/health/readiness.ts` : contrat de sonde et timeout de
-  readiness injectables.
-- `apps/api/src/infrastructure/logging/logging.ts` : création du logger Pino et
-  destinations de sortie. `http-logging.ts` possède les serializers HTTP nettoyés,
-  le middleware et son intégration au contexte Nest.
-- `apps/api/src/seeds/seed.ts` : contrat pur `SeedScenario`, préparation globale
-  avant mutation et exécution d’une sélection ; `apps/api/src/seeds/registry.ts`
-  possède l’ordre central et refuse les noms absents ou dupliqués.
-- `apps/api/src/seeds/auth/scenario.ts` : scénario et fixtures auth sans
-  dépendance à Drizzle.
-- `apps/api/src/seeds/auth/store.ts` : adaptateur de
-  persistance des fixtures auth ; il centralise la détection des IDs réservés et
-  les remplacements/nettoyages transactionnels.
-- `apps/api/test/support/auth.harness.ts` : application, base possédée, Mailpit
-  et helpers HTTP partagés uniquement par les suites d’intégration et E2E auth.
-- `apps/api/src/openapi/config.ts` : chemin de documentation et version de l'API.
-
-Ajouter ici seulement une capacité destinée à plusieurs consommateurs, avec sa
-source et sa règle d'usage.
-
-## Auth et messages
-
-- `packages/core/src/email.ts` : port email indépendant des technologies.
-- `packages/email/src/auth-email.tsx` : rendu HTML et texte des emails auth,
-  avec locale explicitement fournie par le consommateur.
-- `packages/email/src/config.ts` : modes d’envoi validés, capture locale,
-  production SMTP et allowlist exacte en staging.
-- `apps/api/src/infrastructure/email/auth-email-dispatcher.ts` : envois suivis,
-  événements nettoyés et drainage à l’arrêt.
-- `packages/i18n/messages/fr.json` : catalogue commun ; importer uniquement les
-  fonctions requises depuis `@workspace/i18n/messages`.
-- `packages/i18n/src/config.ts` : `DEFAULT_LOCALE` et `SUPPORTED_LOCALES`
-  dérivés du runtime Paraglide généré.
-- `apps/web/src/features/auth/components/auth-input.tsx` : champ auth avec label,
-  erreurs associées et saisie contrôlée ; réutiliser dans les formulaires auth.
-- `apps/web/src/features/auth/components/auth-panel.tsx` : cadre commun aux
-  étapes d’authentification.
-- `apps/web/src/features/auth/hooks` : inscription, connexion, demandes email,
-  reset et déconnexion ; ne pas importer une route depuis un hook.
-- `apps/web/src/lib/auth/redirect.ts` : `getSafeInternalRedirect`, validation restrictive d’un retour interne.
-- `apps/web/src/lib/seo/private-head.ts` : métadonnées auth/privé sans indexation.
-
-Le champ auth-input associe chaque label et erreur à un identifiant unique. Il délègue la visibilité du mot de passe à `password-input.tsx` et possède l’aide et l’option showStrength pour les champs de création. Le composant password-strength est partagé par l’inscription et le reset.
+- `apps/api/src/infrastructure/auth/guard.ts`: global protection, Public and
+  CurrentUser decorators. `auth.config.ts` owns session and rate-limit settings.
+- `apps/api/src/infrastructure/http/http-error.filter.ts`: Nest error envelope;
+  do not apply it to Better Auth routes.
+- `apps/api/src/infrastructure/rate-limit`: decorators and global/per-route
+  quotas, socket-based peer normalization and health exemptions.
+- `packages/database/src/client.ts`, `config.ts`, `target.ts`: Drizzle lifecycle,
+  pool settings and guarded CLI database targets.
+- `apps/api/src/modules/health/readiness.ts`: injectable probe and timeout.
+- `apps/api/src/infrastructure/logging/logging.ts`: sanitized Pino HTTP logging.
+- `apps/api/src/seeds/seed.ts`, `registry.ts`: pure scenario contract, preparation
+  before mutation, selection validation and ordering.
+- `apps/api/src/seeds/auth`: pure scenario/fixtures, local configuration and
+  transactional adapter with reserved-signature collision checks.
+- `apps/api/test/support/auth.harness.ts`: owned DB, Mailpit and HTTP helpers for
+  integration/E2E only.
+- `apps/api/src/openapi/config.ts`: documentation path and API version.
+- `packages/core/src/email.ts`: technology-independent EmailSender port.
+- `packages/email`: explicit-locale HTML/text rendering and guarded SMTP/capture.
+- `apps/api/src/infrastructure/email/auth-email-dispatcher.ts`: tracked sends,
+  sanitized events and bounded drainage.
 
 ## Pagination
 
-- `packages/contracts/src/pagination.constraints.ts` : bornes de `cursor`/`limit`
-  et taille par défaut du contrat, partagées entre schéma et consommateurs.
-- `packages/contracts/src/pagination.ts` : paramètres bornés `cursor`/`limit`,
-  factory `cursorPageSchema` et type `CursorPage<T>` pour `{ items, nextCursor }`.
-- `apps/api/src/infrastructure/pagination/cursor-page.ts` : construction d’une
-  page à partir de `limit + 1` lignes ; fournir le curseur du dernier élément
-  visible et garder le même ordre unique dans la requête.
-- `apps/web/src/lib/query/use-cursor-infinite-query.ts` : hook
-  `useCursorInfiniteQuery` et factory `cursorInfiniteQueryOptions` ; fournir
-  clé et queryFn, transmettre le signal d’annulation, inclure filtres et taille
-  dans la clé et utiliser le préfixe privé pour les données liées à une session.
-  Les paramètres de curseur sont configurés automatiquement ; les options
-  natives de `QueryObserverOptions`, `maxPages` et `subscribed` restent disponibles.
+- `packages/contracts/src/pagination.constraints.ts`: cursor/limit bounds and
+  shared default page size.
+- `packages/contracts/src/pagination.ts`: bounded query schema, cursorPageSchema
+  factory and CursorPage type `{ items, nextCursor }`.
+- `apps/api/src/infrastructure/pagination/cursor-page.ts`: build from `limit + 1`
+  rows; use the last visible ID and the same unique order in the DB query.
+- `apps/web/src/lib/query/use-cursor-infinite-query.ts`: query hook/options factory;
+  include filters/page size in keys and forward abort signals. Cursor parameters
+  are automatic; native QueryObserverOptions, previous-page cursor, maxPages and
+  subscribed remain available.
 
-## Observabilité
+List only capabilities with real multiple consumers and document their owner.
 
-- `apps/api/src/infrastructure/logging/logging.config.ts` : validation des
-  réglages de logging à la frontière ; JSON/stdout imposés hors développement.
-- `compose.logs-collector.yml` : fragment de collecteur Docker pour une destination Loki externe ; aucun déploiement applicatif ou backend d’observabilité.
-- `infra/observability` : configurations Alloy fichier/Docker, stockage Loki et
-  provisionnement Grafana. Labels stables seulement, aucun identifiant de
-  requête/utilisateur indexé.
-- `scripts/test-logs.mjs` : assertions du flux réel Nest vers la datasource
-  Grafana ; `scripts/support/logs-test-harness.mjs` possède les ressources Docker
-  isolées, leur nettoyage et les délais de polling.
+## Observability
 
-- `scripts/test-docker-logs.mjs` : test local du fragment de collecte, des labels de service et de la sélection par environnement/opt-in.
+- `apps/api/src/infrastructure/logging/logging.config.ts`: validated logging
+  settings; JSON stdout required outside development.
+- `apps/api/src/infrastructure/logging/logging.ts`: Pino logger and output
+  destinations. `http-logging.ts` owns sanitized serializers, HTTP middleware
+  and Nest request context.
+- `infra/observability`: file/Docker collection, Loki storage and Grafana
+  provisioning. Index only stable labels, never request or user identifiers.
+- `scripts/test-logs.mjs`: real HTTP ingestion and Grafana assertions;
+  `scripts/support/logs-test-harness.mjs` owns isolated containers, cleanup
+  and polling configuration.
+
+- `compose.logs-collector.yml`: standalone Docker collector integration for an external Loki endpoint, without application/backend deployment.
+- `scripts/test-docker-logs.mjs`: local verification of Docker opt-in, environment selection and stable service labels.

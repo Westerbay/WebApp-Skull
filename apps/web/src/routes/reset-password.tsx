@@ -11,7 +11,7 @@ import { ResetPasswordForm } from "@/features/auth/components/reset-password-for
 import { privateHead } from "@/lib/seo/private-head"
 import { tokenSearchSchema } from "@/features/auth/schemas/search"
 
-export const Route = createFileRoute("/nouveau-mot-de-passe")({
+export const Route = createFileRoute("/reset-password")({
   validateSearch: tokenSearchSchema,
   head: () => privateHead(reset_title(), reset_description()),
   component: Page,
@@ -26,8 +26,8 @@ function Page() {
         <p role="alert">{invalid_link()}</p>
       )}
       <nav className="flex flex-col gap-3 text-sm underline underline-offset-4">
-        <Link to="/mot-de-passe-oublie">{send_reset()}</Link>
-        <Link to="/connexion">{back_sign_in()}</Link>
+        <Link to="/forgot-password">{send_reset()}</Link>
+        <Link to="/sign-in">{back_sign_in()}</Link>
       </nav>
     </AuthPanel>
   )

@@ -22,7 +22,7 @@ export function AppHeader() {
           </Button>
         ) : (
           <Button variant="outline" asChild>
-            <Link to="/connexion">{sign_in()}</Link>
+            <Link to="/sign-in">{sign_in()}</Link>
           </Button>
         )}
       </div>

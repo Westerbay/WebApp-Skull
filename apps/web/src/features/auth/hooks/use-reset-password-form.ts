@@ -33,7 +33,7 @@ export function useResetPasswordForm(token: string) {
         return
       }
       await clearPrivateCache(router.options.context.queryClient)
-      await router.navigate({ to: "/connexion", replace: true })
+      await router.navigate({ to: "/sign-in", replace: true })
       toast.success(reset_complete())
     } catch {
       setServerError(network_error())

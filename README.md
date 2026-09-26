@@ -1,34 +1,18 @@
 # WebApp Skull
 
-Application web TypeScript avec authentification par email et mot de passe.
+A reusable TypeScript web application with email/password authentication,
+cursor pagination and guarded local development tools.
 
-## Technologies
+## Stack
 
-| Technologie                           | Rôle                                          |
-| ------------------------------------- | --------------------------------------------- |
-| Node.js 24 et pnpm                    | Runtime et gestion des dépendances            |
-| Turborepo                             | Orchestration du monorepo                     |
-| NestJS 11 et Express                  | API HTTP et composition serveur               |
-| TanStack Start, Router, Query et Form | Application React                             |
-| Tailwind CSS et shadcn/ui             | Styles et primitives d'interface              |
-| Better Auth                           | Inscription, connexion et sessions par cookie |
-| Zod                                   | Validation des données aux frontières         |
-| OpenAPI, openapi-typescript et fetch  | Contrat HTTP et client web typé               |
-| Drizzle ORM et PostgreSQL 17          | Persistance et migrations                     |
-| Vitest                                | Tests unitaires et HTTP                       |
-| React Email et Nodemailer             | Emails HTML/texte et transport SMTP           |
-| Mailpit                               | Capture email locale                          |
-| Paraglide JS                          | Catalogue français typé                       |
-| Sonner                                | Notifications accessibles                     |
-| Playwright                            | Parcours navigateur                           |
-| Docker Compose                        | Services locaux                               |
-| Pino et nestjs-pino                   | Logs HTTP structurés et nettoyés              |
-| GitHub Actions                        | Vérification Node 24 isolée                   |
-| Gitleaks                              | Détection de secrets dans l’historique Git    |
+Node.js 24, pnpm 12, Turborepo, NestJS 11/Express, TanStack Start/Router/Query/Form,
+Tailwind/shadcn, Better Auth, Zod, OpenAPI/openapi-typescript/openapi-fetch,
+Drizzle/PostgreSQL 17, Vitest, React Email/Nodemailer, Mailpit, Paraglide,
+Sonner, Playwright, Docker Compose, Pino, GitHub Actions and Gitleaks.
 
-## Démarrage
+## Start
 
-Prérequis : Node.js 24, pnpm 12 et Docker.
+Requires Node.js 24, pnpm 12 and Docker.
 
 ```bash
 pnpm install --frozen-lockfile
@@ -37,78 +21,82 @@ pnpm run setup
 pnpm dev
 ```
 
-| Service    | Adresse                           |
-| ---------- | --------------------------------- |
-| Web        | http://localhost:3000             |
-| API        | http://localhost:3001             |
-| Santé API  | http://localhost:3001/health/live |
-| Swagger    | http://localhost:3001/docs        |
-| Mailpit    | http://localhost:8025             |
-| PostgreSQL | localhost:5433                    |
+Web: `http://localhost:3000`; API: `http://localhost:3001`; Swagger: `/docs` on the
+API; health: `/health/live`; Mailpit: `http://localhost:8025`; PostgreSQL: port 5433.
+Setup starts infrastructure and applies guarded migrations without seeding.
 
-## Commandes
+## Language profiles
+
+This source repository uses English code and documentation. Its default product
+is English-only. French resources are optional source packs. To create a project
+from the maintainer repository without copying unused languages:
 
 ```bash
-pnpm dev             # démarre l'API et le web
-pnpm check           # format, lint, types, tests et builds
-pnpm test            # tests rapides Vitest
-pnpm test:integration # auth réelle dans PostgreSQL/Mailpit isolés
-pnpm test:e2e        # parcours mobile dans des services isolés neufs
-pnpm docs:check      # présence des documents et validité des liens locaux
-pnpm project:check   # frontières, métadonnées et versions d’infrastructure
-pnpm api:generate    # régénère OpenAPI et les types du client web
-pnpm api:check       # détecte une dérive des contrats générés
-pnpm db:generate     # génère une migration depuis le schéma
-pnpm db:migrate      # applique les migrations à la cible configurée
-pnpm db:seed -- --scenario auth # restaure les deux comptes locaux déterministes
-pnpm db:seed -- --scenario auth --clean # supprime seulement ces fixtures
-pnpm db:seed -- --all # exécute tous les scénarios dans l’ordre du registre
-pnpm db:studio       # ouvre Drizzle Studio
-pnpm dev:infra       # démarre PostgreSQL et Mailpit
-pnpm dev:down        # arrête les services sans supprimer leurs données
+pnpm template:create -- --locales en --output output/my-english-app
+pnpm template:create -- --locales fr --docs-locale fr --output output/mon-app
+pnpm template:create -- --locales en,fr --docs-locale en --output output/multilingual-app
+pnpm template:archives
 ```
 
-`pnpm run setup` démarre PostgreSQL et applique les migrations seulement après
-validation de la cible locale. Il ne crée aucune donnée applicative. Le seed
-auth est séparé, explicite et réservé aux cibles de développement ou de test
-vérifiées. Les emails locaux sont consultables dans Mailpit.
+The output directory must not already exist. Generated projects keep English
+code identifiers, selected catalogs and one documentation language. French-only
+URLs use `/connexion`; multilingual URLs use `/en/sign-in` and `/fr/connexion`.
+`output/templates/webapp-skull-en.tar.gz` and `webapp-skull-fr.tar.gz` contain
+only the selected language, with no Git history, dependencies or real `.env`.
+A normal clone downloads the maintainer's source packs; use an archive to avoid
+that download. Distribution archives are built by the template workflow.
+
+## Commands
+
+```bash
+pnpm check                    # formatting, lint, types, unit tests, contracts, docs, builds
+pnpm test:integration         # real auth/API with owned ephemeral services
+pnpm test:e2e                 # mobile auth and pagination journey
+pnpm docs:check
+pnpm project:check
+pnpm api:generate
+pnpm api:check
+pnpm db:generate
+pnpm db:migrate
+pnpm db:seed -- --scenario auth
+pnpm db:seed -- --scenario auth --clean
+pnpm db:seed -- --all
+pnpm db:studio
+pnpm dev:infra
+pnpm dev:down
+```
+
+Seeding is explicit, requires fixture mode and restores two reference accounts
+plus 60 deterministic demo profiles. Local email is captured by Mailpit.
 
 ## Structure
 
 ```text
-apps/api             API NestJS et intégrations serveur
-apps/web             application TanStack Start
-packages/contracts   schémas et contrats partagés
-packages/core        règles métier et ports lorsqu'un domaine les exige
-packages/database    schémas, migrations et client Drizzle
-packages/email       modèles et transport email serveur
-packages/i18n        catalogue français et fonctions Paraglide
-packages/ui          primitives et styles partagés
-docs                 contexte durable du projet
+apps/api             NestJS API and server integrations
+apps/web             TanStack Start application
+packages/contracts   shared schemas and interfaces
+packages/core        business rules and pure ports when required
+packages/database    Drizzle schemas, migrations and client
+packages/email       server email templates and transport
+packages/i18n        selected catalogs and generated Paraglide runtime
+packages/ui          shared primitives and styles
+docs                 current project documentation
+template             optional source language packs (maintainer repository only)
 ```
 
-Better Auth expose ses routes sous `/api/auth`. Les controllers Nest exposent
-leur contrat dans `apps/api/openapi.json` ; le web le consomme avec
-`openapi-fetch`. Les deux clients utilisent les cookies de session avec
-`credentials: "include"`. La base initiale contient seulement les tables
-nécessaires à l'authentification.
+Better Auth owns `/api/auth`; Nest OpenAPI is consumed by the typed web client.
+Both clients use session cookies. Read [docs/CONTEXT.md](docs/CONTEXT.md) and
+[docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) before changing the project.
 
-Lire [docs/CONTEXT.md](docs/CONTEXT.md) pour l'état actuel et
-[docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) pour les conventions locales.
+## License
 
-## Licence
+WebApp-Skull uses the [MIT license](LICENSE). When reusing this project, please
+mention it and link to [its repository](https://github.com/Westerbay/WebApp-Skull).
+Attribution is optional and is not an extra license condition.
 
-WebApp-Skull est distribué sous [licence MIT](LICENSE).
+## Local observability
 
-Si vous réutilisez WebApp-Skull comme base, merci de mentionner le projet et de
-fournir un lien vers [son dépôt](https://github.com/Westerbay/WebApp-Skull) dans
-la documentation du résultat. Cette mention est facultative et ne constitue
-pas une condition supplémentaire de la licence MIT.
-
-## Observabilité locale
-
-La stack optionnelle Alloy/Loki/Grafana se lance avec `pnpm logs:up` ;
-`pnpm dev:logs` lui fournit les logs JSON API. Grafana est disponible sur
-[localhost:3002](http://localhost:3002). `pnpm logs:test` vérifie le flux complet
-dans des conteneurs isolés, sans base ni `.env`. Voir les procédures et les
-limites de déploiement dans [DEVELOPMENT.md](docs/DEVELOPMENT.md).
+Start the optional Alloy/Loki/Grafana stack with `pnpm logs:up`, then feed API
+JSON logs with `pnpm dev:logs`. Open [Grafana](http://localhost:3002).
+`pnpm logs:test` verifies the complete flow in isolated containers without a
+database or an environment file. See [DEVELOPMENT.md](docs/DEVELOPMENT.md).

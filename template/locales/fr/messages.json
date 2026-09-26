@@ -90,5 +90,6 @@
   "users_empty": "Aucun utilisateur à afficher.",
   "users_email": "Adresse email",
   "users_name": "Nom",
-  "users_description": "Consultez les comptes et passez à la page suivante."
+  "users_description": "Consultez les comptes et passez à la page suivante.",
+  "project_description": "Application web sécurisée."
 }

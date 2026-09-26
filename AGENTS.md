@@ -1,53 +1,49 @@
-# Instructions pour les agents
+# Agent instructions
 
-## Avant de modifier le projet
+## Before modifying the project
 
-1. Lire `docs/CONTEXT.md`, puis les documents liés au changement.
-2. Inspecter `git status --short` et préserver les changements existants.
-3. Rechercher les symboles, contrats et consommateurs avant de créer une
-   nouvelle abstraction.
-4. Vérifier les règles dans `docs/ARCHITECTURE.md` et les éléments existants
-   dans `docs/REUSE.md`.
+1. Read `docs/CONTEXT.md`, then the documents relevant to the change.
+2. Inspect `git status --short` and preserve existing changes.
+3. Search symbols, contracts and consumers before creating an abstraction.
+4. Check `docs/ARCHITECTURE.md` and existing capabilities in `docs/REUSE.md`.
 
-## Frontières
+## Boundaries
 
-- `apps/api` compose NestJS, Better Auth et les adaptateurs serveur.
-- `apps/web` ne doit importer aucun module serveur.
-- `packages/contracts` contient les schémas partagés sans dépendance framework.
-- `packages/core` reste indépendant de NestJS, React, Drizzle et Better Auth.
-- `packages/database` possède les schémas et migrations Drizzle.
-- `packages/ui` contient seulement des primitives UI réutilisables.
+- `apps/api` composes NestJS, Better Auth and server adapters.
+- `apps/web` must not import server modules.
+- `packages/contracts` owns framework-independent shared schemas.
+- `packages/core` stays independent of NestJS, React, Drizzle and Better Auth.
+- `packages/database` owns Drizzle schemas and migrations.
+- `packages/ui` contains reusable UI primitives only.
 
-Ne pas ajouter de couche, repository ou port sans besoin concret. Valider les
-entrées externes à leur frontière. Ne jamais lire, modifier ou versionner un
-fichier `.env` réel. Ne jamais migrer, réinitialiser ou alimenter une base
-distante ou non vérifiée.
+Do not add layers, repositories or ports without a concrete need. Validate
+external inputs at their boundary. Never read, modify or commit a real `.env`
+file. Never migrate, reset or seed a remote or unverified database.
 
-## Terminer un changement
+## Completing a change
 
-Exécuter les contrôles proportionnés, puis inspecter le diff final. Mettre à
-jour dans le même changement tous les documents dont les faits ont évolué :
+Run proportionate checks and inspect the final diff. Update every document
+whose facts changed in the same change:
 
-- `CONTEXT.md` pour l'état ou les décisions ouvertes ;
-- `PRODUCT.md` pour une capacité ou règle utilisateur ;
-- `ARCHITECTURE.md` pour une frontière ou un flux ;
-- `DESIGN.md` pour une convention d'interface ;
-- `REUSE.md` pour un élément partagé ;
-- `DEVELOPMENT.md` pour une commande ou procédure.
+- `CONTEXT.md`: current state and open decisions;
+- `PRODUCT.md`: user capabilities and rules;
+- `ARCHITECTURE.md`: boundaries and flows;
+- `DESIGN.md`: interface conventions;
+- `REUSE.md`: shared capabilities;
+- `DEVELOPMENT.md`: commands and procedures.
 
-Retirer les informations obsolètes au lieu d'accumuler un journal. Signaler les
-commandes exécutées, leurs résultats, les documents mis à jour et les limites
-de validation.
+Remove obsolete information instead of accumulating a journal. Report executed
+commands, results, updated documents and validation limitations.
 
-## Historique Git
+## Git history
 
-Préférer rebase pour synchroniser les branches ; ne pas créer de commit de merge.
-La réécriture d’une branche déjà publiée et le force-push nécessitent une
-autorisation explicite. Cette préférence ne constitue pas cette autorisation.
+Prefer rebase when synchronizing branches; do not create merge commits.
+Rewriting a published branch and force-pushing require explicit authorization.
+This preference does not grant that authorization.
 
-## Réutilisation du projet
+## Reusing this project
 
-Si vous réutilisez WebApp-Skull comme base, merci de mentionner le projet et de
-fournir un lien vers [son dépôt](https://github.com/Westerbay/WebApp-Skull) dans
-la documentation du résultat. Cette mention reste facultative et ne fait pas
-partie des conditions de la licence MIT.
+If you reuse WebApp-Skull, please mention it and link to
+[its repository](https://github.com/Westerbay/WebApp-Skull) in the resulting
+project documentation. Attribution is optional and is not a condition of the
+MIT license.

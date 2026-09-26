@@ -73,13 +73,13 @@ for (const file of activeFiles) {
 }
 
 const routes = [
-  "adresse-confirmee.tsx",
-  "connexion.tsx",
+  "email-verified.tsx",
+  "sign-in.tsx",
   "index.tsx",
-  "inscription.tsx",
-  "mot-de-passe-oublie.tsx",
-  "nouveau-mot-de-passe.tsx",
-  "verification-email.tsx",
+  "sign-up.tsx",
+  "forgot-password.tsx",
+  "reset-password.tsx",
+  "verify-email.tsx",
 ]
 for (const route of routes) {
   const content = await readFile(

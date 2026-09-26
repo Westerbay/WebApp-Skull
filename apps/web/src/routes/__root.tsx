@@ -7,7 +7,7 @@ import {
 import projectConfig from "@workspace/config/project" with { type: "json" }
 import { Toaster } from "@workspace/ui/components/sonner"
 import { ThemeProvider } from "next-themes"
-import { skip_content } from "@workspace/i18n/messages"
+import { skip_content, project_description } from "@workspace/i18n/messages"
 import { getLocale } from "@workspace/i18n/runtime"
 import { AppHeader } from "@/components/app-header"
 import { NotFound } from "@/components/not-found"
@@ -21,7 +21,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: projectConfig.name },
-      { name: "description", content: projectConfig.description },
+      { name: "description", content: project_description() },
       { name: "robots", content: "noindex, nofollow" },
       { name: "referrer", content: "no-referrer" },
     ],

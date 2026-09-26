@@ -1,9 +1,9 @@
-# Développement
+# Development
 
-## Environnement
+## Local environment
 
-Utiliser Node.js 24 et pnpm 12. Copier `.env.example` vers `.env` pour le
-développement local ; ne jamais versionner ou partager le fichier réel.
+Use Node.js 24 and pnpm 12. Copy `.env.example` to `.env` for local development;
+never commit or share the real file.
 
 ```bash
 pnpm install --frozen-lockfile
@@ -12,18 +12,49 @@ pnpm db:migrate
 pnpm dev
 ```
 
-L'API écoute sur `3001`, le web sur `3000` et PostgreSQL sur `5433` par défaut.
-`pnpm dev:down` arrête les conteneurs sans supprimer le volume.
+API port is 3001, web 3000 and PostgreSQL 5433 by default. `pnpm dev:down` stops
+services without deleting the volume. `pnpm run setup` starts infrastructure
+and applies guarded migrations; it never seeds implicitly.
+
+## Language profiles and archives
+
+These commands run in the maintainer repository. Generation refuses an existing
+output directory and does not read real environment files or connect to a DB.
+
+```bash
+pnpm template:create -- --locales en --output output/english-app
+pnpm template:create -- --locales fr --docs-locale fr --output output/french-app
+pnpm template:create -- --locales en,fr --docs-locale fr --output output/bilingual-app
+pnpm template:check
+pnpm template:archives
+```
+
+The first interface locale is the default; documentation is independent.
+Only selected catalogs and one documentation set are copied. Generated projects
+omit source packs, template tooling, Git history, dependencies and caches.
+Install their dependencies normally before building. Archives are emitted in
+`output/templates`; archive generation also refuses existing profile directories.
+Download a generated language archive to avoid downloading other language packs;
+a normal Git clone includes all source packs.
+
+To add a runtime language later, add its message catalog, update Inlang locales
+and the matching public paths in `packages/i18n/routing.json`, then rebuild.
+Every internal route needs a public path for every selected locale. With multiple
+locales, `prefixLocales` is true and every route uses a locale prefix. With one
+locale, keep it false. Do not duplicate route components or rename internal
+English paths. Callback URLs use the shared localization helper. API URLs and
+parameters are never translated. New dynamic content needs stable IDs and
+per-locale stored slugs; static routing does not translate dynamic values.
 
 ## Validation
 
 ```bash
+pnpm check
 pnpm format:check
 pnpm lint
 pnpm typecheck
 pnpm test
 pnpm build
-pnpm check
 pnpm docs:check
 pnpm project:check
 pnpm test:integration
@@ -32,109 +63,67 @@ pnpm api:generate
 pnpm api:check
 ```
 
-`pnpm api:generate` reconstruit `apps/api/openapi.json` depuis les controllers
-Nest puis `apps/web/src/lib/api/schema.d.ts`. Exécuter cette commande après un
-changement de controller ou DTO et versionner les deux artefacts.
-`pnpm api:check` régénère dans un répertoire temporaire et échoue en cas de
-dérive. La génération utilise des providers inertes et ne demande ni base, ni
-secret, ni SMTP. Avec l'API locale démarrée, Swagger est disponible sur
-`http://localhost:3001/docs`. Cette interface n'est pas montée lorsque
-`NODE_ENV=production`.
+`api:generate` rebuilds `apps/api/openapi.json` and the generated web client
+schema after controller/DTO changes; commit both artifacts. `api:check`
+compares temporary output with the checked-in contract without DB, secrets or
+SMTP. Swagger at `http://localhost:3001/docs` is not mounted in production.
+`docs:check` verifies eight documents and local links. `project:check` verifies
+web/server boundaries, private metadata and infrastructure pins. Fast tests need
+no DB or real secret. The initial migration is an auth-only baseline and is not
+compatible with databases created by an older migration history.
 
-Les tests rapides n'ont besoin ni d'une base ni d'un secret réel. La migration
-initiale est une baseline auth seule ; elle n'est pas compatible avec une base
-créée par un ancien historique.
+## Migrations and fixtures
 
-`pnpm docs:check` vérifie la présence des huit documents et leurs liens locaux.
-`pnpm project:check` protège les frontières web/serveur, les métadonnées privées,
-le retrait des anciennes technologies et les versions des images/actions.
-
-## Migrations et fixtures
-
-`pnpm run setup` exige un `.env` local, démarre les services Compose puis applique
-les migrations. Avant de charger le client DB, le CLI exige `APP_ENV=development`,
-un hôte loopback et une URL concordant avec les variables Compose `POSTGRES_DB`,
-`POSTGRES_USER`, `POSTGRES_PASSWORD` et `POSTGRES_PORT` (valeurs de
-`.env.example` par défaut). En test, il exige la base et les identifiants dédiés
-`skull_auth_test`, ainsi que l'identifiant d’ownership créé par le harness ; le
-port reste dynamique. Staging et production sont toujours refusés par ces outils
-locaux.
-
-Le seed n'est jamais implicite :
+Before importing the DB client, migration/seed CLIs require development mode,
+a loopback host and values matching Compose's database, user, password and port
+(defaults from `.env.example`). Tests require `skull_auth_test`, dedicated
+credentials and the harness ownership identifier. Staging/production are refused.
 
 ```bash
 pnpm db:seed -- --scenario auth
-```
-
-`DATABASE_FIXTURE_MODE=enabled` doit être présent. La commande recrée
-`verified@example.test` et `unverified@example.test` avec le mot de passe local
-public `Local-Only-Auth-2026!`, ainsi que 60 profils français générés par Faker
-avec la graine `20260926`, le même mot de passe local et des emails uniques sous
-`example.test`. Ces 62 comptes permettent de parcourir quatre pages du dashboard.
-Les deux comptes de référence gardent leurs noms et identifiants historiques.
-Le hachage est séquentiel pour borner la consommation mémoire.
-Elle supprime puis recrée tout compte reconnu par
-sa signature afin de restaurer ses valeurs, ne crée aucune session durable
-et peut être relancée. Une adresse réservée occupée par un compte ne correspondant
-pas exactement à la fixture provoque un refus avant toute mutation.
-
-`pnpm db:seed -- --all` prépare tous les scénarios avant la première écriture,
-puis les exécute dans l’ordre du registre. Avec `--clean`, tous les scénarios
-sont préparés et nettoyés en ordre inverse. Le scénario auth possède des IDs
-réservés stables ; un compte qui reprend seulement son adresse ou son nom reste
-une collision. Le hachage Better Auth est terminé avant que la transaction
-remplace les utilisateurs et comptes reconnus.
-
-Le nettoyage est volontaire, utilise la même garde et supprime uniquement ces
-62 comptes reconnus avec leurs dépendances auth et jetons de réinitialisation, dans
-une transaction :
-
-```bash
+pnpm db:seed -- --all
 pnpm db:seed -- --scenario auth --clean
 ```
 
-## Ajouter une liste paginée
+Fixture mode must be explicitly enabled. Auth recreates `verified@example.test`
+and `unverified@example.test` plus 60 deterministic Faker profiles, seed 20260926,
+with unique `example.test` emails and public local password
+`Local-Only-Auth-2026!`. These 62 accounts cover four pages. Reference fixture
+names/IDs remain stable. Password hashing is sequential to bound memory.
+Recognized fixtures are replaced transactionally, without durable sessions.
+Reserved emails/IDs occupied by nonmatching accounts are refused before mutation.
+All selected scenarios prepare before the first write; cleanup runs in reverse
+registry order and deletes only recognized fixtures and their auth dependencies.
+Change fixture settings in `apps/api/src/seeds/auth/fixtures.config.ts`. Changes
+to seed/domain affect signatures; shrinking the count leaves old reservations
+outside the selection. Clean with the old settings before changing them.
 
-1. Définir la réponse avec `cursorPageSchema(schema)` dans `packages/contracts`.
-2. Valider les paramètres avec `cursorPaginationSchema` dans un DTO Nest.
-3. Utiliser un ordre unique et stable, le même prédicat de curseur et une lecture
-   de `limit + 1` lignes ; appeler `createCursorPage(rows, limit, cursorOf)`.
-4. Régénérer OpenAPI avec `pnpm api:generate`.
-5. Appeler `useCursorInfiniteQuery` avec la clé de query (préfixe `private` pour
-   les données de session), la taille dans la clé, et une `queryFn` qui transmet
-   `pageParam` comme curseur et `signal` au client HTTP. Le hook garde les options
-   natives (`enabled`, `select`, `staleTime`, etc.).
+## Adding cursor pagination
 
-L’exemple complet est dans `apps/api/src/modules/users` et
-`apps/web/src/features/users`. Les options produites par
-`cursorInfiniteQueryOptions` peuvent aussi servir au préchargement et aux tests.
-Aucun total ni accès direct à une page arbitraire n’est calculé.
+1. Define a response with `cursorPageSchema` in contracts.
+2. Validate query parameters with `cursorPaginationSchema` in a Nest DTO.
+3. Use a unique stable order, matching cursor predicate and `limit + 1` rows;
+   call `createCursorPage(rows, limit, cursorOf)`.
+4. Run `pnpm api:generate`.
+5. Use `useCursorInfiniteQuery`, include page size/filters in the query key,
+   use the private prefix for session data, and forward cursor and abort signal.
 
-Les limites et le défaut de l’API se règlent dans
-`packages/contracts/src/pagination.constraints.ts`. La taille d’affichage du
-dashboard se règle dans `apps/web/src/features/users/users.config.ts` ; elle
-alimente le hook de requête et le modèle TanStack Table. Garder cette taille
-dans les bornes du contrat. Le nombre de profils, la graine Faker, le domaine
-email et la fréquence des adresses non vérifiées se règlent dans
-`apps/api/src/seeds/auth/fixtures.config.ts`. Une modification de graine ou de
-domaine change la signature des fixtures ; une réduction du nombre de profils
-laisse des anciennes réservations hors de la sélection : nettoyer les anciennes fixtures
-avec leur configuration actuelle avant de la modifier, puis relancer le seed.
+The full example lives in API/web users features. Native selection, enabled,
+staleTime and other observer options remain available. There is no total count
+or random-page access. API bounds live in pagination constraints; dashboard
+size in users config. Keep the latter within contract bounds.
 
-## Emails locaux
+## Email
 
-Mailpit écoute par défaut en SMTP sur `1025` et son interface sur
-`http://localhost:8025`. Les ports peuvent être ajustés avec
-`MAILPIT_SMTP_PORT`/`MAILPIT_HTTP_PORT` ; ajuster aussi `SMTP_PORT` côté API.
-Le Compose de développement n’active aucun relais SMTP externe.
+Mailpit defaults to SMTP 1025 and UI `http://localhost:8025`; adjust the Mailpit
+ports and API SMTP_PORT together. Compose has no external relay. APP_ENV is
+separate from NODE_ENV: development/staging default to capture, tests to memory.
+Production requires explicit SMTP credentials, sender and TLS. Staging real SMTP
+is opt-in with exact comma-separated allowed recipients; missing addresses are
+refused, not rewritten. Email rendering receives an explicit supported locale
+from the verified callback origin, defaulting to the project's base locale.
 
-`APP_ENV` est distinct de `NODE_ENV`. Développement/staging utilisent la capture
-locale par défaut ; test utilise la mémoire. La production exige SMTP, hôte,
-expéditeur et identifiants explicites, avec TLS obligatoire. Le SMTP réel staging
-est opt-in et nécessite `EMAIL_ALLOWED_RECIPIENTS`, adresses exactes séparées par
-virgules ; une adresse absente est refusée, jamais réécrite.
-
-## Intégration isolée
+## Owned integration and E2E
 
 ```bash
 pnpm --filter @workspace/api exec playwright install chromium
@@ -142,167 +131,113 @@ pnpm test:integration
 pnpm test:e2e
 ```
 
-Les tests rapides des applications et packages sont centralisés sous leur
-dossier `test/unit`, avec une arborescence qui reflète la responsabilité testée.
-Leurs configurations Vitest ne chargent que ces fichiers. Les tests API avec
-services réels vivent sous `test/integration` avec le suffixe
-`.integration.test.ts` ; les parcours navigateur vivent sous `test/e2e` avec le
-suffixe `.e2e.test.ts`. Chaque famille possède sa configuration Vitest.
+Unit tests live in each package/application's `test/unit`. API integration and
+E2E have separate configs and suffixes. The shared harness creates UUID Compose
+projects with tmpfs PostgreSQL, non-relaying Mailpit and dynamic loopback ports.
+It does not read `.env`, touch dev volumes or accept arbitrary DB URLs. Each run
+applies guarded migrations and seeds twice. Shutdown removes only owned services.
+`AUTH_TEST_LOCALE` can select a supported locale for a multilingual E2E run.
+Mobile browser captures are saved in `output/playwright`. Vite uses `envDir:
+false` and reserved test ports. Docker must work and download pinned images.
+Auth steps share one identity deliberately; independent feature tests must own
+their data and not depend on file order. Browser tests use canonical routes and
+localized public paths, exercising the selected project's profile.
 
-Le harness crée un projet Compose UUID distinct, PostgreSQL en tmpfs et Mailpit
-sans relais, avec ports loopback dynamiques. Il ne lit pas `.env`, n’utilise pas
-les volumes dev et n’accepte pas une URL de base arbitraire. Les migrations sont
-appliquées seulement à cette base possédée. L’arrêt retire uniquement ce projet.
-Chaque commande crée son propre projet Compose UUID, applique la migration gardée
-et relance le seed deux fois. `test:integration` couvre DB, sessions, email et
-sécurité API ; `test:e2e` exerce le parcours mobile avec captures locales sous
-`output/playwright`. Le serveur Vite utilise `envDir: false` et des ports réservés
-au test. Docker doit fonctionner et pouvoir télécharger les images versionnées.
+## Logging, health and quotas
 
-Les parcours d’intégration auth restent dans une suite cohésive : vérification,
-sessions et reset réutilisent volontairement l’identité créée au début du
-parcours. La configuration désactive le parallélisme entre fichiers ; toute
-nouvelle feature indépendante doit obtenir son propre fichier et ses propres
-données, sans dépendre de l’ordre des fichiers.
+Development logs are readable; deployed logs are JSON. Each response has
+`x-request-id`. Logs include method, path without query, status and duration,
+excluding headers, bodies, cookies, tokens, email addresses, IPs, action URLs
+and SMTP messages. Live health contacts no service; readiness probes PostgreSQL
+with a two-second deadline and returns 503 on failure.
+Nest peer tracking trusts only the socket, normalizes IPv6 and ignores client
+forwarded headers. Configure trust proxy only for a verified proxy chain and
+adapt tracking explicitly. Nest quotas are per process; replicas need a shared
+compatible store. Better Auth keeps its independent PostgreSQL rate limits.
 
-## Logs et santé
+## CI and secret scanning
 
-En développement, les logs Pino sont lisibles ; staging et production émettent
-du JSON. Chaque réponse porte `x-request-id`. Les lignes HTTP contiennent méthode,
-chemin sans query, statut et durée, sans headers, body, cookie, adresse email, IP,
-token, URL d’action ou message SMTP. `/health/live` ne contacte aucun service ;
-`/health/ready` sonde PostgreSQL et répond 503 après deux secondes au plus.
+CI uses Node 24.21.0 and pnpm 12.4.1, SHA-pinned actions and versioned images.
+Independent jobs run secret scanning, quality, integration and E2E; service tests
+own ephemeral infrastructure. Gitleaks 8.30.1 is downloaded from its official
+release, verified with SHA-256 and scans complete Git history with redaction.
+The template distribution workflow produces English/French archive artifacts
+without publishing a release automatically.
 
-## Rate limits
+## Inspect logs with Grafana
 
-Les controllers Nest utilisent un quota global en mémoire par pair réseau.
-Express ne faisant confiance à aucun proxy, l’adresse vient du socket et les
-en-têtes `X-Forwarded-For` envoyés par un client ne changent pas le tracker.
-Nest Throttler normalise les sous-réseaux IPv6. `/api/me` démontre la surcharge
-d’une règle avec `@RateLimit` et les sondes de santé portent `@SkipRateLimit`.
-Ne configurer `trust proxy` qu’avec une chaîne de proxies connue et adapter alors
-explicitement cette règle.
-
-Le stockage Nest est propre à chaque processus : les quotas ne sont donc pas
-agrégés entre plusieurs replicas. Avant un déploiement multi-instance, injecter
-un adaptateur de stockage partagé compatible Nest Throttler. `/api/auth/*` ne
-passe pas par ce guard et conserve le rate limit PostgreSQL de Better Auth.
-
-## CI
-
-`.github/workflows/ci.yml` utilise Node 24.21.0 et pnpm 12.4.1. Les actions sont
-épinglées à des commits et les images à des versions. Quatre jobs sans compte
-externe exécutent respectivement la détection de secrets, `pnpm check`,
-l'intégration et l'E2E ; ces deux derniers créent leurs propres services
-éphémères, jamais le Compose dev.
-
-Le job Gitleaks télécharge le binaire MIT 8.30.1 depuis sa release officielle,
-vérifie son archive Linux x64 par SHA-256 et analyse tout l'historique Git. La
-même analyse est reproductible localement sur Linux x64 :
-
-```bash
-gitleaks_dir="$(mktemp -d)"
-trap 'rm -rf "$gitleaks_dir"' EXIT
-curl --fail --silent --show-error --location \
-  --output "$gitleaks_dir/gitleaks.tar.gz" \
-  https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz
-echo "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb  $gitleaks_dir/gitleaks.tar.gz" | sha256sum --check --strict
-tar --extract --gzip --file "$gitleaks_dir/gitleaks.tar.gz" --directory "$gitleaks_dir" gitleaks
-"$gitleaks_dir/gitleaks" git --redact --verbose .
-```
-
-## Traductions
-
-Éditer `packages/i18n/messages/fr.json`, puis exécuter
-`pnpm --filter @workspace/i18n build`. Build/typecheck génèrent les fonctions
-Paraglide typées ; les sorties ne sont pas versionnées. En mode dev, le watcher
-recompile les messages. Conserver les règles de pluriel dans le catalogue.
-
-## Tester les logs avec Grafana
-
-Depuis la racine du checkout, sous Linux/WSL avec Docker disponible :
+From the checkout root, on Linux/WSL with Docker available:
 
 ```bash
 pnpm logs:up
 pnpm dev:logs
 ```
 
-`dev:logs` remplace `pnpm dev` pendant ce test : il lance la même application
-avec `LOG_FORMAT=json` et un miroir absolu dans `output/logs/api.jsonl`.
-Les commandes Compose de logs ne chargent aucun fichier `.env` ; le démarrage
-habituel de l’application conserve sa configuration locale existante.
-Ouvrir [Grafana](http://localhost:3002), puis le dashboard « Skull API logs » ou
-Explore avec la datasource Loki. Les ports locaux par défaut sont 3002
-(Grafana), 3100 (Loki) et 12345 (Alloy), liés à 127.0.0.1. Les variables de shell
-`GRAFANA_PORT`, `LOKI_PORT` et `ALLOY_PORT` permettent de les changer.
-
-Requêtes utiles dans Explore :
+`dev:logs` replaces `pnpm dev` for this session and uses `LOG_FORMAT=json` with
+an absolute mirror path at `output/logs/api.jsonl`. Logging Compose commands do
+not load environment files; the application keeps its usual local configuration.
+Open [Grafana](http://localhost:3002) and the "Skull API logs" dashboard or Loki
+Explore. Default ports are Grafana 3002, Loki 3100 and Alloy 12345, bound to
+127.0.0.1. Set shell variables `GRAFANA_PORT`, `LOKI_PORT` or `ALLOY_PORT` to
+change them.
 
 ```logql
 {service_name="skull-api",environment="development"} | json
 {service_name="skull-api",environment="development"} | json | level >= 50
-{service_name="skull-api",environment="development"} | json | request_requestId="ID_DE_LA_REPONSE"
+{service_name="skull-api",environment="development"} | json | request_requestId="RESPONSE_REQUEST_ID"
 ```
 
-`LOG_LEVEL` accepte trace/debug/info/warn/error/fatal/silent. Le défaut reste
-debug hors production et info en production. `LOG_FORMAT` accepte json/pretty,
-avec pretty par défaut en dev ; hors dev, seul JSON est autorisé.
-`LOG_FILE` est un miroir JSON réservé au développement. Les logs de compilation
-et du web ne sont pas collectés. Le fichier local n’a pas de rotation automatique :
-arrêter `dev:logs`, puis supprimer `output/logs/api.jsonl` entre les longues
-sessions. La rétention Loki de sept jours ne purge pas ce fichier local.
+`LOG_LEVEL` accepts trace/debug/info/warn/error/fatal/silent; defaults are debug
+outside production and info in production. `LOG_FORMAT` accepts json/pretty,
+with pretty as the development default and JSON required outside development.
+`LOG_FILE` is a development-only JSON mirror. Web and build logs are not
+collected. The mirror has no automatic rotation: stop `dev:logs` and remove
+`output/logs/api.jsonl` between long sessions. Loki retention does not purge it.
 
 ```bash
 pnpm logs:test
 pnpm logs:down
 ```
 
-`logs:test` compile l’API, lance un projet Compose UUID et des ports dynamiques,
-puis un serveur Nest avec providers inertes. Il vérifie requêtes 200/500,
-requestId, contexte des erreurs Nest, absence de secrets et de doublons HTTP,
-ingestion Loki et lecture via Grafana. Il ne contacte aucune base et ne lit
-aucun `.env`. Ses conteneurs, volumes et fichiers sont supprimés à la fin.
-`logs:down` arrête seulement la stack locale et conserve ses volumes.
+`logs:test` builds the API, starts an owned Compose UUID project with dynamic
+ports, and runs Nest with inert providers. It verifies HTTP 200/500, request
+IDs, Nest error context, no leaked secrets or duplicate HTTP logs, Loki ingestion
+and Grafana reads. It uses no database or environment file and cleans up its
+containers, volumes and temporary files. `logs:down` stops the local stack
+while preserving its volumes.
 
-Cette stack est réservée au développement : Grafana autorise la consultation
-anonyme locale et Loki n’a pas d’authentification. Ne pas exposer ces ports en
-staging/prod. Le fragment d’intégration décrit ci-dessous prépare ces environnements sans
-les déployer. Les accès Grafana/Loki, TLS, sauvegardes, stockage/rétention et
-surveillance du disque restent possédés par la plateforme cible.
-Un label d’environnement sert à filtrer, pas à isoler les permissions. Le stockage
-filesystem local ne fournit pas de haute disponibilité ni de sauvegarde externe.
+The Compose stack is for development: Grafana allows anonymous local reads
+and Loki has no authentication. Staging/production integration is prepared in
+the standalone collector fragment below; its backend and platform are not deployed.
+Local filesystem storage provides neither high availability nor external backup.
 
-## Contrat d’intégration staging/prod
+## Staging/production integration contract
 
-`compose.logs-collector.yml` définit uniquement le collecteur Alloy. Il est
-indépendant du Compose de développement et ne crée ni application, ni DB,
-ni Loki/Grafana. Il n’expose aucun port sur l’hôte. Son nom de projet et son
-volume de positions sont distincts selon `APP_ENV` ; fournir staging ou production.
+`compose.logs-collector.yml` defines only Alloy, with no published host ports.
+It does not start the application, database, Loki or Grafana. Project names and
+collection position volumes are distinct per `APP_ENV`.
 
-La plateforme fournit ces paramètres au collecteur :
+| Setting           | Contract                                       |
+| ----------------- | ---------------------------------------------- |
+| `APP_ENV`         | staging or production, required; match the API |
+| `LOKI_URL`        | Full Loki push URL, required; normally HTTPS   |
+| `LOKI_TOKEN_FILE` | Optional token path inside the container       |
+| `LOKI_TENANT_ID`  | Optional tenant configured by the backend      |
 
-| Paramètre         | Contrat                                                                            |
-| ----------------- | ---------------------------------------------------------------------------------- |
-| `APP_ENV`         | staging ou production, obligatoire, identique à l’API                              |
-| `LOKI_URL`        | URL complète de push, obligatoire, normalement HTTPS                               |
-| `LOKI_TOKEN_FILE` | Facultatif : chemin **dans le conteneur** d’un token Bearer monté en lecture seule |
-| `LOKI_TENANT_ID`  | Facultatif : tenant configuré par le backend Loki                                  |
+For Bearer authentication, the target platform mounts its secret read-only
+into Alloy (for example at `/run/secrets/loki-token`) and supplies that path
+through `LOKI_TOKEN_FILE`. Without a token, use an appropriate private endpoint.
+No secret is committed. For Basic Auth, OAuth or a private CA, adapt only
+the endpoint/tls_config blocks according to the
+[Alloy documentation](https://grafana.com/docs/alloy/latest/reference/components/loki/loki.write/).
+Standard TLS verification remains enabled.
 
-Sans token, la connexion ne fournit pas d’authentification : utiliser uniquement
-un endpoint privé adapté. Pour un token, la plateforme ajoute le montage secret
-au service `alloy`, par exemple `/chemin/gere-par-la-plateforme/token:/run/secrets/loki-token:ro`,
-puis configure `LOKI_TOKEN_FILE=/run/secrets/loki-token`. Aucun secret n’est
-versionné. Pour Basic Auth, OAuth ou une CA privée, adapter uniquement le bloc
-`endpoint`/`tls_config` de `docker.alloy` à la destination choisie, en suivant
-[la documentation Alloy](https://grafana.com/docs/alloy/latest/reference/components/loki/loki.write/).
-La validation TLS standard reste active.
-
-Le futur service API suit ce contrat de composition :
+The future API deployment supplies this configuration (its image and start
+command remain application deployment responsibilities):
 
 ```yaml
 services:
   api:
-    # L’image et le démarrage sont fournis par le déploiement applicatif.
     environment:
       APP_ENV: ${APP_ENV}
       LOG_FORMAT: json
@@ -317,14 +252,15 @@ services:
         max-file: "3"
 ```
 
-Ne pas définir `LOG_FILE` hors développement. Le JSON API conserve
-`service_name=skull-api`, quelle que soit la clé du service Compose.
-Le collecteur exige les deux labels pour découvrir le conteneur ; il peut
-collecter d’autres projets sur le même daemon uniquement s’ils portent ces labels.
-Le socket Docker donne des privilèges élevés même en lecture seule : réserver
-cet accès au collecteur de confiance de la plateforme.
+Leave `LOG_FILE` unset outside development. The JSON service_name remains
+`skull-api` regardless of the Compose service name. Both labels are required;
+other projects on the daemon are collected only if they explicitly opt in.
+Docker socket access grants high privileges even when mounted read-only;
+reserve it for a trusted collector. The platform owns authenticated access,
+TLS, backups, storage/retention and disk monitoring. Environment labels are
+filters, not permission isolation.
 
-Validation locale du fragment, sans démarrage ni fichier d’environnement :
+Validate locally without starting an environment or loading an env file:
 
 ```bash
 APP_ENV=staging LOKI_URL=https://logs.example.invalid/loki/api/v1/push \
@@ -332,8 +268,8 @@ APP_ENV=staging LOKI_URL=https://logs.example.invalid/loki/api/v1/push \
 pnpm logs:test:docker
 ```
 
-`logs:test:docker` utilise exclusivement des ressources Docker locales possédées,
-des ports dynamiques et un Loki/Grafana éphémère. Il vérifie la collecte opt-in,
-l’exclusion d’un autre environnement et le maintien du label API malgré un service
-Compose renommé. Il ne contacte aucune destination staging/prod et nettoie
-ses conteneurs/volumes. Ce test et la collecte fichier sont séparés.
+`logs:test:docker` uses owned ephemeral local containers and dynamic ports.
+It checks opt-in collection, exclusion of another environment and stable API
+labels despite a renamed Compose service, with reads through Grafana.
+It contacts no staging/production destination and cleans up its resources.
+The existing `logs:test` separately verifies the file collection flow.

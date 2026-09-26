@@ -10,7 +10,7 @@ import { AuthPanel } from "@/features/auth/components/auth-panel"
 import { tokenSearchSchema } from "@/features/auth/schemas/search"
 import { privateHead } from "@/lib/seo/private-head"
 
-export const Route = createFileRoute("/adresse-confirmee")({
+export const Route = createFileRoute("/email-verified")({
   validateSearch: tokenSearchSchema,
   head: () =>
     privateHead(verification_complete(), verification_complete_description()),
@@ -25,8 +25,8 @@ function Page() {
   return (
     <AuthPanel title={title} description={description}>
       <nav className="flex flex-col gap-3 text-sm underline underline-offset-4">
-        <Link to="/connexion">{back_sign_in()}</Link>
-        <Link to="/verification-email">{resend_verification()}</Link>
+        <Link to="/sign-in">{back_sign_in()}</Link>
+        <Link to="/verify-email">{resend_verification()}</Link>
       </nav>
     </AuthPanel>
   )
