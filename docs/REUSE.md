@@ -38,6 +38,8 @@
 - `scripts/template-profiles.mjs`: the three distribution profiles shared by
   generation, archives and CI.
 - `scripts/template-files.mjs`: source file selection and destination creation.
+- `scripts/template-archives.mjs`: fresh project ZIP creation shared by local
+  distribution and CI; includes required dotfiles and preserves file permissions.
 - `packages/i18n/messages/en.json`: source runtime messages for UI and email.
 - `template/locales/fr`: optional French documentation, messages and paths;
   never import these packs from application runtime code.

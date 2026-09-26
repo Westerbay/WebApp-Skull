@@ -87,6 +87,13 @@ consume the same profiles. Generated archives contain no source packs, Git histo
 dependencies, real environment files or compiler output. Application code and CI
 are copied without text replacements.
 
+`template-archives.mjs` creates ZIPs from fresh generated projects before any
+dependency installation or compilation. CI extracts and tests these exact ZIPs.
+Artifacts are uploaded as single files without an outer archive. On a `v*` tag
+push, a separate job with `contents: write` downloads all three validated ZIPs,
+creates a draft release, attaches them and publishes it. PR/manual jobs remain
+read-only; an existing release is not overwritten.
+
 English file routes form one stable internal tree. `routing.json` maps each
 internal path to public paths. `routing-config.mjs` checks locale coverage and
 duplicate paths, then builds patterns for Paraglide; it does not parse or reorder

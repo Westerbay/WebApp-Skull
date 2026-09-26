@@ -1,33 +1,64 @@
 import { parseArgs } from "node:util"
-import { execFileSync } from "node:child_process"
-import { mkdir } from "node:fs/promises"
+import { readdir, readFile, stat, writeFile } from "node:fs/promises"
 import { resolve } from "node:path"
+import { zipSync } from "fflate"
 import { generateTemplate } from "./template-generator.mjs"
 import { templateProfiles } from "./template-profiles.mjs"
 
-const arguments_ = process.argv.slice(2)
-if (arguments_[0] === "--") arguments_.shift()
-const { values } = parseArgs({
-  args: arguments_,
-  options: { output: { type: "string", default: "output/templates" } },
-})
-const directory = resolve(values.output)
-await mkdir(directory, { recursive: true })
-for (const profile of templateProfiles) {
-  const output = await generateTemplate({
-    output: resolve(directory, profile.id),
-    profile: profile.id,
+export async function createTemplateArchive({ output, profile }) {
+  const directory = resolve(output)
+  const project = await generateTemplate({
+    output: resolve(directory, profile),
+    profile,
   })
-  execFileSync(
-    "tar",
-    [
-      "-czf",
-      resolve(directory, `webapp-skull-${profile.id}.tar.gz`),
-      "-C",
-      output,
-      ".",
-    ],
-    { stdio: "inherit" }
-  )
+  const entries = await readArchiveFiles(project)
+  const archive = resolve(directory, `webapp-skull-${profile}.zip`)
+  await writeFile(archive, zipSync(entries), { flag: "wx" })
+  return archive
 }
-console.log(`Template archives are ready in ${directory}`)
+
+async function readArchiveFiles(directory, prefix = "") {
+  const files = {}
+  for (const entry of await readdir(directory, { withFileTypes: true })) {
+    const path = resolve(directory, entry.name)
+    const name = prefix + entry.name
+    if (entry.isDirectory()) {
+      Object.assign(files, await readArchiveFiles(path, name + "/"))
+    } else if (entry.isFile()) {
+      const metadata = await stat(path)
+      files[name] = [
+        await readFile(path),
+        {
+          os: 3,
+          attrs: (metadata.mode & 0o777) << 16,
+          mtime: metadata.mtime,
+        },
+      ]
+    } else {
+      throw new Error(`Unsupported archive entry: ${name}`)
+    }
+  }
+  return files
+}
+
+if (import.meta.main) {
+  const arguments_ = process.argv.slice(2)
+  if (arguments_[0] === "--") arguments_.shift()
+  const { values } = parseArgs({
+    args: arguments_,
+    options: {
+      output: { type: "string", default: "output/templates" },
+      profile: { type: "string" },
+    },
+  })
+  const profiles = values.profile
+    ? [values.profile]
+    : templateProfiles.map(({ id }) => id)
+  for (const profile of profiles) {
+    const archive = await createTemplateArchive({
+      output: values.output,
+      profile,
+    })
+    console.log(`Template archive ready: ${archive}`)
+  }
+}

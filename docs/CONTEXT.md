@@ -17,7 +17,9 @@ Paraglide localizes URLs at the router boundary and isolates SSR locale state.
 Three profiles cover distribution: `en`, `fr` and `multilingual` (EN + FR).
 Documentation follows the profile, using English for the multilingual variant.
 Generation checks message and route coverage before creating output. CI covers
-all three profiles, with E2E in each active language.
+all three profiles extracted from their source ZIPs, with E2E in each active
+language. PRs/manual runs provide direct ZIP artifacts; a pushed `v*` tag publishes
+a GitHub Release only after all three profiles pass.
 
 Local email is captured by Mailpit. Guarded migrations and seeds refuse remote
 or unverified databases. Two reference accounts and 60 deterministic Faker

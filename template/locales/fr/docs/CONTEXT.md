@@ -59,5 +59,7 @@ Le routage multilingue et le SSR utilisent Paraglide à la frontière du routeur
 sans duplication des pages. Le dépôt de maintenance propose trois profils :
 `en`, `fr` et `multilingual` (EN + FR). La documentation suit le profil,
 avec l’anglais pour le bilingue. La CI vérifie les trois variantes et les E2E
-dans chaque langue active. Le périmètre couvre les chemins des pages et les
-messages, sans domaine de contenus traduits.
+dans chaque langue active, après extraction des ZIP à distribuer. PR et lancement
+manuel fournissent les ZIP directement ; un push de tag `v*` publie une release
+GitHub lorsque les trois profils passent. Le périmètre couvre les chemins des
+pages et les messages, sans domaine de contenus traduits.

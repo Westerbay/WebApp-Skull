@@ -128,6 +128,8 @@ Le champ auth-input associe chaque label et erreur à un identifiant unique. Il 
 - Dans le dépôt de maintenance : `scripts/template-profiles.mjs` définit les
   trois profils pour génération, archives et CI. `template-generator.mjs` prépare
   et valide les données avant écriture ; `template-files.mjs` possède la copie.
+- `scripts/template-archives.mjs` : création des ZIP depuis des projets propres,
+  partagée entre commande locale et CI ; fichiers cachés requis et permissions conservés.
 - `apps/api/src/infrastructure/auth/email-locale.ts` : langue des emails déduite
   du callback sous l’origine web autorisée ; repli sur la langue par défaut.
 

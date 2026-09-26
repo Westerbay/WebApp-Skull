@@ -43,8 +43,11 @@ Generation checks message and route coverage before creating output, creates
 missing parent directories and refuses existing output directories. It never
 reads real environment files or connects to a database. Generated projects omit
 source packs, template tooling, Git history, dependencies and caches. Install
-dependencies normally before building. Archives are written to `output/templates`
-and contain only the selected profile; a Git clone includes all source packs.
+dependencies normally before building. ZIPs are written to `output/templates`
+and contain the project files directly, including required dotfiles; a Git clone
+includes all source packs. `pnpm template:archives -- --profile fr --output output/dist`
+generates only the French ZIP. The command uses Node.js and requires no external
+archive utility. Existing project directories and ZIP files are never overwritten.
 
 Internal routes stay English. To translate a page pathname, add its public path
 to `template/locales/fr/routes.json` in the maintainer repository. In a generated
@@ -173,11 +176,33 @@ Independent jobs run secret scanning, quality, integration and E2E; service test
 own ephemeral infrastructure. Gitleaks 8.30.1 is downloaded from its official
 release, verified with SHA-256 and scans complete Git history with redaction.
 The template distribution workflow tests the generator and the three profiles
-defined in `scripts/template-profiles.mjs`. Each generated project runs
-`pnpm check`, integration tests and E2E in every active language.
-It produces archive artifacts without publishing a release automatically.
+defined in `scripts/template-profiles.mjs`. It creates source ZIPs, extracts them,
+then runs `pnpm check`, integration and E2E in every active language against the
+extracted projects. ZIPs are uploaded directly, without ZIP-in-ZIP wrapping.
 Generated application CI is copied unchanged; distribution tests stay in the
 maintainer-only workflow.
+
+## Publishing template releases
+
+PRs and `Run workflow` perform validation and provide downloadable artifacts.
+Only pushing a `v*` tag publishes a release, after all three profiles succeed.
+Choose a new version on the intended commit, normally the merged `main`:
+
+```bash
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+The example version must be unused. The release contains `webapp-skull-en.zip`,
+`webapp-skull-fr.zip` and `webapp-skull-multilingual.zip`. Download those assets;
+GitHub's automatic `Source code` archives contain the maintainer repository.
+
+Only the tag publication job has repository write access. It verifies the remote
+tag exists, downloads the tested ZIPs, checks archive integrity, creates a draft,
+uploads all assets, then publishes it with generated release notes. A failed
+upload leaves a draft rather than publishing an incomplete release. Existing
+releases are not overwritten; inspect an existing draft before retrying a failed
+publication. No npm package is published.
 
 ## Inspect logs with Grafana
 

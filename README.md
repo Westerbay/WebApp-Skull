@@ -43,11 +43,15 @@ code identifiers, selected catalogs and one documentation language. French-only
 URLs use `/connexion`; multilingual URLs use `/en/sign-in` and `/fr/connexion`.
 Three profiles are defined in `scripts/template-profiles.mjs`. Documentation
 follows the profile, with English for the multilingual variant. Archives in
-`output/templates` are `webapp-skull-en.tar.gz`, `webapp-skull-fr.tar.gz` and
-`webapp-skull-multilingual.tar.gz`. Each contains its catalogs and documentation,
+`output/templates` are `webapp-skull-en.zip`, `webapp-skull-fr.zip` and
+`webapp-skull-multilingual.zip`. Each contains its catalogs and documentation,
 with no Git history, dependencies or real `.env`.
 A normal clone downloads the maintainer's source packs; use an archive to avoid
-that download. Distribution archives are built by the template workflow.
+that download. Each ZIP contains the project directly, including required dotfiles.
+The template workflow tests the extracted ZIPs and uploads them without another
+archive wrapper. Pushing a `v*` tag publishes the three validated ZIPs together
+in a [GitHub Release](https://github.com/Westerbay/WebApp-Skull/releases).
+PRs and manual workflow runs produce artifacts only.
 
 ## Commands
 

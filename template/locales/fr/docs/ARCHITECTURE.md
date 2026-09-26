@@ -222,7 +222,12 @@ Dans le dépôt de maintenance, `scripts/template-profiles.mjs` définit `en`,
 le profil ; le bilingue utilise l’anglais. Le générateur prépare et valide les
 données puis copie les fichiers et écrit le JSON. `template-files.mjs` possède
 la sélection/copie, sans remplacement de texte dans le code ou la CI.
-Génération, archives et CI partagent les trois profils.
+Génération, archives et CI partagent les trois profils. `template-archives.mjs`
+crée les ZIP depuis des projets fraîchement générés, avant installation/build.
+La CI extrait et teste ces mêmes ZIP, puis les transfère sans archive supplémentaire.
+Sur un push de tag `v*`, un job distinct avec `contents: write` récupère les trois
+ZIP validés, crée une release brouillon, joint les fichiers puis la publie.
+Les PR et lancements manuels restent en lecture seule et ne publient aucune release.
 
 Dans le profil français, les URL `/connexion`, `/inscription`, `/verification-email`,
 `/adresse-confirmee`, `/mot-de-passe-oublie` et `/nouveau-mot-de-passe` sont privées

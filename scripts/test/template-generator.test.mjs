@@ -1,4 +1,5 @@
 import { test } from "node:test"
+import { unzipSync } from "fflate"
 import assert from "node:assert/strict"
 import {
   mkdtemp,
@@ -17,6 +18,7 @@ import { fileURLToPath, pathToFileURL } from "node:url"
 import { buildUrlPatterns } from "../../packages/i18n/routing-config.mjs"
 import { templateProfiles } from "../template-profiles.mjs"
 import { generateTemplate } from "../template-generator.mjs"
+import { createTemplateArchive } from "../template-archives.mjs"
 
 const source = fileURLToPath(new URL("../../", import.meta.url))
 const readJson = async (path) => JSON.parse(await readFile(path, "utf8"))
@@ -29,8 +31,52 @@ for (const { id, locales, docsLocale } of templateProfiles) {
   test(`generates the ${id} profile with working translated URLs`, async () => {
     const temporary = await mkdtemp(join(tmpdir(), "skull-template-test-"))
     try {
-      const output = join(temporary, "missing", "nested", "project")
-      await generateTemplate({ output, profile: id })
+      const directory = join(temporary, "missing", "nested")
+      const output = join(directory, id)
+      const archive = await createTemplateArchive({
+        output: directory,
+        profile: id,
+      })
+      const archiveBytes = await readFile(archive)
+      const entries = unzipSync(archiveBytes)
+      const names = Object.keys(entries)
+      for (const required of [
+        "README.md",
+        "package.json",
+        "pnpm-lock.yaml",
+        ".env.example",
+        ".gitignore",
+        ".github/workflows/ci.yml",
+      ])
+        assert.ok(entries[required], `Missing ZIP entry: ${required}`)
+      assert.deepEqual(
+        names
+          .filter((name) => name.startsWith("packages/i18n/messages/"))
+          .sort(),
+        locales.map((locale) => `packages/i18n/messages/${locale}.json`).sort()
+      )
+      for (const name of names) {
+        assert.ok(!/\.(zip|tgz|tar\.gz)$/.test(name), `Nested archive: ${name}`)
+        assert.ok(
+          !name.startsWith("template/") && !name.startsWith("scripts/template-")
+        )
+        assert.ok(
+          !name
+            .split("/")
+            .some((part) =>
+              [".git", "node_modules", "dist", "output"].includes(part)
+            )
+        )
+        assert.ok(
+          !name
+            .split("/")
+            .some((part) => part.startsWith(".env") && part !== ".env.example")
+        )
+      }
+      assert.equal(
+        Buffer.from(entries["README.md"]).toString("utf8"),
+        await readFile(join(output, "README.md"), "utf8")
+      )
       assert.deepEqual(
         (await readdir(join(output, "packages/i18n/messages"))).sort(),
         locales.map((locale) => `${locale}.json`).sort()
@@ -74,6 +120,11 @@ for (const { id, locales, docsLocale } of templateProfiles) {
         code: "EEXIST",
       })
       assert.equal(await readFile(join(output, "README.md"), "utf8"), readme)
+      await assert.rejects(
+        createTemplateArchive({ output: directory, profile: id }),
+        { code: "EEXIST" }
+      )
+      assert.deepEqual(await readFile(archive), archiveBytes)
     } finally {
       await rm(temporary, { recursive: true, force: true })
     }
