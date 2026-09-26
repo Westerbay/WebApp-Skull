@@ -28,15 +28,17 @@ export function PasswordStrength({
   const label = labels[score]()
   return (
     <div id={id} className="space-y-1 text-sm text-muted-foreground">
-      <div
-        role="meter"
+      <meter
+        min={0}
+        max={4}
+        value={score}
         aria-label={password_strength_label()}
-        aria-valuemin={0}
-        aria-valuemax={4}
-        aria-valuenow={score}
         aria-valuetext={label}
-        className="flex gap-1"
+        className="sr-only"
       >
+        {label}
+      </meter>
+      <div aria-hidden="true" className="flex gap-1">
         {[0, 1, 2, 3, 4].map((segment) => (
           <span
             key={segment}
