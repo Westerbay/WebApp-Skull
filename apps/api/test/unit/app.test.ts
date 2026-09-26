@@ -42,6 +42,7 @@ class ValidationProbeController {
 type TestDependencies = Readonly<{
   authHandler?: RequestHandler
   getSession?: GetSession
+  listUsers?: ApiDependencies["listUsers"]
   databaseReady?: () => Promise<void>
   readinessTimeoutMs?: number
   logger?: Logger
@@ -51,6 +52,8 @@ async function createTestApp(dependencies: TestDependencies = {}) {
   const apiDependencies: ApiDependencies = {
     authHandler: dependencies.authHandler ?? inertAuthHandler,
     getSession: dependencies.getSession ?? (() => Promise.resolve(null)),
+    listUsers:
+      dependencies.listUsers ?? (async () => ({ items: [], nextCursor: null })),
     databaseReady: dependencies.databaseReady ?? (() => Promise.resolve()),
     ...(dependencies.readinessTimeoutMs === undefined
       ? {}
@@ -259,4 +262,44 @@ describe("API", () => {
     })
     expect(JSON.stringify(response.body)).not.toContain("not-an-email")
   })
+})
+
+it("protects the users list before invoking its data reader", async () => {
+  const listUsers = vi.fn(async () => ({ items: [], nextCursor: null }))
+  const anonymous = await createTestApp({ listUsers })
+  await anonymous.init()
+  await request(anonymous.getHttpServer()).get("/api/users").expect(401)
+  const unverified = await createTestApp({
+    listUsers,
+    getSession: async () => createSession({ emailVerified: false }),
+  })
+  await unverified.init()
+  await request(unverified.getHttpServer()).get("/api/users").expect(403)
+  expect(listUsers).not.toHaveBeenCalled()
+})
+
+it("validates pagination before reading users and strips private fields from responses", async () => {
+  const listUsers = vi.fn(async () => ({
+    items: [{ ...createSession().user, password: "private-hash" }],
+    nextCursor: null,
+  }))
+  const app = await createTestApp({
+    listUsers,
+    getSession: async () => createSession(),
+  })
+  await app.init()
+  for (const query of [
+    "limit=0",
+    "limit=101",
+    "limit=1.5",
+    "limit=abc",
+    "cursor=",
+  ]) {
+    await request(app.getHttpServer()).get(`/api/users?${query}`).expect(400)
+  }
+  expect(listUsers).not.toHaveBeenCalled()
+  await request(app.getHttpServer())
+    .get("/api/users?limit=2&cursor=previous")
+    .expect(200, { items: [createSession().user], nextCursor: null })
+  expect(listUsers).toHaveBeenCalledWith({ limit: 2, cursor: "previous" })
 })

@@ -4,6 +4,7 @@ import { createDatabase } from "@workspace/database"
 import { createSmtpSender, getEmailConfig } from "@workspace/email"
 import { toNodeHandler } from "better-auth/node"
 import request from "supertest"
+import { createListUsers } from "../../src/modules/users/list-users.js"
 import { createApiApp } from "../../src/app.js"
 import { getEnv } from "../../src/config/env.js"
 import { createAuth } from "../../src/infrastructure/auth/auth.js"
@@ -94,6 +95,7 @@ beforeAll(async () => {
   app = await createApiApp({
     authHandler: toNodeHandler(auth),
     getSession: (headers) => auth.api.getSession({ headers }),
+    listUsers: createListUsers(database.db),
     databaseReady: database.ready,
     allowedOrigin: origin,
   })

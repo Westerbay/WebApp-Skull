@@ -92,7 +92,7 @@ describe("auth seed scenario", () => {
     await runPrepared(createAuthSeedScenario(fixtureStore.store, hashPassword))
     expect(fixtureStore.replaceRecognized).toHaveBeenCalledTimes(1)
     const [, prepared] = fixtureStore.replaceRecognized.mock.calls[0]!
-    expect(prepared).toHaveLength(2)
+    expect(prepared).toHaveLength(AUTH_FIXTURES.length)
     expect(prepared[0]).toMatchObject({
       id: AUTH_FIXTURES[0]!.id,
       accountId: AUTH_FIXTURES[0]!.accountId,
@@ -101,7 +101,9 @@ describe("auth seed scenario", () => {
   })
 
   it("replaces recognized fixtures to restore deterministic values", async () => {
-    const fixtureStore = createStore([existingFixture(0), existingFixture(1)])
+    const fixtureStore = createStore(
+      AUTH_FIXTURES.map((_, index) => existingFixture(index))
+    )
     await runPrepared(createAuthSeedScenario(fixtureStore.store, hashPassword))
     expect(fixtureStore.replaceRecognized).toHaveBeenCalledWith(
       AUTH_FIXTURES.map(({ id }) => id),
@@ -134,7 +136,9 @@ describe("auth seed scenario", () => {
   })
 
   it("does not mutate when password preparation fails", async () => {
-    const fixtureStore = createStore([existingFixture(0), existingFixture(1)])
+    const fixtureStore = createStore(
+      AUTH_FIXTURES.map((_, index) => existingFixture(index))
+    )
     const failingHash = vi
       .fn<(password: string) => Promise<string>>()
       .mockResolvedValueOnce("hash")

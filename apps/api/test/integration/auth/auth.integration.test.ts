@@ -385,6 +385,7 @@ describe("real HTTP auth with isolated PostgreSQL and Mailpit", () => {
     const healthApp = await createApiApp({
       authHandler: (_request, response) => response.sendStatus(404),
       getSession: () => Promise.resolve(null),
+      listUsers: async () => ({ items: [], nextCursor: null }),
       databaseReady: unavailableDatabase.ready,
       readinessTimeoutMs: 20,
       allowedOrigin: origin,

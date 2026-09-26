@@ -81,6 +81,33 @@ it("completes French signup, verification, reset and logout in a mobile browser"
     await browserExpect(
       page.getByRole("heading", { name: "Bonjour, Élodie" })
     ).toBeVisible()
+    const table = page.getByRole("table", { name: "Utilisateurs" })
+    await browserExpect(table).toBeVisible()
+    await browserExpect(table.locator("tbody tr")).toHaveCount(20)
+    const firstPage = await table.locator("tbody").textContent()
+    await browserExpect(
+      page.getByRole("button", { name: "Précédent" })
+    ).toBeDisabled()
+    await page.getByRole("button", { name: "Suivant" }).click()
+    await browserExpect(
+      page.getByRole("status").filter({ hasText: "Page 2" })
+    ).toBeVisible()
+    expect(await table.locator("tbody").textContent()).not.toBe(firstPage)
+    await page.getByRole("button", { name: "Précédent" }).click()
+    await browserExpect(
+      page.getByRole("status").filter({ hasText: "Page 1" })
+    ).toBeVisible()
+    expect(await table.locator("tbody").textContent()).toBe(firstPage)
+    for (const number of [2, 3, 4]) {
+      await page.getByRole("button", { name: "Suivant" }).click()
+      await browserExpect(
+        page.getByRole("status").filter({ hasText: `Page ${number}` })
+      ).toBeVisible()
+    }
+    await browserExpect(table.locator("tbody tr")).toHaveCount(3)
+    await browserExpect(
+      page.getByRole("button", { name: "Suivant" })
+    ).toBeDisabled()
     await page.screenshot({
       path: "../../output/playwright/auth-home-mobile.png",
       fullPage: true,

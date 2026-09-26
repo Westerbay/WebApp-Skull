@@ -1,0 +1,31 @@
+import { asc, gt } from "drizzle-orm"
+import { schema } from "@workspace/database"
+import { createCursorPage } from "../../infrastructure/pagination/cursor-page.js"
+import type { Database } from "@workspace/database"
+import type { CurrentUser } from "@workspace/contracts/identity"
+import type {
+  CursorPage,
+  CursorPagination,
+} from "@workspace/contracts/pagination"
+
+export const LIST_USERS = Symbol("LIST_USERS")
+export type ListUsers = (
+  query: CursorPagination
+) => Promise<CursorPage<CurrentUser>>
+
+export function createListUsers(database: Database): ListUsers {
+  return async ({ cursor, limit }) => {
+    const rows = await database
+      .select({
+        id: schema.user.id,
+        name: schema.user.name,
+        email: schema.user.email,
+        emailVerified: schema.user.emailVerified,
+      })
+      .from(schema.user)
+      .where(cursor === undefined ? undefined : gt(schema.user.id, cursor))
+      .orderBy(asc(schema.user.id))
+      .limit(limit + 1)
+    return createCursorPage(rows, limit, (user) => user.id)
+  }
+}

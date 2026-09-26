@@ -6,6 +6,10 @@ Créer un compte avec nom, email et mot de passe ; confirmer l’adresse avec le
 lien reçu ; se connecter et consulter son espace ; se déconnecter ; demander
 un nouveau lien de vérification ou un changement de mot de passe.
 
+L’accueil connecté présente un tableau d’exemple des utilisateurs (nom, email et
+statut de vérification), par pages de 20. Suivant charge une page supplémentaire ;
+Précédent revient à une page déjà chargée.
+
 ## Règles
 
 - L’adresse doit être vérifiée avant la connexion et l’accès aux routes privées.
@@ -20,6 +24,8 @@ un nouveau lien de vérification ou un changement de mot de passe.
   et endpoint ; son plafond général est de 100 par minute.
 - Les controllers Nest acceptent 120 requêtes par minute et pair réseau par
   endpoint ; `/api/me` en accepte 30. Les sondes de santé restent disponibles.
+- Tout compte connecté avec une adresse vérifiée peut consulter cette liste
+  d’exemple, y compris les emails. Aucun rôle administrateur n’est défini.
 - Interface et chemins français, aucune seconde langue activée.
 
 ## Limites

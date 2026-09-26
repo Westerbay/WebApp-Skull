@@ -78,6 +78,30 @@ annule puis retire les queries préfixées `private` (identité incluse), afin
 qu’aucune donnée privée d’un utilisateur précédent ne reste visible. Les queries
 publiques conservent leurs données et leurs requêtes en cours.
 
+## Pagination des utilisateurs
+
+`GET /api/users` passe par les guards globaux de session vérifiée et de quota.
+Tous les comptes admissibles peuvent lire les noms, emails et statuts de
+vérification de la liste d’exemple ; les comptes, sessions et hashes sont exclus.
+Le DTO valide `cursor` (identifiant non vide, 256 caractères maximum) et `limit`
+(entier entre 1 et 100, 20 par défaut) via les contrats partagés.
+
+La requête Drizzle sélectionne les quatre champs publics, trie par `user.id`
+unique croissant et applique `id > cursor`, avec `limit + 1` lignes. Le helper
+serveur retire la ligne de contrôle et renvoie `{ items, nextCursor }`, avec
+`null` en fin de liste. Le curseur est l’identifiant de la dernière ligne visible ;
+il n’exige pas que cette ligne existe encore. La pagination ne fige pas un
+snapshot : des insertions avant le curseur nécessitent un rechargement.
+Le lecteur est injecté dans la composition API ; la génération OpenAPI injecte
+un lecteur inerte sans connexion DB.
+
+Le hook transverse configure `initialPageParam` et `getNextPageParam` pour
+`useInfiniteQuery` et conserve les options TanStack Query. La feature utilisateurs
+possède la clé privée incluant la taille de page, la requête OpenAPI et son signal
+d’annulation. TanStack Table affiche une seule page en pagination manuelle ;
+Suivant charge si nécessaire et Précédent utilise le cache. Les changements
+d’identité purgent ces pages avec les autres queries privées.
+
 ## Santé
 
 La liveness indique seulement que le processus répond. La readiness exécute
@@ -109,7 +133,8 @@ les identifiants dédiés et un identifiant d’environnement
 éphémère possédé ; le seed exige le mode fixture `enabled`. Aucun migrateur ou
 seed ne s’exécute au démarrage de l’API.
 
-Le registre initial contient deux comptes `example.test`. Le hachage passe par
+Le scénario auth contient deux comptes de référence et 60 profils français Faker
+avec une graine fixe, des IDs réservés et des emails uniques `example.test`. Le hachage passe par
 l’API publique `better-auth/crypto`. Le registre ordonné prépare tous les
 scénarios sélectionnés avant la première mutation, puis les exécute dans l’ordre
 déclaré ; le nettoyage utilise l’ordre inverse. Une relance reconnaît les IDs
@@ -119,7 +144,7 @@ restaurer leurs valeurs. Une collision interrompt toute la sélection avant
 mutation. Le scénario auth reste indépendant de Drizzle ; l’adaptateur
 `seeds/auth/store.ts` possède les requêtes et transactions,
 et le CLI ne fait que composer ces dépendances après la garde de cible.
-Le nettoyage optionnel supprime seulement ces deux adresses, leurs dépendances
+Le nettoyage optionnel supprime seulement ces 62 comptes reconnus, leurs dépendances
 auth et les jetons de réinitialisation dont la valeur référence leur identifiant,
 dans une transaction. Il reste explicite.
 

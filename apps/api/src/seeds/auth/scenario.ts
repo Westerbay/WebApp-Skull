@@ -1,3 +1,4 @@
+import { createDemoAuthFixtures } from "./fixtures.js"
 import type { SeedScenario } from "../seed.js"
 
 export const AUTH_FIXTURE_PASSWORD = "Local-Only-Auth-2026!"
@@ -58,6 +59,7 @@ export const AUTH_FIXTURES: ReadonlyArray<AuthFixture> = [
     name: "Compte non vérifié",
     password: AUTH_FIXTURE_PASSWORD,
   },
+  ...createDemoAuthFixtures(AUTH_FIXTURE_PASSWORD),
 ]
 
 function recognizedFixture(user: ExistingAuthFixture, fixture: AuthFixture) {
@@ -100,12 +102,14 @@ export function createAuthSeedScenario(
     name: "auth",
     async prepareSeed() {
       const recognized = await preflight(store)
-      const fixtures = await Promise.all(
-        AUTH_FIXTURES.map(async ({ password, ...fixture }) => ({
+      const fixtures: Array<PreparedAuthFixture> = []
+      // Bound memory usage: Better Auth's password hashes are memory-intensive.
+      for (const { password, ...fixture } of AUTH_FIXTURES) {
+        fixtures.push({
           ...fixture,
           passwordHash: await hashPassword(password),
-        }))
-      )
+        })
+      }
       return () => store.replaceRecognized(recognized, fixtures)
     },
     async prepareClean() {

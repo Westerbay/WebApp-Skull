@@ -12,6 +12,7 @@ if (!outputPath) {
 const app = await createApiApp({
   authHandler: (_request, response) => response.sendStatus(404),
   getSession: () => Promise.resolve(null),
+  listUsers: () => Promise.resolve({ items: [], nextCursor: null }),
   databaseReady: () => Promise.resolve(),
 })
 
