@@ -8,7 +8,7 @@ import type { ZodIssue } from "zod"
 type ErrorDetails = ReadonlyArray<Readonly<{ code: string; path: string }>>
 type ErrorResponse = Readonly<{ code: string; message: string }>
 
-const ERROR_RESPONSES: Readonly<Record<number, ErrorResponse>> = {
+const ERROR_RESPONSES: Readonly<Partial<Record<number, ErrorResponse>>> = {
   [HttpStatus.BAD_REQUEST]: {
     code: "VALIDATION_ERROR",
     message: "Request validation failed",

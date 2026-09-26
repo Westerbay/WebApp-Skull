@@ -1,10 +1,16 @@
 import { z } from "zod"
+import { apiConfig } from "./api.config.js"
 
 const envSchema = z.object({
   APP_ENV: z
     .enum(["development", "test", "staging", "production"])
     .default("development"),
-  API_PORT: z.coerce.number().int().min(1).max(65_535).default(3001),
+  API_PORT: z.coerce
+    .number()
+    .int()
+    .min(1)
+    .max(65_535)
+    .default(apiConfig.defaultPort),
   BETTER_AUTH_SECRET: z.string().min(32),
   BETTER_AUTH_URL: z.url(),
   DATABASE_URL: z.url(),
@@ -12,6 +18,11 @@ const envSchema = z.object({
 })
 
 export type ApiEnv = z.infer<typeof envSchema>
+
+const originKeys: ReadonlyArray<"WEB_URL" | "BETTER_AUTH_URL"> = [
+  "WEB_URL",
+  "BETTER_AUTH_URL",
+]
 
 export function getEnv(
   source: Record<string, string | undefined> = process.env
@@ -24,7 +35,7 @@ export function getEnv(
     )
   }
 
-  for (const key of ["WEB_URL", "BETTER_AUTH_URL"] as const) {
+  for (const key of originKeys) {
     const url = new URL(result.data[key])
     const deployed = ["staging", "production"].includes(result.data.APP_ENV)
     const insecure = deployed && url.protocol !== "https:"
