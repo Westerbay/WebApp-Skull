@@ -12,7 +12,7 @@ for (const locales of [["en"], ["fr"], ["en", "fr"]]) {
   test(`generates only selected catalogs: ${locales.join(",")}`, async () => {
     const temporary = await mkdtemp(join(tmpdir(), "skull-template-test-"))
     try {
-      const output = join(temporary, "project")
+      const output = join(temporary, "missing", "nested", "project")
       await generateTemplate({ output, locales, docsLocale: locales[0] })
       assert.deepEqual(
         (await readdir(join(output, "packages/i18n/messages"))).sort(),
@@ -74,7 +74,7 @@ test("refuses unsupported and duplicate locales before creating output", async (
 test("CLI accepts pnpm's separator and independent documentation language", async () => {
   const temporary = await mkdtemp(join(tmpdir(), "skull-template-cli-"))
   try {
-    const output = join(temporary, "project")
+    const output = join(temporary, "missing", "nested", "project")
     execFileSync(process.execPath, [
       "scripts/template-create.mjs",
       "--",

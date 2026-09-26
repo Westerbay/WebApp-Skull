@@ -220,6 +220,9 @@ recompile les messages. Conserver les règles de pluriel dans le catalogue.
 
 ## Profils linguistiques
 
+La génération crée les dossiers parents absents, mais refuse toujours un dossier
+de destination existant ; elle ne remplace jamais un projet déjà généré.
+
 Dans le dépôt source de maintenance, `pnpm template:create -- --locales fr
 --docs-locale fr --output output/mon-app` génère un projet français uniquement.
 `--locales en,fr` prépare un projet multilingue ; la première langue est la

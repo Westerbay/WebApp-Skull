@@ -18,8 +18,9 @@ and applies guarded migrations; it never seeds implicitly.
 
 ## Language profiles and archives
 
-These commands run in the maintainer repository. Generation refuses an existing
-output directory and does not read real environment files or connect to a DB.
+These commands run in the maintainer repository. Generation creates missing
+parent directories and refuses an existing output directory. It does not read
+real environment files or connect to a DB.
 
 ```bash
 pnpm template:create -- --locales en --output output/english-app

@@ -55,6 +55,7 @@ export async function generateTemplate({
   )
     .split("\0")
     .filter(Boolean)
+  await mkdir(dirname(destination), { recursive: true })
   await mkdir(destination, { recursive: false })
   for (const file of files) {
     if (excluded.some((prefix) => file.startsWith(prefix))) continue
