@@ -32,7 +32,14 @@
 - `packages/i18n/src/config.ts`: default/supported locales from generated runtime.
 - `packages/i18n/src/routing.ts`: localized paths and external callback URLs.
 - `packages/i18n/routing.json`: internal-to-public pathname mappings.
+- `packages/i18n/routing-config.mjs`: shared route validation and URL pattern
+  construction, used by generation and runtime compilation.
 - `packages/i18n/compile.mjs`: URL-based runtime compilation and declarations.
+- `template/locales.json`: declarative distribution language registry.
+- `scripts/template-registry.mjs`: registry loading and profile discovery for
+  generation, archives and CI; documentation can fall back to the source locale.
+- `scripts/template-plan.mjs`: configuration/catalog preparation before writes.
+- `scripts/template-files.mjs`: source file selection and destination creation.
 - `packages/i18n/messages/en.json`: source runtime messages for UI and email.
 - `template/locales/fr`: optional French documentation, messages and paths;
   never import these packs from application runtime code.

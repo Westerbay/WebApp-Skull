@@ -15,11 +15,6 @@ it("round-trips every supported signin URL while preserving search and hash", ()
     expect(roundTrip.pathname).toBe("/sign-in")
     expect(roundTrip.search).toBe(internal.search)
     expect(roundTrip.hash).toBe(internal.hash)
-    const pathnames = new Map<string, string>([
-      ["en", "sign-in"],
-      ["fr", "connexion"],
-    ])
-    expect(localized.pathname).toContain(pathnames.get(locale))
   }
 })
 

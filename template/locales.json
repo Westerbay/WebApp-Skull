@@ -1,0 +1,15 @@
+{
+  "sourceLocale": "en",
+  "locales": {
+    "en": {
+      "messages": "packages/i18n/messages/en.json",
+      "routes": null,
+      "documentation": "."
+    },
+    "fr": {
+      "messages": "template/locales/fr/messages.json",
+      "routes": "template/locales/fr/routes.json",
+      "documentation": "template/locales/fr"
+    }
+  }
+}

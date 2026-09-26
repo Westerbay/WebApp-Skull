@@ -18,7 +18,7 @@ Application web TypeScript avec authentification par email et mot de passe.
 | Vitest                                | Tests unitaires et HTTP                       |
 | React Email et Nodemailer             | Emails HTML/texte et transport SMTP           |
 | Mailpit                               | Capture email locale                          |
-| Paraglide JS                          | Catalogue français typé                       |
+| Paraglide JS                          | Catalogues sélectionnés typés                 |
 | Sonner                                | Notifications accessibles                     |
 | Playwright                            | Parcours navigateur                           |
 | Docker Compose                        | Services locaux                               |

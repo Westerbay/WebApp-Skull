@@ -211,6 +211,20 @@ par défaut et les locales supportées depuis ce runtime généré. Le mapping d
 L’identité publique reste JSON dans `packages/config`, les contraintes sont dans
 leurs modules TypeScript.
 
+`packages/i18n/routing-config.mjs` valide la couverture des langues, l’unicité
+des chemins et la conservation des paramètres `:slug`. Le générateur et le
+compilateur partagent ce contrat. Les segments statiques et paramètres nommés
+obligatoires sont supportés ; les chemins spécifiques précèdent leurs voisins
+dynamiques et la route de repli arrive en dernier. Les valeurs de paramètres ne
+sont pas traduites. Les slugs de contenu nécessiteront un ID stable et des
+traductions stockées par le futur domaine.
+
+Dans le dépôt de maintenance, `template/locales.json` déclare les packs et leur
+documentation facultative. Le générateur compose préparation/validation,
+copie des fichiers et écriture JSON, sans remplacement de texte dans le code ou
+la CI, ni modification des fixtures selon la langue. Les profils d’archives
+et de CI proviennent du même registre.
+
 Dans le profil français, les URL `/connexion`, `/inscription`, `/verification-email`,
 `/adresse-confirmee`, `/mot-de-passe-oublie` et `/nouveau-mot-de-passe` sont privées
 vis-à-vis de l’indexation. Les routes internes restent anglaises ; la réécriture Paraglide traduit les URL publiques sans dupliquer les pages. Les chemins absolus, encodés ambigus et antislashs ne peuvent

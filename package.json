@@ -27,7 +27,7 @@
     "test:e2e": "node scripts/test-auth.mjs e2e",
     "template:create": "node scripts/template-create.mjs",
     "template:archives": "node scripts/template-archives.mjs",
-    "template:check": "node --test scripts/test/template-generator.test.mjs",
+    "template:check": "node --test scripts/test/template-*.test.mjs",
     "dev:logs": "node scripts/dev-logs.mjs",
     "logs:up": "node scripts/logs-stack.mjs up",
     "logs:down": "node scripts/logs-stack.mjs down",

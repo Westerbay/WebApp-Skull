@@ -1,5 +1,6 @@
 import { compile } from "@inlang/paraglide-js"
 import { readFile } from "node:fs/promises"
+import { buildUrlPatterns } from "./routing-config.mjs"
 
 const routing = JSON.parse(
   await readFile(new URL("./routing.json", import.meta.url), "utf8")
@@ -10,24 +11,7 @@ const settings = JSON.parse(
     "utf8"
   )
 )
-const urlPatterns = routing.routes.map((route) => ({
-  pattern: route.path,
-  localized: route.localized.map(([locale, path]) => {
-    if (routing.prefixLocales) {
-      let suffix = path
-      if (path === "/") suffix = ""
-      return [locale, `/${locale}${suffix}`]
-    }
-    return [locale, path]
-  }),
-}))
-urlPatterns.push({
-  pattern: "/:path(.*)?",
-  localized: settings.locales.map((locale) => {
-    if (routing.prefixLocales) return [locale, `/${locale}/:path(.*)?`]
-    return [locale, "/:path(.*)?"]
-  }),
-})
+const urlPatterns = buildUrlPatterns(routing, settings.locales)
 await compile({
   project: "./project.inlang",
   outdir: "./src/generated",

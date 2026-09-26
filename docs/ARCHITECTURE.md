@@ -78,12 +78,21 @@ stay with their owners.
 
 The source locale is English. `packages/i18n/messages/en.json` is the active
 catalog. French packs are outside the runtime under `template/locales/fr`.
-The generator copies only requested catalogs and one documentation set,
-configures Inlang, and emits `routing.json`. Generated archives contain no packs,
+`template/locales.json` declares packs and optional documentation directories.
+The generator orchestrates a preparation module (catalogs, documentation and
+configuration validated before output), a filesystem module (safe file selection
+and copy), and structured JSON writes. It copies only requested catalogs and one
+documentation set, configures Inlang, and emits `routing.json`. There is no source
+text replacement, CI rewriting or locale-specific fixture mutation. Profiles for
+archives and distribution CI are derived from the same registry. Generated archives contain no packs,
 Git history, dependencies, real environment files or compiler output.
 
 English file routes form one stable internal tree. `routing.json` maps each
-internal path to public paths. `compile.mjs` passes these mappings to Paraglide.
+internal path to public paths. `routing-config.mjs` validates locale coverage,
+unique path shapes and matching named parameters, then builds patterns for
+Paraglide. Both generation and `compile.mjs` use this contract. Static segments
+and required `:parameter` segments are supported; specific paths precede dynamic
+siblings and the compiler's fallback comes last. Parameter values are preserved.
 Single-language projects omit prefixes; multilingual projects prefix all
 locales. TanStack Router rewrites incoming and outgoing URLs with Paraglide.
 The Start server entry uses `paraglideMiddleware`, so concurrent SSR requests

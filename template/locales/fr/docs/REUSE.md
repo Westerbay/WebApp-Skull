@@ -122,7 +122,13 @@ Le champ auth-input associe chaque label et erreur à un identifiant unique. Il 
 - `packages/i18n/src/routing.ts` : chemins publics et callbacks auth localisés.
 - `packages/i18n/routing.json` : correspondance des routes internes anglaises et
   chemins publics de chaque langue sélectionnée.
+- `packages/i18n/routing-config.mjs` : validation des routes et construction des
+  patterns partagées par génération et compilation.
 - `packages/i18n/compile.mjs` : compilation des messages et URL Paraglide.
+- Dans le dépôt de maintenance : `template/locales.json` déclare les langues ;
+  `scripts/template-registry.mjs` charge le registre et découvre les profils
+  pour génération, archives et CI. `template-plan.mjs` prépare les données avant
+  écriture et `template-files.mjs` possède la sélection/copie des fichiers.
 - `apps/api/src/infrastructure/auth/email-locale.ts` : langue des emails déduite
   du callback sous l’origine web autorisée ; repli sur la langue par défaut.
 

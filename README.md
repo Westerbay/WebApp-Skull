@@ -41,8 +41,11 @@ pnpm template:archives
 The output directory must not already exist. Generated projects keep English
 code identifiers, selected catalogs and one documentation language. French-only
 URLs use `/connexion`; multilingual URLs use `/en/sign-in` and `/fr/connexion`.
-`output/templates/webapp-skull-en.tar.gz` and `webapp-skull-fr.tar.gz` contain
-only the selected language, with no Git history, dependencies or real `.env`.
+`template/locales.json` declares available language packs. Archives in
+`output/templates` include one per language (`webapp-skull-en.tar.gz`,
+`webapp-skull-fr.tar.gz`) and `webapp-skull-multilingual.tar.gz` when multiple
+languages are available. Each contains only its selected catalogs and documentation,
+with no Git history, dependencies or real `.env`.
 A normal clone downloads the maintainer's source packs; use an archive to avoid
 that download. Distribution archives are built by the template workflow.
 

@@ -68,7 +68,7 @@ pnpm db:seed -- --scenario auth
 
 `DATABASE_FIXTURE_MODE=enabled` doit être présent. La commande recrée
 `verified@example.test` et `unverified@example.test` avec le mot de passe local
-public `Local-Only-Auth-2026!`, ainsi que 60 profils générés par Faker selon la langue du profil
+public `Local-Only-Auth-2026!`, ainsi que 60 profils déterministes générés par Faker, indépendants de la langue de l’interface
 avec la graine `20260926`, le même mot de passe local et des emails uniques sous
 `example.test`. Ces 62 comptes permettent de parcourir quatre pages du dashboard.
 Les deux comptes de référence gardent leurs noms et identifiants historiques.
@@ -213,7 +213,7 @@ tar --extract --gzip --file "$gitleaks_dir/gitleaks.tar.gz" --directory "$gitlea
 
 ## Traductions
 
-Éditer `packages/i18n/messages/fr.json`, puis exécuter
+Éditer `packages/i18n/messages/<locale>.json` pour la langue concernée, puis exécuter
 `pnpm --filter @workspace/i18n build`. Build/typecheck génèrent les fonctions
 Paraglide typées ; les sorties ne sont pas versionnées. En mode dev, le watcher
 recompile les messages. Conserver les règles de pluriel dans le catalogue.
@@ -230,17 +230,42 @@ langue par défaut. La documentation est choisie indépendamment des langues du
 produit. Les commandes de génération appartiennent au dépôt de maintenance et
 ne sont pas recopiées dans les projets générés.
 
-`pnpm template:archives` produit les archives anglaise et française sous
-`output/templates`. Une archive ne contient que sa langue et sa documentation,
+Le registre `template/locales.json` déclare les langues disponibles, les chemins
+des catalogues et les dossiers de documentation facultatifs. Sans `--docs-locale`,
+la documentation suit la première langue si elle existe, sinon la langue source.
+Pour ajouter une langue au dépôt de maintenance, créer ses `messages.json` et
+`routes.json` sous `template/locales/de` puis déclarer leurs chemins dans le
+registre. Toutes les clés de messages (emails inclus), variables et règles de
+pluriel doivent être conservées. Le catalogue de routes couvre chaque route interne.
+La propriété `documentation` est facultative ; l’omettre garde la documentation
+source. Aucun changement du générateur ou du workflow n’est nécessaire.
+
+`pnpm template:check` compile les profils avec Paraglide et vérifie les URL.
+La CI de distribution découvre toutes les langues du registre et un profil combiné ;
+elle exécute les contrôles, l’intégration et les E2E dans chaque langue sélectionnée.
+Les incohérences de clés, routes, paramètres ou documentation échouent avant création
+du dossier de sortie. La compilation et le typage valident les messages.
+Le workflow CI applicatif est copié tel quel, les tests de distribution restant
+dans le dépôt de maintenance.
+
+`pnpm template:archives` produit une archive par langue et une archive multilingue
+sous `output/templates`. Chaque archive ne contient que ses catalogues et sa documentation,
 sans historique Git, dépendances, caches ou fichier `.env` réel. Un clone Git
 classique télécharge aussi les ressources sources des autres langues.
 
 Les chemins internes restent anglais. `packages/i18n/routing.json` possède les
 chemins publics ; `prefixLocales` est faux pour une langue et vrai pour plusieurs.
-Ajouter un catalogue, déclarer la langue dans Inlang, compléter tous les chemins
+Dans une application déjà générée, ajouter un catalogue, déclarer la langue dans Inlang, compléter tous les chemins
 et reconstruire Paraglide pour activer une autre langue. Les callbacks auth et
 les emails conservent la langue de l’URL. Les endpoints API ne sont pas traduits.
-Les slugs de contenu futurs demandent des données par langue et un ID stable.
+Le mapping accepte les segments statiques et les paramètres nommés obligatoires :
+`/posts/:slug` peut devenir `/articles/:slug`. Les noms des paramètres restent
+identiques ; leur valeur, la query et le fragment sont conservés. Les segments
+optionnels, wildcards et regex personnalisées sont refusés dans le catalogue ;
+le compilateur possède la route de repli. Le fichier de route TanStack utilise
+sa syntaxe `$slug`, tandis que `:slug` appartient au mapping Paraglide.
+Un slug de contenu `hello` ne devient pas automatiquement `bonjour` :
+le futur domaine devra stocker les slugs par langue associés à un ID stable.
 
 `AUTH_TEST_LOCALE` permet de choisir une langue supportée pour le parcours E2E multilingue.
 

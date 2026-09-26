@@ -54,9 +54,7 @@ jobs:
           node-version-file: .node-version
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: |
-          pnpm check
-          pnpm template:check
+      - run: pnpm check
 
   integration:
     runs-on: ubuntu-24.04

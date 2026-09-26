@@ -14,6 +14,11 @@ internal routes. French documentation, messages and public pathnames live in
 catalogs and one documentation language. Single-language projects have no locale
 prefix; multilingual projects prefix every public route with its locale.
 Paraglide localizes URLs at the router boundary and isolates SSR locale state.
+A declarative locale registry feeds generation, archives and CI profiles.
+Generation validates catalogs and routes before creating output. Required route
+parameters such as `:slug` retain their values through localization; translated
+content values remain a domain concern. CI covers each language and a combined
+multilingual project, with E2E in each selected language.
 
 Local email is captured by Mailpit. Guarded migrations and seeds refuse remote
 or unverified databases. Two reference accounts and 60 deterministic Faker

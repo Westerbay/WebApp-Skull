@@ -31,6 +31,9 @@ pnpm template:archives
 ```
 
 The first interface locale is the default; documentation is independent.
+Without `--docs-locale`, use the first interface language's documentation when
+available, otherwise the source documentation. `template/locales.json` owns
+language availability, catalog paths and optional documentation directories.
 Only selected catalogs and one documentation set are copied. Generated projects
 omit source packs, template tooling, Git history, dependencies and caches.
 Install their dependencies normally before building. Archives are emitted in
@@ -38,14 +41,42 @@ Install their dependencies normally before building. Archives are emitted in
 Download a generated language archive to avoid downloading other language packs;
 a normal Git clone includes all source packs.
 
-To add a runtime language later, add its message catalog, update Inlang locales
+To add a distribution language, create `template/locales/de/messages.json` and
+`routes.json`, then add an entry to `template/locales.json`:
+
+```json
+"de": {
+  "messages": "template/locales/de/messages.json",
+  "routes": "template/locales/de/routes.json"
+}
+```
+
+This entry belongs under `locales`. Use canonical language tags such as `de` or
+`pt-BR`. Translate every source message key, including email messages, and retain
+message inputs and plural rules. Map every internal route to a public pathname.
+Add `documentation` only when all eight documents are translated; otherwise it
+falls back to the source language. No generator or workflow changes are needed.
+`pnpm template:check` validates generated profiles with the real Paraglide compiler.
+`pnpm template:archives` and the distribution CI discover all registry locales
+and a combined multilingual profile. Missing keys, route collisions, mismatched
+route parameters and unavailable documentation fail before output is created.
+Paraglide compilation/type checks validate message syntax in generated projects.
+
+To add a runtime language in an already generated application, add its message catalog, update Inlang locales
 and the matching public paths in `packages/i18n/routing.json`, then rebuild.
 Every internal route needs a public path for every selected locale. With multiple
 locales, `prefixLocales` is true and every route uses a locale prefix. With one
 locale, keep it false. Do not duplicate route components or rename internal
 English paths. Callback URLs use the shared localization helper. API URLs and
-parameters are never translated. New dynamic content needs stable IDs and
-per-locale stored slugs; static routing does not translate dynamic values.
+parameters are never translated. Route mappings support static path segments
+and required named segments, for example `/posts/:slug` to `/articles/:slug`.
+Parameter names must match; the slug value, query and fragment are preserved.
+Optional segments, wildcards and custom regexes are refused in this catalog;
+the compiler owns the fallback route. A TanStack page uses its own `$slug`
+file-route syntax; `:slug` belongs to the Paraglide mapping.
+New dynamic content needs stable IDs and per-locale stored slugs.
+`hello` does not automatically become `bonjour`: a content feature must resolve
+the target slug from the content ID and target language.
 
 ## Validation
 
@@ -162,8 +193,12 @@ CI uses Node 24.21.0 and pnpm 12.4.1, SHA-pinned actions and versioned images.
 Independent jobs run secret scanning, quality, integration and E2E; service tests
 own ephemeral infrastructure. Gitleaks 8.30.1 is downloaded from its official
 release, verified with SHA-256 and scans complete Git history with redaction.
-The template distribution workflow produces English/French archive artifacts
-without publishing a release automatically.
+The template distribution workflow tests the generator, then discovers profiles
+from the locale registry. Each generated profile runs `pnpm check`, integration
+tests and E2E in every selected language, including the multilingual profile.
+It produces archive artifacts without publishing a release automatically.
+Generated application CI is copied unchanged; distribution tests stay in the
+maintainer-only workflow.
 
 ## Inspect logs with Grafana
 
