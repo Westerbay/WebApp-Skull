@@ -55,11 +55,11 @@ export async function generateTemplate({ output, profile = "en" }) {
     [
       "install",
       "--lockfile-only",
-      "--offline",
+      "--prefer-offline",
       "--ignore-scripts",
       "--no-frozen-lockfile",
     ],
-    { cwd: destination, stdio: "pipe" }
+    { cwd: destination, stdio: "pipe", encoding: "utf8" }
   )
   return destination
 }

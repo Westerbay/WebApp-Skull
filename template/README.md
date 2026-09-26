@@ -54,10 +54,12 @@ creating output. `template-files.mjs` selects and copies source files.
 `template-archives.mjs` packages a freshly generated project before installation.
 
 The generator removes `template:*` commands and `fflate` from the generated
-manifest. It refreshes the copied lockfile with pnpm in offline, lockfile-only
-mode, with lifecycle scripts disabled. No dependencies are installed and unused
-lockfile entries are pruned. Install source dependencies first so pnpm's offline
-metadata is available; generation fails if the lockfile cannot be refreshed.
+manifest. It refreshes the copied lockfile with pnpm in lockfile-only mode,
+with lifecycle scripts disabled. No dependencies are installed and unused
+lockfile entries are pruned. Cached registry metadata is preferred; missing
+metadata is fetched so generation also works on fresh CI runners. Registry
+access is required when the cache is incomplete; supply-chain checks remain
+enabled. Generation fails if the lockfile cannot be refreshed.
 
 Application documentation is shared with the output (French documents replace
 English ones for the French profile). A `<!-- template-maintainers:start -->` /
