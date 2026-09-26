@@ -16,4 +16,4 @@ export function getPasswordStrength(password: string) {
 }
 
 export const passwordStrengthRange = { minScore: 0, maxScore: 4 }
-export type PasswordStrengthScore = ReturnType<typeof getPasswordStrength>
+export type { Score as PasswordStrengthScore } from "@zxcvbn-ts/core"

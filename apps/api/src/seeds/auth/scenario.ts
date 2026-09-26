@@ -10,8 +10,14 @@ export type AuthFixture = Readonly<{
   name: string
   password: string
 }>
-export type PreparedAuthFixture = Omit<AuthFixture, "password"> &
-  Readonly<{ passwordHash: string }>
+export interface PreparedAuthFixture {
+  readonly accountId: string
+  readonly email: string
+  readonly emailVerified: boolean
+  readonly id: string
+  readonly name: string
+  readonly passwordHash: string
+}
 export type ExistingAuthFixture = Readonly<{
   id: string
   email: string

@@ -15,9 +15,16 @@ const envSchema = z.object({
   BETTER_AUTH_URL: z.url(),
   DATABASE_URL: z.url(),
   WEB_URL: z.url(),
-})
+}) satisfies z.ZodType<ApiEnv>
 
-export type ApiEnv = z.infer<typeof envSchema>
+export interface ApiEnv {
+  APP_ENV: "development" | "test" | "staging" | "production"
+  API_PORT: number
+  BETTER_AUTH_SECRET: string
+  BETTER_AUTH_URL: string
+  DATABASE_URL: string
+  WEB_URL: string
+}
 
 const originKeys: ReadonlyArray<"WEB_URL" | "BETTER_AUTH_URL"> = [
   "WEB_URL",

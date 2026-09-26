@@ -62,3 +62,17 @@ et les composants de rendu, de navigation et de feedback. Les handlers sont
 nommés avant le JSX et passés directement aux propriétés d’événement. Les
 fonctions de rendu des cellules sont également définies hors de la configuration
 des colonnes. Le typage utilise les génériques et annotations sans assertion.
+
+## Lisibilité du code d’interface
+
+Les props et valeurs de formulaire utilisent des interfaces explicites ou les
+types natifs des bibliothèques. Éviter les types dérivés avec `ComponentProps`,
+`Pick`, `Partial`, `Omit`, `ReturnType` et `typeof`. Les callbacks déclarés dans
+un composant ou un hook utilisent `const handleAction = () => {}`.
+
+Réserver les ternaires aux choix simples de valeurs ; utiliser des `if` pour
+construire des objets, tableaux ou éléments JSX et pour choisir une opération.
+Les variables CSS du toaster sont définies dans la feuille de styles commune.
+Utiliser les éléments HTML adaptés : une jauge avec sa légende forme un
+`figure` avec `figcaption`, un conteneur nommé de tableau forme une `section`.
+Les conteneurs purement visuels peuvent rester des `div`.

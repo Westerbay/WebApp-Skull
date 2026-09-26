@@ -37,7 +37,7 @@ export function PasswordStrength({
   const score = useMemo(() => getPasswordStrength(password), [password])
   const label = labels[score]()
 
-  function renderSegment(segment: number) {
+  const renderSegment = (segment: number) => {
     const color = segment <= score ? "bg-primary" : "bg-muted"
     return (
       <span key={segment} className={`h-1.5 flex-1 rounded-full ${color}`} />
@@ -45,7 +45,7 @@ export function PasswordStrength({
   }
 
   return (
-    <div id={id} className="space-y-1 text-sm text-muted-foreground">
+    <figure id={id} className="space-y-1 text-sm text-muted-foreground">
       <meter
         min={passwordStrengthRange.minScore}
         max={passwordStrengthRange.maxScore}
@@ -59,9 +59,9 @@ export function PasswordStrength({
       <div aria-hidden="true" className="flex gap-1">
         {segments.map(renderSegment)}
       </div>
-      <p>
+      <figcaption>
         {password_strength_label()} : {label}
-      </p>
-    </div>
+      </figcaption>
+    </figure>
   )
 }

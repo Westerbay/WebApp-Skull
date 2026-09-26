@@ -1,3 +1,4 @@
+import type { SignUpFormValues } from "../schemas/auth-form.types"
 import { useForm } from "@tanstack/react-form"
 import { useRouter } from "@tanstack/react-router"
 import { useState } from "react"
@@ -7,16 +8,16 @@ import { clearPrivateCache } from "@/lib/auth/current-user"
 import { signUpSchema } from "../schemas/auth-form"
 import { authErrorMessage } from "../auth-error"
 
-const SIGN_UP_DEFAULT_VALUES = { name: "", email: "", password: "" }
+const SIGN_UP_DEFAULT_VALUES: SignUpFormValues = {
+  name: "",
+  email: "",
+  password: "",
+}
 
 export function useSignUpForm() {
   const router = useRouter()
   const [serverError, setServerError] = useState<string>()
-  async function handleSubmit({
-    value,
-  }: {
-    value: typeof SIGN_UP_DEFAULT_VALUES
-  }) {
+  const handleSubmit = async ({ value }: { value: SignUpFormValues }) => {
     setServerError(undefined)
     try {
       const result = await authClient.signUp.email({

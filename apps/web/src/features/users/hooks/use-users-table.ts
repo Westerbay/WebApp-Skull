@@ -36,12 +36,19 @@ export function useUsersTable() {
     state: { pagination: { pageIndex, pageSize } },
   })
 
-  function handlePreviousPage() {
+  const handlePreviousPage = () => {
     if (!canGoPrevious) return
     setPageIndex(pageIndex - 1)
   }
 
-  async function handleNextPage() {
+  const loadNextPage = async (nextPageIndex: number) => {
+    const result = await query.fetchNextPage()
+    if (!result.isError && (result.data?.pages.length ?? 0) > nextPageIndex) {
+      setPageIndex(nextPageIndex)
+    }
+  }
+
+  const handleNextPage = async () => {
     if (!canGoNext) return
     const nextPageIndex = pageIndex + 1
     if (hasCachedNextPage) {
@@ -51,14 +58,7 @@ export function useUsersTable() {
     await loadNextPage(nextPageIndex)
   }
 
-  async function loadNextPage(nextPageIndex: number) {
-    const result = await query.fetchNextPage()
-    if (!result.isError && (result.data?.pages.length ?? 0) > nextPageIndex) {
-      setPageIndex(nextPageIndex)
-    }
-  }
-
-  async function handleRetry() {
+  const handleRetry = async () => {
     if (query.isFetching) return
     if (query.isFetchNextPageError) {
       await loadNextPage(pageCount)

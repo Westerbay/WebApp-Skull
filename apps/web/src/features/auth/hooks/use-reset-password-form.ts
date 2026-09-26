@@ -1,3 +1,4 @@
+import type { ResetPasswordFormValues } from "../schemas/auth-form.types"
 import { useForm } from "@tanstack/react-form"
 import { useRouter } from "@tanstack/react-router"
 import { useState } from "react"
@@ -8,7 +9,7 @@ import { clearPrivateCache } from "@/lib/auth/current-user"
 import { resetPasswordSchema } from "../schemas/auth-form"
 import { authErrorMessage } from "../auth-error"
 
-const RESET_PASSWORD_DEFAULT_VALUES = {
+const RESET_PASSWORD_DEFAULT_VALUES: ResetPasswordFormValues = {
   password: "",
   confirmPassword: "",
 }
@@ -16,11 +17,11 @@ const RESET_PASSWORD_DEFAULT_VALUES = {
 export function useResetPasswordForm(token: string) {
   const router = useRouter()
   const [serverError, setServerError] = useState<string>()
-  async function handleSubmit({
+  const handleSubmit = async ({
     value,
   }: {
-    value: typeof RESET_PASSWORD_DEFAULT_VALUES
-  }) {
+    value: ResetPasswordFormValues
+  }) => {
     setServerError(undefined)
     try {
       const result = await authClient.resetPassword({

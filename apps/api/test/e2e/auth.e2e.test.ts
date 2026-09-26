@@ -247,6 +247,15 @@ it("completes French signup, verification, reset and logout in a mobile browser"
         url.pathname === "/connexion" &&
         (url.search === "" || url.searchParams.get("redirect") === "/")
     )
+    const popoverColor = await page
+      .locator("html")
+      .evaluate((element) =>
+        getComputedStyle(element).getPropertyValue("--popover").trim()
+      )
+    await browserExpect(page.locator("[data-sonner-toaster]")).toHaveCSS(
+      "--normal-bg",
+      popoverColor
+    )
     await page.getByLabel("Adresse email").fill("browser@example.test")
     await page
       .getByLabel("Mot de passe", { exact: true })

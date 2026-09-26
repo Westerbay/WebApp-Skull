@@ -4,16 +4,17 @@ import { password_show, password_hide } from "@workspace/i18n/messages"
 import { Input } from "@workspace/ui/components/input"
 import { cn } from "@workspace/ui/lib/utils"
 import { Button } from "@workspace/ui/components/button"
-import type { ComponentProps } from "react"
+import type { AuthTextInputProps } from "./auth-input.types"
 
-export function PasswordInput(
-  props: Omit<ComponentProps<typeof Input>, "type">
-) {
+export function PasswordInput(props: AuthTextInputProps) {
   const [visible, setVisible] = useState(false)
 
-  function handleToggleVisibility() {
+  const handleToggleVisibility = () => {
     setVisible(!visible)
   }
+
+  let visibilityIcon = <Eye aria-hidden="true" />
+  if (visible) visibilityIcon = <EyeOff aria-hidden="true" />
 
   return (
     <div className="relative">
@@ -32,7 +33,7 @@ export function PasswordInput(
         aria-pressed={visible}
         onClick={handleToggleVisibility}
       >
-        {visible ? <EyeOff aria-hidden="true" /> : <Eye aria-hidden="true" />}
+        {visibilityIcon}
       </Button>
     </div>
   )

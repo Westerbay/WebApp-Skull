@@ -52,9 +52,8 @@ export function UsersTableContent({
 }: UsersTableContentProps) {
   const rows = table.getRowModel().rows
   return (
-    <div
+    <section
       className="overflow-x-auto"
-      role="region"
       aria-labelledby={titleId}
       tabIndex={0}
       aria-busy={pending}
@@ -78,6 +77,6 @@ export function UsersTableContent({
           )}
         </tbody>
       </table>
-    </div>
+    </section>
   )
 }

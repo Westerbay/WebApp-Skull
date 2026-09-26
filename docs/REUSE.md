@@ -114,5 +114,5 @@ Le champ auth-input associe chaque label et erreur à un identifiant unique. Il 
   `useCursorInfiniteQuery` et factory `cursorInfiniteQueryOptions` ; fournir
   clé et queryFn, transmettre le signal d’annulation, inclure filtres et taille
   dans la clé et utiliser le préfixe privé pour les données liées à une session.
-  Les paramètres de curseur sont configurés automatiquement ; les autres options
-  TanStack Query restent disponibles.
+  Les paramètres de curseur sont configurés automatiquement ; les options
+  natives de `QueryObserverOptions`, `maxPages` et `subscribed` restent disponibles.

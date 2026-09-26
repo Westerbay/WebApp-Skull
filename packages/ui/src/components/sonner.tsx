@@ -9,15 +9,7 @@ import {
   OctagonXIcon,
   Loader2Icon,
 } from "lucide-react"
-import type { CSSProperties } from "react"
 import type { ToasterProps } from "sonner"
-
-const toasterStyle: CSSProperties & Record<`--${string}`, string> = {
-  "--normal-bg": "var(--popover)",
-  "--normal-text": "var(--popover-foreground)",
-  "--normal-border": "var(--border)",
-  "--border-radius": "var(--radius)",
-}
 
 function Toaster(props: ToasterProps) {
   const { theme } = useTheme()
@@ -35,7 +27,6 @@ function Toaster(props: ToasterProps) {
         error: <OctagonXIcon className="size-4" />,
         loading: <Loader2Icon className="size-4 animate-spin" />,
       }}
-      style={toasterStyle}
       toastOptions={{ classNames: { toast: "cn-toast" } }}
       {...props}
     />

@@ -11,21 +11,11 @@ import {
   password_max_length,
 } from "@workspace/i18n/messages"
 import { authPasswordConstraints } from "@workspace/contracts/auth/constraints"
-import type { ChangeEvent, ComponentProps } from "react"
+import type { ChangeEvent } from "react"
 import { PasswordStrength } from "./password-strength"
 import { PasswordInput } from "./password-input"
 
-interface AuthInputProps {
-  name: string
-  label: string
-  type?: ComponentProps<typeof Input>["type"]
-  autoComplete: string
-  value: string
-  onChange: (value: string) => void
-  onBlur: () => void
-  errors: Array<{ message?: string } | undefined>
-  showStrength?: boolean
-}
+import type { AuthInputProps } from "./auth-input.types"
 
 export function AuthInput({
   name,
@@ -41,31 +31,29 @@ export function AuthInput({
   const inputId = useId()
   const isPassword = type === "password"
   const tooLong = isPassword && value.length > authPasswordConstraints.maxLength
-  const fieldErrors = tooLong
-    ? [
-        {
-          message: password_max_length({
-            max: authPasswordConstraints.maxLength,
-          }),
-        },
-      ]
-    : errors
+  let fieldErrors = errors
+  if (tooLong) {
+    fieldErrors = [
+      {
+        message: password_max_length({
+          max: authPasswordConstraints.maxLength,
+        }),
+      },
+    ]
+  }
   const invalid = fieldErrors.some((error) => Boolean(error?.message))
   const errorId = `${inputId}-error`
   const helpId = `${inputId}-help`
   const strengthId = `${inputId}-strength`
   const showPasswordHelp = isPassword && showStrength
   const showPasswordStrength = showPasswordHelp && value.length > 0 && !tooLong
-  const describedBy =
-    [
-      showPasswordHelp ? helpId : undefined,
-      showPasswordStrength ? strengthId : undefined,
-      invalid ? errorId : undefined,
-    ]
-      .filter(Boolean)
-      .join(" ") || undefined
+  const descriptionIds: Array<string> = []
+  if (showPasswordHelp) descriptionIds.push(helpId)
+  if (showPasswordStrength) descriptionIds.push(strengthId)
+  if (invalid) descriptionIds.push(errorId)
+  const describedBy = descriptionIds.join(" ") || undefined
 
-  function handleChange(event: ChangeEvent<HTMLInputElement>) {
+  const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     onChange(event.target.value)
   }
 
@@ -80,14 +68,13 @@ export function AuthInput({
     "aria-describedby": describedBy,
   }
 
+  let input = <Input {...inputProps} type={type} className="min-h-11" />
+  if (isPassword) input = <PasswordInput {...inputProps} />
+
   return (
     <Field data-invalid={invalid}>
       <FieldLabel htmlFor={inputId}>{label}</FieldLabel>
-      {isPassword ? (
-        <PasswordInput {...inputProps} />
-      ) : (
-        <Input {...inputProps} type={type} className="min-h-11" />
-      )}
+      {input}
       {showPasswordHelp && (
         <FieldDescription id={helpId}>
           {password_min_length({ min: authPasswordConstraints.minLength })}

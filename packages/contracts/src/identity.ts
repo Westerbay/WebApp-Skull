@@ -5,6 +5,11 @@ export const currentUserSchema = z.object({
   name: z.string(),
   email: z.email(),
   emailVerified: z.boolean(),
-})
+}) satisfies z.ZodType<CurrentUser>
 
-export type CurrentUser = z.infer<typeof currentUserSchema>
+export interface CurrentUser {
+  id: string
+  name: string
+  email: string
+  emailVerified: boolean
+}

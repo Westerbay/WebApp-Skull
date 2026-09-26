@@ -7,7 +7,7 @@ export async function waitForReadiness(
   probe: DatabaseReadiness,
   timeoutMs: number
 ): Promise<void> {
-  let timer: ReturnType<typeof setTimeout> | undefined
+  let timer: NodeJS.Timeout | undefined
   try {
     await Promise.race([
       probe(),
