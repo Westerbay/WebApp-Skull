@@ -53,11 +53,15 @@ pas dupliqués dans un faux domaine. `packages/core` possède le port pur `Email
 Les fichiers de règles de validation portent le suffixe `.constraints.ts` ;
 les réglages techniques gardent `.config.ts` ou leur module `config.ts`. Les
 bornes du mot de passe sont possédées par le contrat auth partagé et appliquées
-explicitement par Better Auth et le formulaire.
+explicitement par Better Auth et le formulaire. Les durées des jetons auth
+appartiennent au même contrat : Better Auth les convertit en secondes et
+`packages/email` les utilise pour annoncer leur expiration.
 
 Les constantes restent auprès de leur propriétaire : contraintes de formulaire
 dans la feature web, réglages PostgreSQL dans `packages/database`, configuration
-OpenAPI dans l'API. `packages/config` ne partage à l'exécution que l'identité
+OpenAPI dans l'API, valeurs par défaut HTTP et readiness dans
+`apps/api/src/config/api.config.ts`, cache web dans
+`apps/web/src/lib/query/query.config.ts`. `packages/config` ne partage à l'exécution que l'identité
 publique du produit ; `packages/contracts` décrit les données échangées, pas les
 réglages d'infrastructure. Le nom du cookie documenté appartient à l'intégration
 Better Auth et ne constitue pas un réglage public du projet.

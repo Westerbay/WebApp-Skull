@@ -12,24 +12,30 @@ const SIGN_IN_DEFAULT_VALUES = { email: "", password: "" }
 export function useSignInForm(redirect: string) {
   const router = useRouter()
   const [serverError, setServerError] = useState<string>()
+  async function handleSubmit({
+    value,
+  }: {
+    value: typeof SIGN_IN_DEFAULT_VALUES
+  }) {
+    setServerError(undefined)
+    try {
+      const result = await authClient.signIn.email(value)
+      if (result.error) {
+        setServerError(authErrorMessage(result.error))
+        return
+      }
+      await clearPrivateCache(router.options.context.queryClient)
+      await router.navigate({ href: redirect })
+      await router.invalidate()
+    } catch {
+      setServerError(network_error())
+    }
+  }
+
   const form = useForm({
     defaultValues: SIGN_IN_DEFAULT_VALUES,
     validators: { onSubmit: signInSchema },
-    onSubmit: async ({ value }) => {
-      setServerError(undefined)
-      try {
-        const result = await authClient.signIn.email(value)
-        if (result.error) {
-          setServerError(authErrorMessage(result.error))
-          return
-        }
-        await clearPrivateCache(router.options.context.queryClient)
-        await router.navigate({ href: redirect })
-        await router.invalidate()
-      } catch {
-        setServerError(network_error())
-      }
-    },
+    onSubmit: handleSubmit,
   })
   return { form, serverError }
 }

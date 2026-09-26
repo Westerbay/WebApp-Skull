@@ -1,4 +1,5 @@
 import { queryOptions } from "@tanstack/react-query"
+import { queryConfig } from "../query/query.config"
 import { httpStatus } from "@/lib/api/http-status"
 import type { QueryClient } from "@tanstack/react-query"
 
@@ -26,7 +27,7 @@ export const currentUserQueryOptions = queryOptions({
     return data
   },
   retry: false,
-  staleTime: 30_000,
+  staleTime: queryConfig.staleTimeMs,
 })
 
 export function loadCurrentUserForProtectedRoute(queryClient: QueryClient) {

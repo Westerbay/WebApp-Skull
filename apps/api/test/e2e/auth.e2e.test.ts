@@ -164,7 +164,21 @@ it("completes French signup, verification, reset and logout in a mobile browser"
     })
     await page.getByLabel("Nom", { exact: true }).fill("Élodie")
     await page.getByLabel("Adresse email").fill("browser@example.test")
-    await page.getByLabel("Mot de passe", { exact: true }).fill(password)
+    const passwordInput = page.getByLabel("Mot de passe", { exact: true })
+    await passwordInput.fill(password)
+    await browserExpect(passwordInput).toHaveAttribute("type", "password")
+    const showPasswordButton = page.getByRole("button", {
+      name: "Afficher le mot de passe",
+    })
+    await browserExpect(showPasswordButton).toHaveAttribute(
+      "aria-controls",
+      (await passwordInput.getAttribute("id")) ?? ""
+    )
+    await showPasswordButton.click()
+    await browserExpect(passwordInput).toHaveAttribute("type", "text")
+    await browserExpect(passwordInput).toHaveValue(password)
+    await page.getByRole("button", { name: "Masquer le mot de passe" }).click()
+    await browserExpect(passwordInput).toHaveAttribute("type", "password")
     await page.getByRole("button", { name: "Créer mon compte" }).click()
     await browserExpect(page).toHaveURL(`${origin}/verification-email`)
     await page.goto(await latestMailUrl())

@@ -19,7 +19,9 @@ propre à une fonctionnalité reste près de cette fonctionnalité.
 ## Authentification
 
 Les écrans reprennent une colonne lisible, des champs de 44 px minimum, des
-labels explicites et les tokens existants. Les erreurs de validation restent
+labels explicites et les tokens existants. Chaque instance de champ utilise
+un identifiant unique pour associer label, aide et erreurs, même si plusieurs
+formulaires utilisent le même nom de champ. Les erreurs de validation restent
 près des champs, les erreurs de soumission dans le formulaire. La demande
 email reçue reste visible dans son écran et ne promet pas de livraison.
 

@@ -16,27 +16,33 @@ const RESET_PASSWORD_DEFAULT_VALUES = {
 export function useResetPasswordForm(token: string) {
   const router = useRouter()
   const [serverError, setServerError] = useState<string>()
+  async function handleSubmit({
+    value,
+  }: {
+    value: typeof RESET_PASSWORD_DEFAULT_VALUES
+  }) {
+    setServerError(undefined)
+    try {
+      const result = await authClient.resetPassword({
+        token,
+        newPassword: value.password,
+      })
+      if (result.error) {
+        setServerError(authErrorMessage(result.error))
+        return
+      }
+      await clearPrivateCache(router.options.context.queryClient)
+      await router.navigate({ to: "/connexion", replace: true })
+      toast.success(reset_complete())
+    } catch {
+      setServerError(network_error())
+    }
+  }
+
   const form = useForm({
     defaultValues: RESET_PASSWORD_DEFAULT_VALUES,
     validators: { onSubmit: resetPasswordSchema },
-    onSubmit: async ({ value }) => {
-      setServerError(undefined)
-      try {
-        const result = await authClient.resetPassword({
-          token,
-          newPassword: value.password,
-        })
-        if (result.error) {
-          setServerError(authErrorMessage(result.error))
-          return
-        }
-        await clearPrivateCache(router.options.context.queryClient)
-        await router.navigate({ to: "/connexion", replace: true })
-        toast.success(reset_complete())
-      } catch {
-        setServerError(network_error())
-      }
-    },
+    onSubmit: handleSubmit,
   })
   return { form, serverError }
 }

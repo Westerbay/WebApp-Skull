@@ -23,7 +23,7 @@ Les styles et tokens communs sont dans `packages/ui/src/styles/globals.css`.
   connexion ou déconnexion.
 - `apps/web/src/lib/api/client.ts` : client OpenAPI typé, configuré avec les
   cookies de session.
-- `apps/web/src/lib/query/query-client.ts` : configuration TanStack Query.
+- `apps/web/src/lib/query/query-client.ts` : configuration TanStack Query ; les réglages partagés sont dans `query.config.ts`.
 - `apps/web/src/lib/query/query-keys.ts` : préfixe `privateQueryKeyPrefix` pour
   toutes les queries dépendant de la session ou contenant des données privées.
   Construire leurs clés avec `[...privateQueryKeyPrefix, feature, ...identifiants]`.
@@ -35,8 +35,8 @@ Les styles et tokens communs sont dans `packages/ui/src/styles/globals.css`.
   propre aux formulaires d’authentification. Les schémas utilisent directement
   les bornes de mot de passe du contrat auth partagé.
 
-- `packages/contracts/src/auth.constraints.ts` : bornes du mot de passe partagées
-  entre validation web et configuration serveur Better Auth.
+- `packages/contracts/src/auth.constraints.ts` : bornes du mot de passe et durées des jetons partagées
+  entre validation web, configuration serveur Better Auth et contenu des emails.
 
 ## Serveur
 
@@ -99,7 +99,7 @@ source et sa règle d'usage.
 - `apps/web/src/lib/auth/redirect.ts` : `getSafeInternalRedirect`, validation restrictive d’un retour interne.
 - `apps/web/src/lib/seo/private-head.ts` : métadonnées auth/privé sans indexation.
 
-Le champ auth-input possède aussi le bouton d’affichage du mot de passe, l’aide et l’option showStrength pour les champs de création. Le composant password-strength est partagé par l’inscription et le reset.
+Le champ auth-input associe chaque label et erreur à un identifiant unique. Il délègue la visibilité du mot de passe à `password-input.tsx` et possède l’aide et l’option showStrength pour les champs de création. Le composant password-strength est partagé par l’inscription et le reset.
 
 ## Pagination
 

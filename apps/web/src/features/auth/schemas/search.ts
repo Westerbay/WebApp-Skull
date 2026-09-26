@@ -1,4 +1,5 @@
 import { z } from "zod"
+import { authSearchConstraints } from "./search.constraints"
 import { getSafeInternalRedirect } from "@/lib/auth/redirect"
 
 export const signInSearchSchema = z.object({
@@ -9,6 +10,10 @@ export const signInSearchSchema = z.object({
     .transform(getSafeInternalRedirect),
 })
 export const tokenSearchSchema = z.object({
-  token: z.string().max(4096).optional().catch(undefined),
+  token: z
+    .string()
+    .max(authSearchConstraints.tokenMaxLength)
+    .optional()
+    .catch(undefined),
   error: z.string().optional().catch(undefined),
 })
