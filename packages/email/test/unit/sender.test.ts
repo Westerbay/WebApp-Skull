@@ -24,7 +24,7 @@ it("bounds a suspended local SMTP connection and closes its socket", async () =>
       SMTP_PORT: String(address.port),
     })
   )
-  const started = Date.now()
+  const started = performance.now()
   try {
     await expect(
       sender.send({
@@ -34,7 +34,7 @@ it("bounds a suspended local SMTP connection and closes its socket", async () =>
         text: "fixture",
       })
     ).rejects.toThrow("EMAIL_DELIVERY_FAILED")
-    expect(Date.now() - started).toBeLessThan(11500)
+    expect(performance.now() - started).toBeLessThan(11500)
   } finally {
     for (const socket of sockets) socket.destroy()
     await new Promise<void>((resolve) => server.close(() => resolve()))
