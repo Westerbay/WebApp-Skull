@@ -16,13 +16,17 @@ const child = spawn("pnpm", ["dev"], {
   },
 })
 
-const forwardSignal = (signal) => child.kill(signal)
-process.on("SIGINT", forwardSignal)
-process.on("SIGTERM", forwardSignal)
-child.on("error", (error) => {
+const handleInterrupt = () => child.kill("SIGINT")
+const handleTermination = () => child.kill("SIGTERM")
+process.on("SIGINT", handleInterrupt)
+process.on("SIGTERM", handleTermination)
+const handleError = (error) => {
   console.error(error.message)
   process.exitCode = 1
-})
-child.on("exit", (code, signal) => {
+}
+const handleExit = (code, signal) => {
   process.exitCode = code ?? (signal ? 1 : 0)
-})
+}
+
+child.on("error", handleError)
+child.on("exit", handleExit)

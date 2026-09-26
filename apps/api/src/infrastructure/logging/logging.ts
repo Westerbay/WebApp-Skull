@@ -1,13 +1,7 @@
-import { randomUUID } from "node:crypto"
 import { mkdirSync } from "node:fs"
 import { dirname } from "node:path"
-import { LoggerModule } from "nestjs-pino"
 import pino from "pino"
-import { pinoHttp } from "pino-http"
-import type { DynamicModule } from "@nestjs/common"
-import type { RequestHandler } from "express"
-import type { DestinationStream, Logger } from "pino"
-import type { Options as PinoHttpOptions } from "pino-http"
+import type { DestinationStream, Logger, TransportSingleOptions } from "pino"
 import type { ApiEnv } from "../../config/env.js"
 import type { LoggingOptions } from "./logging.config.js"
 
@@ -37,13 +31,13 @@ export function createApiLogger(
   const pretty =
     options.format === "pretty" ||
     (environment === "development" && options.format !== "json")
-  const transport =
-    pretty && !destination
-      ? {
-          target: "pino-pretty",
-          options: { colorize: true, singleLine: true },
-        }
-      : undefined
+  let transport: TransportSingleOptions | undefined
+  if (pretty && !destination) {
+    transport = {
+      target: "pino-pretty",
+      options: { colorize: true, singleLine: true },
+    }
+  }
 
   const level =
     options.level ?? (environment === "production" ? "info" : "debug")
@@ -66,53 +60,4 @@ export function createApiLogger(
     },
     output
   )
-}
-
-function requestId(
-  request: Parameters<NonNullable<PinoHttpOptions["genReqId"]>>[0],
-  response: Parameters<NonNullable<PinoHttpOptions["genReqId"]>>[1]
-) {
-  const id = typeof request.id === "string" ? request.id : randomUUID()
-  response.setHeader("x-request-id", id)
-  return id
-}
-
-function httpOptions(logger: Logger): PinoHttpOptions {
-  return {
-    logger,
-    genReqId: requestId,
-    customAttributeKeys: {
-      req: "request",
-      res: "response",
-      responseTime: "durationMs",
-    },
-    serializers: {
-      req(request) {
-        const path = new URL(request.url, "http://localhost").pathname
-        return { requestId: request.id, method: request.method, path }
-      },
-      res(response) {
-        return { status: response.statusCode }
-      },
-      err(error) {
-        return { type: error.constructor.name }
-      },
-    },
-  }
-}
-
-export function createHttpLogging(logger: Logger): Readonly<{
-  middleware: RequestHandler
-  module: DynamicModule
-}> {
-  const options = httpOptions(logger)
-  const contextOptions = {
-    ...options,
-    autoLogging: false,
-  }
-
-  return {
-    middleware: pinoHttp(options),
-    module: LoggerModule.forRoot({ pinoHttp: contextOptions }),
-  }
 }

@@ -21,7 +21,11 @@ const args = [
   "compose.observability.yml",
   action,
 ]
-if (action === "up") args.push("-d")
+if (action === "up") {
+  args.push("-d")
+}
 const result = spawnSync("docker", args, { cwd: root, stdio: "inherit" })
-if (result.error) throw result.error
+if (result.error) {
+  throw result.error
+}
 process.exitCode = result.status ?? 1

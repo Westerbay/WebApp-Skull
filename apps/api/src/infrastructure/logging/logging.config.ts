@@ -1,11 +1,18 @@
 import { z } from "zod"
 import type { ApiEnv } from "../../config/env.js"
 
-export type LoggingOptions = Readonly<{
-  format?: "json" | "pretty"
-  level?: "trace" | "debug" | "info" | "warn" | "error" | "fatal" | "silent"
-  file?: string
-}>
+export interface LoggingOptions {
+  readonly format?: "json" | "pretty"
+  readonly level?:
+    | "trace"
+    | "debug"
+    | "info"
+    | "warn"
+    | "error"
+    | "fatal"
+    | "silent"
+  readonly file?: string
+}
 
 const loggingSchema = z.object({
   LOG_FORMAT: z.enum(["json", "pretty"]).optional(),
@@ -35,8 +42,13 @@ export function getLoggingConfig(
     throw new Error("LOG_FILE requires JSON logging")
   }
 
+  let format = LOG_FORMAT
+  if (!format && LOG_FILE) {
+    format = "json"
+  }
+
   return {
-    format: LOG_FORMAT ?? (LOG_FILE ? "json" : undefined),
+    format,
     level: LOG_LEVEL,
     file: LOG_FILE,
   }
