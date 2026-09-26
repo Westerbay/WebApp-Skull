@@ -1,0 +1,49 @@
+// Deployment example: requires access to the Docker daemon on this host.
+// Opt in application containers with the label skull.logs=true.
+discovery.docker "applications" {
+  host = "unix:///var/run/docker.sock"
+  filter {
+    name = "label"
+    values = ["skull.logs=true"]
+  }
+}
+
+discovery.relabel "applications" {
+  targets = discovery.docker.applications.targets
+  rule {
+    source_labels = ["__meta_docker_container_label_com_docker_compose_service"]
+    target_label = "service_name"
+  }
+}
+
+loki.source.docker "applications" {
+  host = "unix:///var/run/docker.sock"
+  targets = discovery.relabel.applications.output
+  forward_to = [loki.process.applications.receiver]
+}
+
+loki.process "applications" {
+  stage.json {
+    expressions = {
+      environment = "environment",
+      time = "time",
+    }
+  }
+  stage.labels {
+    values = {
+      environment = "",
+    }
+  }
+  stage.timestamp {
+    source = "time"
+    format = "UnixMs"
+    action_on_failure = "skip"
+  }
+  forward_to = [loki.write.remote.receiver]
+}
+
+loki.write "remote" {
+  endpoint {
+    url = sys.env("LOKI_URL")
+  }
+}

@@ -13,10 +13,15 @@ import { createAuth } from "./infrastructure/auth/auth.js"
 import { AuthEmailDispatcher } from "./infrastructure/email/auth-email-dispatcher.js"
 import { createShutdown } from "./infrastructure/lifecycle/shutdown.js"
 import { createApiLogger } from "./infrastructure/logging/logging.js"
+import { getLoggingConfig } from "./infrastructure/logging/logging.config.js"
 import { setupOpenApi } from "./openapi/document.js"
 
 const env = getEnv()
-const logger = createApiLogger(env.APP_ENV)
+const logger = createApiLogger(
+  env.APP_ENV,
+  undefined,
+  getLoggingConfig(env.APP_ENV)
+)
 const database = createDatabase(env.DATABASE_URL)
 const emailConfig = getEmailConfig(process.env)
 const sender =

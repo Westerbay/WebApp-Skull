@@ -1,4 +1,6 @@
 import { randomUUID } from "node:crypto"
+import { mkdirSync } from "node:fs"
+import { dirname } from "node:path"
 import { LoggerModule } from "nestjs-pino"
 import pino from "pino"
 import { pinoHttp } from "pino-http"
@@ -7,6 +9,7 @@ import type { RequestHandler } from "express"
 import type { DestinationStream, Logger } from "pino"
 import type { Options as PinoHttpOptions } from "pino-http"
 import type { ApiEnv } from "../../config/env.js"
+import type { LoggingOptions } from "./logging.config.js"
 
 const REDACTED_PATHS = [
   "req.headers.authorization",
@@ -28,24 +31,40 @@ const REDACTED_PATHS = [
 
 export function createApiLogger(
   environment: ApiEnv["APP_ENV"],
-  destination?: DestinationStream
+  destination?: DestinationStream,
+  options: LoggingOptions = {}
 ): Logger {
+  const pretty =
+    options.format === "pretty" ||
+    (environment === "development" && options.format !== "json")
   const transport =
-    environment === "development" && !destination
+    pretty && !destination
       ? {
           target: "pino-pretty",
           options: { colorize: true, singleLine: true },
         }
       : undefined
 
+  const level =
+    options.level ?? (environment === "production" ? "info" : "debug")
+  let output = destination
+  if (options.file && !destination) {
+    mkdirSync(dirname(options.file), { recursive: true })
+    output = pino.multistream([
+      { level, stream: process.stdout },
+      { level, stream: pino.destination({ dest: options.file, sync: true }) },
+    ])
+  }
+
   return pino(
     {
       enabled: environment !== "test",
-      level: environment === "production" ? "info" : "debug",
+      level,
+      base: { service_name: "skull-api", environment },
       redact: { paths: REDACTED_PATHS, censor: "[Redacted]" },
       transport,
     },
-    destination
+    output
   )
 }
 

@@ -116,3 +116,13 @@ Le champ auth-input associe chaque label et erreur à un identifiant unique. Il 
   dans la clé et utiliser le préfixe privé pour les données liées à une session.
   Les paramètres de curseur sont configurés automatiquement ; les options
   natives de `QueryObserverOptions`, `maxPages` et `subscribed` restent disponibles.
+
+## Observabilité
+
+- `apps/api/src/infrastructure/logging/logging.config.ts` : validation des
+  réglages de logging à la frontière ; JSON/stdout imposés hors développement.
+- `infra/observability` : configurations Alloy fichier/Docker, stockage Loki et
+  provisionnement Grafana. Labels stables seulement, aucun identifiant de
+  requête/utilisateur indexé.
+- `scripts/test-logs.mjs` : vérification isolée d’un vrai serveur Nest jusqu’à
+  la datasource Grafana, avec nettoyage de ses seuls conteneurs et volumes.

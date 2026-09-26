@@ -104,3 +104,11 @@ Si vous réutilisez WebApp-Skull comme base, merci de mentionner le projet et de
 fournir un lien vers [son dépôt](https://github.com/Westerbay/WebApp-Skull) dans
 la documentation du résultat. Cette mention est facultative et ne constitue
 pas une condition supplémentaire de la licence MIT.
+
+## Observabilité locale
+
+La stack optionnelle Alloy/Loki/Grafana se lance avec `pnpm logs:up` ;
+`pnpm dev:logs` lui fournit les logs JSON API. Grafana est disponible sur
+[localhost:3002](http://localhost:3002). `pnpm logs:test` vérifie le flux complet
+dans des conteneurs isolés, sans base ni `.env`. Voir les procédures et les
+limites de déploiement dans [DEVELOPMENT.md](docs/DEVELOPMENT.md).

@@ -1,0 +1,39 @@
+// Host development: only the API's sanitized JSON file is collected.
+local.file_match "api" {
+  path_targets = [{
+    "__path__" = "/var/log/skull/api.jsonl",
+    "service_name" = "skull-api",
+  }]
+  sync_period = "1s"
+}
+
+loki.source.file "api" {
+  targets = local.file_match.api.targets
+  forward_to = [loki.process.api.receiver]
+}
+
+loki.process "api" {
+  stage.json {
+    expressions = {
+      environment = "environment",
+      time = "time",
+    }
+  }
+  stage.labels {
+    values = {
+      environment = "",
+    }
+  }
+  stage.timestamp {
+    source = "time"
+    format = "UnixMs"
+    action_on_failure = "skip"
+  }
+  forward_to = [loki.write.local.receiver]
+}
+
+loki.write "local" {
+  endpoint {
+    url = "http://loki:3100/loki/api/v1/push"
+  }
+}
