@@ -30,6 +30,14 @@ Le projet est distribué sous [licence MIT](../LICENSE), avec Mathis Dubuisson
 comme titulaire du copyright. La citation du dépôt lors d’une réutilisation
 comme base est encouragée, mais reste facultative.
 
+La stack locale optionnelle Alloy → Loki → Grafana collecte les logs JSON API,
+avec labels de service/environnement et rétention de sept jours. Elle possède
+son propre Compose et ses volumes. Un test isolé exerce le flux HTTP jusqu’à
+Grafana sans base ni fichier d’environnement. Un fragment Compose de collecte
+Docker prépare staging/prod avec sélection explicite par environnement, labels
+stables et connexion Loki paramétrable. Son flux est testé localement dans des
+conteneurs éphémères ; aucun staging/prod n’est déployé.
+
 ## Carte documentaire
 
 - [PRODUCT.md](PRODUCT.md) : capacités et règles utilisateur.

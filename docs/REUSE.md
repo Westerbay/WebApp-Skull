@@ -60,8 +60,9 @@ Les styles et tokens communs sont dans `packages/ui/src/styles/globals.css`.
   ouverture de connexion par les CLI migration et seed.
 - `apps/api/src/modules/health/readiness.ts` : contrat de sonde et timeout de
   readiness injectables.
-- `apps/api/src/infrastructure/logging/logging.ts` : logger Pino et contrat de
-  sérialisation HTTP nettoyé.
+- `apps/api/src/infrastructure/logging/logging.ts` : création du logger Pino et
+  destinations de sortie. `http-logging.ts` possède les serializers HTTP nettoyés,
+  le middleware et son intégration au contexte Nest.
 - `apps/api/src/seeds/seed.ts` : contrat pur `SeedScenario`, préparation globale
   avant mutation et exécution d’une sélection ; `apps/api/src/seeds/registry.ts`
   possède l’ordre central et refuse les noms absents ou dupliqués.
@@ -116,3 +117,17 @@ Le champ auth-input associe chaque label et erreur à un identifiant unique. Il 
   dans la clé et utiliser le préfixe privé pour les données liées à une session.
   Les paramètres de curseur sont configurés automatiquement ; les options
   natives de `QueryObserverOptions`, `maxPages` et `subscribed` restent disponibles.
+
+## Observabilité
+
+- `apps/api/src/infrastructure/logging/logging.config.ts` : validation des
+  réglages de logging à la frontière ; JSON/stdout imposés hors développement.
+- `compose.logs-collector.yml` : fragment de collecteur Docker pour une destination Loki externe ; aucun déploiement applicatif ou backend d’observabilité.
+- `infra/observability` : configurations Alloy fichier/Docker, stockage Loki et
+  provisionnement Grafana. Labels stables seulement, aucun identifiant de
+  requête/utilisateur indexé.
+- `scripts/test-logs.mjs` : assertions du flux réel Nest vers la datasource
+  Grafana ; `scripts/support/logs-test-harness.mjs` possède les ressources Docker
+  isolées, leur nettoyage et les délais de polling.
+
+- `scripts/test-docker-logs.mjs` : test local du fragment de collecte, des labels de service et de la sélection par environnement/opt-in.

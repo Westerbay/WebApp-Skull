@@ -19,10 +19,8 @@ import { AUTH_SESSION_READER, AuthGuard } from "./infrastructure/auth/guard.js"
 import { HttpErrorFilter } from "./infrastructure/http/http-error.filter.js"
 import { requestContext } from "./infrastructure/http/request-context.js"
 import { apiThrottlerOptions } from "./infrastructure/rate-limit/rate-limit.config.js"
-import {
-  createApiLogger,
-  createHttpLogging,
-} from "./infrastructure/logging/logging.js"
+import { createApiLogger } from "./infrastructure/logging/logging.js"
+import { createHttpLogging } from "./infrastructure/logging/http-logging.js"
 import { HealthController } from "./modules/health/health.controller.js"
 import {
   DATABASE_READINESS,

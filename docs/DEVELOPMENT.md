@@ -217,3 +217,123 @@ tar --extract --gzip --file "$gitleaks_dir/gitleaks.tar.gz" --directory "$gitlea
 `pnpm --filter @workspace/i18n build`. Build/typecheck génèrent les fonctions
 Paraglide typées ; les sorties ne sont pas versionnées. En mode dev, le watcher
 recompile les messages. Conserver les règles de pluriel dans le catalogue.
+
+## Tester les logs avec Grafana
+
+Depuis la racine du checkout, sous Linux/WSL avec Docker disponible :
+
+```bash
+pnpm logs:up
+pnpm dev:logs
+```
+
+`dev:logs` remplace `pnpm dev` pendant ce test : il lance la même application
+avec `LOG_FORMAT=json` et un miroir absolu dans `output/logs/api.jsonl`.
+Les commandes Compose de logs ne chargent aucun fichier `.env` ; le démarrage
+habituel de l’application conserve sa configuration locale existante.
+Ouvrir [Grafana](http://localhost:3002), puis le dashboard « Skull API logs » ou
+Explore avec la datasource Loki. Les ports locaux par défaut sont 3002
+(Grafana), 3100 (Loki) et 12345 (Alloy), liés à 127.0.0.1. Les variables de shell
+`GRAFANA_PORT`, `LOKI_PORT` et `ALLOY_PORT` permettent de les changer.
+
+Requêtes utiles dans Explore :
+
+```logql
+{service_name="skull-api",environment="development"} | json
+{service_name="skull-api",environment="development"} | json | level >= 50
+{service_name="skull-api",environment="development"} | json | request_requestId="ID_DE_LA_REPONSE"
+```
+
+`LOG_LEVEL` accepte trace/debug/info/warn/error/fatal/silent. Le défaut reste
+debug hors production et info en production. `LOG_FORMAT` accepte json/pretty,
+avec pretty par défaut en dev ; hors dev, seul JSON est autorisé.
+`LOG_FILE` est un miroir JSON réservé au développement. Les logs de compilation
+et du web ne sont pas collectés. Le fichier local n’a pas de rotation automatique :
+arrêter `dev:logs`, puis supprimer `output/logs/api.jsonl` entre les longues
+sessions. La rétention Loki de sept jours ne purge pas ce fichier local.
+
+```bash
+pnpm logs:test
+pnpm logs:down
+```
+
+`logs:test` compile l’API, lance un projet Compose UUID et des ports dynamiques,
+puis un serveur Nest avec providers inertes. Il vérifie requêtes 200/500,
+requestId, contexte des erreurs Nest, absence de secrets et de doublons HTTP,
+ingestion Loki et lecture via Grafana. Il ne contacte aucune base et ne lit
+aucun `.env`. Ses conteneurs, volumes et fichiers sont supprimés à la fin.
+`logs:down` arrête seulement la stack locale et conserve ses volumes.
+
+Cette stack est réservée au développement : Grafana autorise la consultation
+anonyme locale et Loki n’a pas d’authentification. Ne pas exposer ces ports en
+staging/prod. Le fragment d’intégration décrit ci-dessous prépare ces environnements sans
+les déployer. Les accès Grafana/Loki, TLS, sauvegardes, stockage/rétention et
+surveillance du disque restent possédés par la plateforme cible.
+Un label d’environnement sert à filtrer, pas à isoler les permissions. Le stockage
+filesystem local ne fournit pas de haute disponibilité ni de sauvegarde externe.
+
+## Contrat d’intégration staging/prod
+
+`compose.logs-collector.yml` définit uniquement le collecteur Alloy. Il est
+indépendant du Compose de développement et ne crée ni application, ni DB,
+ni Loki/Grafana. Il n’expose aucun port sur l’hôte. Son nom de projet et son
+volume de positions sont distincts selon `APP_ENV` ; fournir staging ou production.
+
+La plateforme fournit ces paramètres au collecteur :
+
+| Paramètre         | Contrat                                                                            |
+| ----------------- | ---------------------------------------------------------------------------------- |
+| `APP_ENV`         | staging ou production, obligatoire, identique à l’API                              |
+| `LOKI_URL`        | URL complète de push, obligatoire, normalement HTTPS                               |
+| `LOKI_TOKEN_FILE` | Facultatif : chemin **dans le conteneur** d’un token Bearer monté en lecture seule |
+| `LOKI_TENANT_ID`  | Facultatif : tenant configuré par le backend Loki                                  |
+
+Sans token, la connexion ne fournit pas d’authentification : utiliser uniquement
+un endpoint privé adapté. Pour un token, la plateforme ajoute le montage secret
+au service `alloy`, par exemple `/chemin/gere-par-la-plateforme/token:/run/secrets/loki-token:ro`,
+puis configure `LOKI_TOKEN_FILE=/run/secrets/loki-token`. Aucun secret n’est
+versionné. Pour Basic Auth, OAuth ou une CA privée, adapter uniquement le bloc
+`endpoint`/`tls_config` de `docker.alloy` à la destination choisie, en suivant
+[la documentation Alloy](https://grafana.com/docs/alloy/latest/reference/components/loki/loki.write/).
+La validation TLS standard reste active.
+
+Le futur service API suit ce contrat de composition :
+
+```yaml
+services:
+  api:
+    # L’image et le démarrage sont fournis par le déploiement applicatif.
+    environment:
+      APP_ENV: ${APP_ENV}
+      LOG_FORMAT: json
+      LOG_LEVEL: info
+    labels:
+      skull.logs: "true"
+      skull.logs.environment: ${APP_ENV}
+    logging:
+      driver: local
+      options:
+        max-size: "10m"
+        max-file: "3"
+```
+
+Ne pas définir `LOG_FILE` hors développement. Le JSON API conserve
+`service_name=skull-api`, quelle que soit la clé du service Compose.
+Le collecteur exige les deux labels pour découvrir le conteneur ; il peut
+collecter d’autres projets sur le même daemon uniquement s’ils portent ces labels.
+Le socket Docker donne des privilèges élevés même en lecture seule : réserver
+cet accès au collecteur de confiance de la plateforme.
+
+Validation locale du fragment, sans démarrage ni fichier d’environnement :
+
+```bash
+APP_ENV=staging LOKI_URL=https://logs.example.invalid/loki/api/v1/push \
+  docker compose --env-file /dev/null -f compose.logs-collector.yml config --quiet
+pnpm logs:test:docker
+```
+
+`logs:test:docker` utilise exclusivement des ressources Docker locales possédées,
+des ports dynamiques et un Loki/Grafana éphémère. Il vérifie la collecte opt-in,
+l’exclusion d’un autre environnement et le maintien du label API malgré un service
+Compose renommé. Il ne contacte aucune destination staging/prod et nettoie
+ses conteneurs/volumes. Ce test et la collecte fichier sont séparés.

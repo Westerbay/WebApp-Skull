@@ -227,3 +227,31 @@ requêtes parallèles protège ce correctif. Better Auth conserve les règles, l
 normalisation IP et la réponse 429 ; les entrées expirées sont purgées.
 
 La robustesse est calculée localement par zxcvbn-ts dans la feature auth web, avec les dictionnaires commun, anglais et français. Aucun mot de passe n’est envoyé à un service d’évaluation. Le score reste indicatif et ne participe pas à la validation.
+
+## Collecte des journaux
+
+`nestjs-pino` reste l’intégration Nest existante : le middleware Express couvre
+également Better Auth et le module Nest ajoute le contexte, sans second log HTTP.
+Les logs JSON portent `service_name=skull-api` et `environment=APP_ENV`.
+`logging.config.ts` valide format, niveau et miroir local. Staging/production
+émettent uniquement sur stdout en JSON ; le miroir fichier est réservé au dev.
+
+`compose.observability.yml` est indépendant de PostgreSQL et Mailpit.
+`pnpm dev:logs` conserve stdout et écrit le JSON API dans
+`output/logs/api.jsonl`. Alloy monte ce répertoire en lecture seule, conserve
+ses positions dans son volume et transmet à Loki. Loki monolithique conserve
+ses données et son état de compaction dans un volume, avec rétention de sept
+jours. Grafana provisionne la datasource et un dashboard de logs/erreurs.
+Seuls service et environnement sont indexés ; requestId reste dans le JSON.
+
+Le fragment `compose.logs-collector.yml` prépare un Alloy autonome par
+environnement ; il ne lance ni application, ni Loki/Grafana. Il utilise
+`infra/observability/docker.alloy` pour sélectionner les conteneurs marqués
+`skull.logs=true` et `skull.logs.environment=APP_ENV`. Le label indexé
+`environment` vient du collecteur ; `service_name` vient du JSON applicatif,
+avec le service Compose comme fallback. Un renommage du service Compose ne
+change donc pas les requêtes Grafana de l’API. `LOKI_URL` désigne la destination
+externe ; un token fichier et un tenant sont optionnels. Les positions du
+collecteur persistent dans un volume propre au projet/environnement. L’accès au socket Docker donne des
+privilèges élevés même avec un montage en lecture seule ; il exige un collecteur
+et un hôte de confiance. Aucun socket n’est monté par le Compose local.

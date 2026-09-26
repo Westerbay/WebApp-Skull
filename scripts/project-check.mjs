@@ -33,7 +33,12 @@ for (const file of webFiles.filter((file) =>
   }
 }
 
-for (const composeFile of ["compose.yml", "compose.test.yml"]) {
+for (const composeFile of [
+  "compose.yml",
+  "compose.test.yml",
+  "compose.observability.yml",
+  "compose.logs-collector.yml",
+]) {
   const content = await readFile(resolve(root, composeFile), "utf8")
   for (const match of content.matchAll(/^\s*image:\s*(\S+)/gm)) {
     if (!match[1]?.includes(":") || match[1].endsWith(":latest")) {

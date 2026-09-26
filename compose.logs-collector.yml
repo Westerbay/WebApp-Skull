@@ -1,0 +1,29 @@
+# Integration fragment only: the destination Loki/Grafana is managed separately.
+name: skull-log-collector-${APP_ENV:?Set APP_ENV to staging or production}
+
+services:
+  alloy:
+    image: grafana/alloy:v1.20.0
+    restart: unless-stopped
+    command:
+      - run
+      - --disable-reporting
+      - --storage.path=/var/lib/alloy
+      - /etc/alloy/config.alloy
+    environment:
+      APP_ENV: ${APP_ENV:?Set APP_ENV to staging or production}
+      LOKI_URL: ${LOKI_URL:?Set the full Loki push URL}
+      LOKI_TOKEN_FILE: ${LOKI_TOKEN_FILE:-}
+      LOKI_TENANT_ID: ${LOKI_TENANT_ID:-}
+    volumes:
+      - ./infra/observability/docker.alloy:/etc/alloy/config.alloy:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - alloy_data:/var/lib/alloy
+    logging:
+      driver: local
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  alloy_data:
