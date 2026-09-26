@@ -14,3 +14,6 @@ export function getPasswordStrength(password: string) {
   return estimator.check(password.slice(0, authPasswordConstraints.maxLength))
     .score
 }
+
+export const passwordStrengthRange = { minScore: 0, maxScore: 4 }
+export type { Score as PasswordStrengthScore } from "@zxcvbn-ts/core"

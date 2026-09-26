@@ -11,7 +11,7 @@ function getUserCursor(user: CurrentUser) {
 }
 
 export function createListUsers(database: Database): ListUsers {
-  async function listUsers({ cursor, limit }: CursorPagination) {
+  const listUsers = async ({ cursor, limit }: CursorPagination) => {
     const rows = await database
       .select({
         id: schema.user.id,

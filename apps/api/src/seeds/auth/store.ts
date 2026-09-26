@@ -4,13 +4,17 @@ import { schema } from "@workspace/database"
 import type { Database } from "@workspace/database"
 import type { AuthFixtureStore, PreparedAuthFixture } from "./scenario.js"
 
+interface FixtureDeleteStore {
+  delete: Database["delete"]
+}
+
 export function createDrizzleAuthFixtureStore(
   database: Database
 ): AuthFixtureStore {
-  async function removeFixtures(
-    transaction: Parameters<Parameters<typeof database.transaction>[0]>[0],
+  const removeFixtures = async (
+    transaction: FixtureDeleteStore,
     fixtureIds: ReadonlyArray<string>
-  ) {
+  ) => {
     if (fixtureIds.length === 0) return
     // Better Auth 1.7 stores password-reset ownership in `value` as the
     // user id; email-verification links are stateless signed JWTs.

@@ -9,10 +9,10 @@ import type { CursorQueryOptions } from "@/lib/query/use-cursor-infinite-query"
 export function usersQueryOptions(
   limit = usersTableConfig.pageSize
 ): CursorQueryOptions<CurrentUser> {
-  async function fetchUsersPage({
+  const fetchUsersPage = async ({
     pageParam,
     signal,
-  }: QueryFunctionContext<QueryKey, string | undefined>) {
+  }: QueryFunctionContext<QueryKey, string | undefined>) => {
     const { data, response } = await apiClient.GET("/api/users", {
       params: { query: { limit, cursor: pageParam } },
       signal,

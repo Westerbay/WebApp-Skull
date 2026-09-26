@@ -45,3 +45,14 @@ it("refuses an unlisted staging recipient before opening SMTP", async () => {
     })
   ).rejects.toThrow("EMAIL_RECIPIENT_NOT_ALLOWED")
 })
+
+it("announces the verification expiry in both email formats", async () => {
+  const email = await renderAuthEmail({
+    kind: "verification",
+    locale: "fr",
+    to: "person@example.test",
+    url: "https://app.example.test/adresse-confirmee?token=fake",
+  })
+  expect(email.html).toContain("Ce lien expire dans 24 heures.")
+  expect(email.text).toContain("Ce lien expire dans 24 heures.")
+})

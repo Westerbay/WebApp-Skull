@@ -1,3 +1,4 @@
+import { authTokenConstraints } from "@workspace/contracts/auth/constraints"
 import {
   Body,
   Button,
@@ -36,12 +37,12 @@ export async function renderAuthEmail(
   let subject = email_verify_subject({}, locale)
   let body = email_verify_body({}, locale)
   let action = email_verify_action({}, locale)
-  let hours = 24
+  let hours = authTokenConstraints.emailVerificationExpiresInHours
   if (input.kind === "reset") {
     subject = email_reset_subject({}, locale)
     body = email_reset_body({}, locale)
     action = email_reset_action({}, locale)
-    hours = 1
+    hours = authTokenConstraints.resetPasswordExpiresInHours
   }
   const html = await render(
     <Html lang={input.locale}>

@@ -1,3 +1,4 @@
+import type { SignInFormValues } from "../schemas/auth-form.types"
 import { useForm } from "@tanstack/react-form"
 import { useRouter } from "@tanstack/react-router"
 import { useState } from "react"
@@ -7,29 +8,31 @@ import { clearPrivateCache } from "@/lib/auth/current-user"
 import { signInSchema } from "../schemas/auth-form"
 import { authErrorMessage } from "../auth-error"
 
-const SIGN_IN_DEFAULT_VALUES = { email: "", password: "" }
+const SIGN_IN_DEFAULT_VALUES: SignInFormValues = { email: "", password: "" }
 
 export function useSignInForm(redirect: string) {
   const router = useRouter()
   const [serverError, setServerError] = useState<string>()
+  const handleSubmit = async ({ value }: { value: SignInFormValues }) => {
+    setServerError(undefined)
+    try {
+      const result = await authClient.signIn.email(value)
+      if (result.error) {
+        setServerError(authErrorMessage(result.error))
+        return
+      }
+      await clearPrivateCache(router.options.context.queryClient)
+      await router.navigate({ href: redirect })
+      await router.invalidate()
+    } catch {
+      setServerError(network_error())
+    }
+  }
+
   const form = useForm({
     defaultValues: SIGN_IN_DEFAULT_VALUES,
     validators: { onSubmit: signInSchema },
-    onSubmit: async ({ value }) => {
-      setServerError(undefined)
-      try {
-        const result = await authClient.signIn.email(value)
-        if (result.error) {
-          setServerError(authErrorMessage(result.error))
-          return
-        }
-        await clearPrivateCache(router.options.context.queryClient)
-        await router.navigate({ href: redirect })
-        await router.invalidate()
-      } catch {
-        setServerError(network_error())
-      }
-    },
+    onSubmit: handleSubmit,
   })
   return { form, serverError }
 }

@@ -15,6 +15,7 @@ function run(command, args) {
     stdio: "inherit",
   })
 
+  if (result.error) throw result.error
   if (result.status !== 0) {
     throw new Error(`${command} failed with exit code ${result.status ?? 1}`)
   }

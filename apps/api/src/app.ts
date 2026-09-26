@@ -13,6 +13,7 @@ import express from "express"
 import { ZodSerializerInterceptor, ZodValidationPipe } from "nestjs-zod"
 import { Logger as PinoNestLogger } from "nestjs-pino"
 import { ThrottlerGuard, ThrottlerModule } from "@nestjs/throttler"
+import { apiConfig } from "./config/api.config.js"
 
 import { AUTH_SESSION_READER, AuthGuard } from "./infrastructure/auth/guard.js"
 import { HttpErrorFilter } from "./infrastructure/http/http-error.filter.js"
@@ -62,7 +63,8 @@ export async function createApiApp(
       { provide: DATABASE_READINESS, useValue: dependencies.databaseReady },
       {
         provide: READINESS_TIMEOUT,
-        useValue: dependencies.readinessTimeoutMs ?? 2000,
+        useValue:
+          dependencies.readinessTimeoutMs ?? apiConfig.readinessTimeoutMs,
       },
       { provide: APP_GUARD, useClass: ThrottlerGuard },
       { provide: APP_GUARD, useClass: AuthGuard },
@@ -84,7 +86,7 @@ export async function createApiApp(
   expressApp.use(requestContext)
   expressApp.use(
     cors({
-      origin: dependencies.allowedOrigin ?? "http://localhost:3000",
+      origin: dependencies.allowedOrigin ?? apiConfig.defaultAllowedOrigin,
       credentials: true,
       allowedHeaders: ["Content-Type", "Authorization"],
       methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
