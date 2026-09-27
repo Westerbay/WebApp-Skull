@@ -84,16 +84,25 @@ jobs:
           pattern: webapp-skull-*.zip
           path: release
           merge-multiple: true
+          skip-decompress: true
       - name: Publish the three validated templates
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           RELEASE_TAG: ${{ github.ref_name }}
         run: |
+          shopt -s nullglob
           assets=(release/webapp-skull-*.zip)
-          test "${#assets[@]}" -eq 3
+          if [ "${#assets[@]}" -ne 3 ]; then
+            echo "::error::Expected three template ZIPs in release/, found ${#assets[@]}"
+            find release -maxdepth 2 -type f
+            exit 1
+          fi
           for asset in "${assets[@]}"; do
-            test -s "$asset"
+            if [ ! -s "$asset" ]; then
+              echo "::error::Template ZIP is empty: $asset"
+              exit 1
+            fi
             python3 -c 'import sys, zipfile; assert zipfile.ZipFile(sys.argv[1]).testzip() is None' "$asset"
           done
           gh release create "$RELEASE_TAG" --verify-tag --draft --generate-notes --title "$RELEASE_TAG"
