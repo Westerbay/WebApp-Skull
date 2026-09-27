@@ -90,8 +90,14 @@ The example version must be unused. The release contains `webapp-skull-en.zip`,
 GitHub's automatic `Source code` archives contain the maintainer repository.
 
 Only the tag publication job has repository write access. It verifies the remote
-tag exists, downloads the tested ZIPs, checks archive integrity, creates a draft,
+tag exists, downloads the tested ZIPs without decompressing them, checks archive integrity, creates a draft,
 uploads all assets, then publishes it with generated release notes. A failed
 upload leaves a draft rather than publishing an incomplete release. Existing
 releases are not overwritten; inspect an existing draft before retrying a failed
 publication. No npm package is published.
+
+If publication fails before creating a draft, inspect the failed job's logs.
+Missing or empty ZIPs produce an explicit error. A workflow correction must be
+included in the tagged commit: rerunning an old tag uses its original workflow.
+Publish a new unused version after merging the correction; do not move an
+existing release tag.
