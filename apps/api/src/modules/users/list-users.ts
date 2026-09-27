@@ -8,7 +8,7 @@ import type { ListUsers } from "./users.types.js"
 
 function escapeLikePattern(value: string) {
   // Treat SQL LIKE metacharacters as literal search text.
-  return value.replace(/[\\%_]/g, "\\function getUserCursor")
+  return value.replace(/[\\%_]/g, "\\$&")
 }
 
 function getUserCursor(user: CurrentUser) {
