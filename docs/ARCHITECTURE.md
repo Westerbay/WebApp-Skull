@@ -74,23 +74,16 @@ backward navigation still resumes the failed request. No total count or random
 page access is calculated. Constraints, feature page size and Faker settings
 stay with their owners.
 
-## Localization and template distribution
+## Localization
 
-The source locale is English. `packages/i18n/messages/en.json` is the active
-catalog. French packs are outside the runtime under `template/locales/fr`.
-`scripts/template-profiles.mjs` defines three profiles: `en`, `fr` and
-`multilingual` (EN + FR, English default). Documentation follows the profile;
-the multilingual variant uses English. The generator prepares and validates
-catalogs/configuration before copying files and writing JSON. Filesystem selection
-and copying stay in `template-files.mjs`. The CLI, archives and distribution CI
-consume the same profiles. Generated archives contain no source packs, Git history,
-dependencies, real environment files or compiler output. Application code and CI
-are copied without text replacements.
+Active catalogs are in `packages/i18n/messages/<locale>.json`. Inlang settings
+define the default and supported locales. Application code imports the generated
+Paraglide runtime, which is built from those settings and catalogs.
 
 English file routes form one stable internal tree. `routing.json` maps each
 internal path to public paths. `routing-config.mjs` checks locale coverage and
 duplicate paths, then builds patterns for Paraglide; it does not parse or reorder
-patterns itself. Generation and `compile.mjs` share this configuration.
+patterns itself. `compile.mjs` uses this configuration.
 The fallback comes last; query parameters and fragments are preserved.
 Single-language projects omit prefixes; multilingual projects prefix all
 locales. TanStack Router rewrites incoming and outgoing URLs with Paraglide.

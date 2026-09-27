@@ -16,40 +16,16 @@ API port is 3001, web 3000 and PostgreSQL 5433 by default. `pnpm dev:down` stops
 services without deleting the volume. `pnpm run setup` starts infrastructure
 and applies guarded migrations; it never seeds implicitly.
 
-## Language profiles and archives
+## Languages and public paths
 
-The maintainer repository offers three profiles:
+Edit `packages/i18n/messages/<locale>.json` for UI and email text. Supported
+languages and the default are in `packages/i18n/project.inlang/settings.json`.
+Run `pnpm --filter @workspace/i18n build` to regenerate the typed runtime.
+The development watcher recompiles messages automatically.
 
-| Profile        | Interface and email | Public routes                  | Documentation |
-| -------------- | ------------------- | ------------------------------ | ------------- |
-| `en`           | English             | `/sign-in`                     | English       |
-| `fr`           | French              | `/connexion`                   | French        |
-| `multilingual` | English + French    | `/en/sign-in`, `/fr/connexion` | English       |
-
-```bash
-pnpm template:create -- --profile en --output output/english-app
-pnpm template:create -- --profile fr --output output/french-app
-pnpm template:create -- --profile multilingual --output output/bilingual-app
-pnpm template:check
-pnpm template:archives
-```
-
-The default profile is `en`. The multilingual profile defaults to English;
-the URL selects the active language. `scripts/template-profiles.mjs` defines
-the three profiles for generation, archives and CI. There are no independent
-documentation options or arbitrary locale combinations.
-
-Generation checks message and route coverage before creating output, creates
-missing parent directories and refuses existing output directories. It never
-reads real environment files or connects to a database. Generated projects omit
-source packs, template tooling, Git history, dependencies and caches. Install
-dependencies normally before building. Archives are written to `output/templates`
-and contain only the selected profile; a Git clone includes all source packs.
-
-Internal routes stay English. To translate a page pathname, add its public path
-to `template/locales/fr/routes.json` in the maintainer repository. In a generated
-application, edit `packages/i18n/routing.json`. Every configured internal path
-needs a mapping for each active language. Paraglide rewrites the URLs at the router
+Internal routes stay English. Edit `packages/i18n/routing.json` to translate
+public page paths. Every configured internal path needs a mapping for each
+active language. Paraglide rewrites the URLs at the router
 boundary without duplicating pages, preserving query parameters and fragments.
 The shared configuration checks coverage and duplicate paths; pattern handling
 belongs to Paraglide. Keep specific mappings before the final fallback.
@@ -172,12 +148,6 @@ CI uses Node 24.21.0 and pnpm 12.4.1, SHA-pinned actions and versioned images.
 Independent jobs run secret scanning, quality, integration and E2E; service tests
 own ephemeral infrastructure. Gitleaks 8.30.1 is downloaded from its official
 release, verified with SHA-256 and scans complete Git history with redaction.
-The template distribution workflow tests the generator and the three profiles
-defined in `scripts/template-profiles.mjs`. Each generated project runs
-`pnpm check`, integration tests and E2E in every active language.
-It produces archive artifacts without publishing a release automatically.
-Generated application CI is copied unchanged; distribution tests stay in the
-maintainer-only workflow.
 
 ## Inspect logs with Grafana
 

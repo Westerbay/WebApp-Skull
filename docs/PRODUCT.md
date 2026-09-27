@@ -34,6 +34,4 @@ meter that does not change acceptance rules.
 ## Limits
 
 No additional business domain, roles, OAuth, MFA, file storage, durable jobs or
-mandatory external email provider is defined. Project creation offers English,
-French or bilingual EN/FR profiles. Documentation follows the profile, using
-English for the bilingual variant.
+mandatory external email provider is defined.

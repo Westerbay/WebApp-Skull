@@ -53,11 +53,6 @@ réel n’est exercé par la CI. Le rate limit Nest n’est pas partagé entre l
 instances ; un déploiement multi-instance exigera un adaptateur de stockage
 commun.
 
-La documentation et les messages français sont une variante générée depuis un
-socle anglais commun. Les archives n’embarquent que les langues sélectionnées.
-Le routage multilingue et le SSR utilisent Paraglide à la frontière du routeur,
-sans duplication des pages. Le dépôt de maintenance propose trois profils :
-`en`, `fr` et `multilingual` (EN + FR). La documentation suit le profil,
-avec l’anglais pour le bilingue. La CI vérifie les trois variantes et les E2E
-dans chaque langue active. Le périmètre couvre les chemins des pages et les
-messages, sans domaine de contenus traduits.
+Le routage et le SSR utilisent Paraglide à la frontière du routeur, sans
+duplication des pages. Le périmètre couvre les chemins des pages et les messages,
+sans domaine de contenus traduits.

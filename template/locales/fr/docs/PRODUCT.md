@@ -26,9 +26,9 @@ Précédent revient à une page déjà chargée.
   endpoint ; `/api/me` en accepte 30. Les sondes de santé restent disponibles.
 - Tout compte connecté avec une adresse vérifiée peut consulter cette liste
   d’exemple, y compris les emails. Aucun rôle administrateur n’est défini.
-- Trois profils à la création : anglais, français ou bilingue EN/FR. La documentation
-  suit le profil, avec l’anglais pour le bilingue ; code et routes internes restent
-  anglais. Les routes publiques et les messages suivent la langue de l’URL.
+- L’interface, les emails et les chemins publics sont français. Le code et les
+  routes internes restent anglais. Les callbacks auth conservent la langue ;
+  les endpoints API ne sont pas traduits.
 
 ## Limites
 
