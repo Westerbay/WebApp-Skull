@@ -1,4 +1,7 @@
-# Contexte
+#Des commandes interactives créent et suppriment les worktrees Git dans
+`.worktree/`, ignoré à la racine du dépôt principal.
+
+Contexte
 
 ## Recherche utilisateurs et formulaires
 

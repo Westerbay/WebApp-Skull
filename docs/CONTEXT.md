@@ -1,4 +1,7 @@
-# Context
+#Local Git worktrees can be created and safely removed with interactive commands
+in the ignored `.worktree/` directory at the main repository root.
+
+Context
 
 ## Current state
 

@@ -305,3 +305,27 @@ endpoints require platform-managed access, capacity, TLS and credentials.
 Valkey commands and connection attempts have a two-second deadline. An enabled
 unavailable server prevents startup; subsequent quota checks and readiness
 return 503 while liveness remains available.
+
+## Git worktrees
+
+```bash
+pnpm worktree:create
+pnpm worktree:remove
+pnpm worktree:check
+```
+
+Create and remove ask for a branch name; an optional argument also works:
+`pnpm worktree:create feat/feature`. The first prefix is removed:
+`feat/feature` maps to `.worktree/feature`, `feature` keeps its name, and
+`feat/team/feature` maps to `.worktree/team/feature`. Paths are relative to the
+main repository root, including when invoked from another worktree.
+An existing local branch is checked out; a new branch starts at the main
+checkout HEAD. Git refuses a branch already checked out or an occupied path.
+Suffix collisions (such as `feat/feature` and `fix/feature`) are refused.
+Directory names must be portable and paths cannot traverse symbolic links.
+
+Run removal outside the target worktree. It checks the registered path and
+branch, preserves the branch, and lets Git refuse dirty or locked worktrees.
+There is no force removal. Dependencies and environment files are not copied;
+configure each checkout separately. `worktree:check` tests owned temporary
+repositories without reading environment files.
