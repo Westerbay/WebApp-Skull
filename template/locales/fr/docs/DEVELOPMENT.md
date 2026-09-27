@@ -392,3 +392,28 @@ quotas. En déploiement, la plateforme gère accès, TLS, secrets et capacité.
 Une panne au démarrage empêche le lancement ; ensuite les contrôles de quota et
 la readiness retournent 503. La liveness reste disponible. Les commandes et
 connexions sont bornées à deux secondes.
+
+## Worktrees Git
+
+```bash
+pnpm worktree:create
+pnpm worktree:remove
+pnpm worktree:check
+```
+
+Les commandes demandent la branche, ou acceptent un argument :
+`pnpm worktree:create feat/feature`. Le premier préfixe est retiré :
+`feat/feature` donne `.worktree/feature`, `feature` conserve son nom et
+`feat/team/feature` donne `.worktree/team/feature`. La racine reste celle du
+dépôt principal, même depuis un autre worktree. Une branche locale existante
+est utilisée ; une nouvelle branche part du HEAD du checkout principal.
+Git refuse une branche déjà utilisée ou un chemin occupé. Les collisions de
+suffixes sont refusées. Les noms doivent être portables et les chemins ne
+peuvent pas traverser de liens symboliques.
+
+Exécuter la suppression hors du worktree cible. Elle vérifie son chemin et sa
+branche, conserve la branche et laisse Git refuser les worktrees modifiés ou
+verrouillés. Aucune suppression forcée. Les dépendances et fichiers
+d’environnement ne sont pas copiés ; configurer chaque checkout séparément.
+`worktree:check` utilise des dépôts temporaires sans lire de fichiers
+d’environnement.

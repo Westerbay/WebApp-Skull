@@ -14,3 +14,5 @@ packages/i18n/src/generated/
 packages/i18n/project.inlang/cache/
 packages/i18n/project.inlang/.meta.json
 packages/i18n/project.inlang/README.md
+
+.worktree/
