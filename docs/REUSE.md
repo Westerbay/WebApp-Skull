@@ -96,3 +96,13 @@ List only capabilities with real multiple consumers and document their owner.
 
 - `compose.logs-collector.yml`: standalone Docker collector integration for an external Loki endpoint, without application/backend deployment.
 - `scripts/test-docker-logs.mjs`: local verification of Docker opt-in, environment selection and stable service labels.
+
+## Optional infrastructure integrations
+
+- `compose.valkey.yml`: independent, ephemeral local Valkey service.
+- `apps/api/src/infrastructure/valkey`: validated opt-in configuration and client lifecycle.
+- `apps/api/src/infrastructure/rate-limit/valkey-rate-limit-store.ts`: atomic shared Nest quotas.
+- `apps/api/test/valkey`: owned-container verification; run `pnpm valkey:test`.
+
+Keep integrations opt-in with explicit configuration, separate infrastructure
+and focused tests. Add cache consumers only for an actual application need.

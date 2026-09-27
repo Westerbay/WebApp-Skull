@@ -30,6 +30,7 @@
     "better-auth": "1.7.4",
     "cors": "2.8.5",
     "express": "5.1.0",
+    "ioredis": "5.8.2",
     "nestjs-pino": "5.1.0",
     "nestjs-zod": "5.5.0",
     "pino": "10.3.1",

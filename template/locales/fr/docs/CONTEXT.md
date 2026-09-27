@@ -56,10 +56,16 @@ conteneurs éphémères ; aucun staging/prod n’est déployé.
 
 Le suivi des envois email est local au processus, sans file durable ni garantie
 de livraison après un crash. Aucun environnement de staging ou fournisseur SMTP
-réel n’est exercé par la CI. Le rate limit Nest n’est pas partagé entre les
-instances ; un déploiement multi-instance exigera un adaptateur de stockage
-commun.
+réel n’est exercé par la CI. Sans Valkey, le rate limit Nest reste local à chaque instance.
 
 Le routage et le SSR utilisent Paraglide à la frontière du routeur, sans
 duplication des pages. Le périmètre couvre les chemins des pages et les messages,
 sans domaine de contenus traduits.
+
+## Intégrations optionnelles
+
+Observabilité et Valkey sont activés explicitement, avec des fichiers Compose
+séparés. Valkey partage les quotas Nest entre instances ; sans activation, ils
+restent locaux. Aucun cache de données applicatives ou de sessions n’est ajouté.
+Valkey activé est requis au démarrage et pour la readiness ; une panne entraîne
+un 503 sur les contrôles de quota, sans repli en mémoire.

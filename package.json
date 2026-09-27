@@ -4,6 +4,9 @@
   "private": true,
   "license": "MIT",
   "scripts": {
+    "valkey:up": "node scripts/valkey-stack.mjs up",
+    "valkey:down": "node scripts/valkey-stack.mjs down",
+    "valkey:test": "pnpm --filter @workspace/api exec vitest run --config vitest.valkey.config.ts",
     "build": "turbo build",
     "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm api:check && pnpm docs:check && pnpm project:check && pnpm build",
     "api:check": "node scripts/api-contract.mjs check",

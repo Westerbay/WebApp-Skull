@@ -144,12 +144,11 @@ localized public paths, exercising the selected project's profile.
 Development logs are readable; deployed logs are JSON. Each response has
 `x-request-id`. Logs include method, path without query, status and duration,
 excluding headers, bodies, cookies, tokens, email addresses, IPs, action URLs
-and SMTP messages. Live health contacts no service; readiness probes PostgreSQL
+and SMTP messages. Live health contacts no service; readiness probes PostgreSQL and enabled Valkey
 with a two-second deadline and returns 503 on failure.
 Nest peer tracking trusts only the socket, normalizes IPv6 and ignores client
 forwarded headers. Configure trust proxy only for a verified proxy chain and
-adapt tracking explicitly. Nest quotas are per process; replicas need a shared
-compatible store. Better Auth keeps its independent PostgreSQL rate limits.
+adapt tracking explicitly. Nest quotas are per process by default; enable Valkey to share them between replicas. Better Auth keeps its independent PostgreSQL rate limits.
 
 ## CI and secret scanning
 
@@ -267,3 +266,34 @@ It checks opt-in collection, exclusion of another environment and stable API
 labels despite a renamed Compose service, with reads through Grafana.
 It contacts no staging/production destination and cleans up its resources.
 The existing `logs:test` separately verifies the file collection flow.
+
+## Optional Valkey integration
+
+The default application needs no Valkey. Start its independent local service:
+
+```bash
+pnpm valkey:up
+```
+
+Supply `VALKEY_ENABLED=true` and `VALKEY_URL=redis://127.0.0.1:6379` to the API
+process. In PowerShell use `$env:VALKEY_ENABLED = "true"` and
+`$env:VALKEY_URL = "redis://127.0.0.1:6379"` before `pnpm dev`.
+`VALKEY_NAMESPACE` defaults to `skull`; set a distinct value per application
+and environment, and the same value across its replicas. URLs require `redis:`
+or `rediss:`; a supplied URL without activation is rejected. `VALKEY_PORT` changes
+the Compose port; update the API URL accordingly. Compose never loads `.env`.
+
+```bash
+pnpm valkey:test
+pnpm valkey:down
+```
+
+Tests own a UUID container, dynamic loopback port and private data. They verify
+concurrent quotas, expiration, namespace isolation, two HTTP API instances and
+server outage behavior. They accept no external Valkey URL and require Docker.
+CI runs this suite in the integration job. The local server has no persistence
+or eviction; restart resets quotas. It is for development only. Deployed
+endpoints require platform-managed access, capacity, TLS and credentials.
+Valkey commands and connection attempts have a two-second deadline. An enabled
+unavailable server prevents startup; subsequent quota checks and readiness
+return 503 while liveness remains available.

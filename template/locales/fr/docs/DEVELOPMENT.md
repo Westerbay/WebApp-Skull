@@ -184,11 +184,11 @@ En développement, les logs Pino sont lisibles ; staging et production émettent
 du JSON. Chaque réponse porte `x-request-id`. Les lignes HTTP contiennent méthode,
 chemin sans query, statut et durée, sans headers, body, cookie, adresse email, IP,
 token, URL d’action ou message SMTP. `/health/live` ne contacte aucun service ;
-`/health/ready` sonde PostgreSQL et répond 503 après deux secondes au plus.
+`/health/ready` sonde PostgreSQL et Valkey activé, avec un délai de deux secondes.
 
 ## Rate limits
 
-Les controllers Nest utilisent un quota global en mémoire par pair réseau.
+Les controllers Nest utilisent un quota par pair réseau, local par défaut ou partagé via Valkey.
 Express ne faisant confiance à aucun proxy, l’adresse vient du socket et les
 en-têtes `X-Forwarded-For` envoyés par un client ne changent pas le tracker.
 Nest Throttler normalise les sous-réseaux IPv6. `/api/me` démontre la surcharge
@@ -196,9 +196,7 @@ d’une règle avec `@RateLimit` et les sondes de santé portent `@SkipRateLimit
 Ne configurer `trust proxy` qu’avec une chaîne de proxies connue et adapter alors
 explicitement cette règle.
 
-Le stockage Nest est propre à chaque processus : les quotas ne sont donc pas
-agrégés entre plusieurs replicas. Avant un déploiement multi-instance, injecter
-un adaptateur de stockage partagé compatible Nest Throttler. `/api/auth/*` ne
+Le stockage Nest est local par défaut ; activer Valkey pour partager les quotas entre replicas. `/api/auth/*` ne
 passe pas par ce guard et conserve le rate limit PostgreSQL de Better Auth.
 
 ## CI
@@ -363,3 +361,25 @@ des ports dynamiques et un Loki/Grafana éphémère. Il vérifie la collecte opt
 l’exclusion d’un autre environnement et le maintien du label API malgré un service
 Compose renommé. Il ne contacte aucune destination staging/prod et nettoie
 ses conteneurs/volumes. Ce test et la collecte fichier sont séparés.
+
+## Intégration Valkey optionnelle
+
+Le socle fonctionne sans Valkey. `pnpm valkey:up` démarre son service local
+indépendant et `pnpm valkey:down` l’arrête, sans charger `.env`.
+Fournir `VALKEY_ENABLED=true` et `VALKEY_URL=redis://127.0.0.1:6379` au processus
+API. En PowerShell, définir `$env:VALKEY_ENABLED = "true"` et
+`$env:VALKEY_URL = "redis://127.0.0.1:6379"` avant `pnpm dev`.
+`VALKEY_NAMESPACE` vaut `skull` par défaut : choisir une valeur distincte par
+application/environnement, commune à ses instances. Une URL sans activation
+est refusée. `redis:` et `rediss:` sont acceptés. `VALKEY_PORT` change le port
+Compose ; adapter l’URL API en conséquence.
+
+`pnpm valkey:test` utilise un conteneur UUID et un port loopback dynamique, sans
+URL externe ni fichier d’environnement. Il vérifie concurrence, expiration,
+isolation, quotas HTTP sur deux API et panne serveur. Docker est requis ;
+la CI lance cette suite dans le job integration.
+Le serveur local est sans persistance ni éviction ; redémarrer réinitialise les
+quotas. En déploiement, la plateforme gère accès, TLS, secrets et capacité.
+Une panne au démarrage empêche le lancement ; ensuite les contrôles de quota et
+la readiness retournent 503. La liveness reste disponible. Les commandes et
+connexions sont bornées à deux secondes.

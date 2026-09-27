@@ -38,6 +38,7 @@ for (const composeFile of [
   "compose.test.yml",
   "compose.observability.yml",
   "compose.logs-collector.yml",
+  "compose.valkey.yml",
 ]) {
   const content = await readFile(resolve(root, composeFile), "utf8")
   for (const match of content.matchAll(/^\s*image:\s*(\S+)/gm)) {

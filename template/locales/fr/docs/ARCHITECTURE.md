@@ -29,9 +29,7 @@ Express ne faisant confiance à aucun proxy, l’adresse vient du socket et les
 en-têtes clients tels que `X-Forwarded-For` sont ignorés. Le tracker natif
 normalise aussi les sous-réseaux IPv6. `@RateLimit` remplace le quota sur un
 controller ou une méthode et documente la réponse 429 ; `@SkipRateLimit` exclut
-les sondes de santé. Son stockage est en mémoire, isolé par processus. Une
-future exécution multi-instance devra injecter un stockage partagé dans
-`ThrottlerModule`, sans modifier les controllers.
+les sondes de santé. Son stockage est local par défaut ; Valkey optionnel partage les quotas entre instances.
 
 `GET /api/me` utilise `@CurrentUser()` pour lire l'identité attachée par le
 guard. Il expose seulement `id`, `name`, `email` et `emailVerified`. Le pipe
@@ -130,8 +128,8 @@ d’identité purgent ces pages avec les autres queries privées.
 ## Santé
 
 La liveness indique seulement que le processus répond. La readiness exécute
-`select 1` sur PostgreSQL et retourne 503 si la requête échoue ou dépasse deux
-secondes. Elle ne sonde pas le transport email et ne divulgue aucun détail de
+`select 1` sur PostgreSQL et un ping sur Valkey activé. Elle retourne 503 si
+une sonde échoue ou dépasse deux secondes. Elle ne sonde pas le transport email et ne divulgue aucun détail de
 connexion.
 
 ## Journaux et arrêt
@@ -268,3 +266,22 @@ externe ; un token fichier et un tenant sont optionnels. Les positions du
 collecteur persistent dans un volume propre au projet/environnement. L’accès au socket Docker donne des
 privilèges élevés même avec un montage en lecture seule ; il exige un collecteur
 et un hôte de confiance. Aucun socket n’est monté par le Compose local.
+
+## Valkey optionnel
+
+L’API possède `infrastructure/valkey` et l’adaptateur Nest.
+`VALKEY_ENABLED=true` et `VALKEY_URL` activent la connexion ioredis. Sans
+activation, aucune connexion n’est créée. Les commandes et connexions sont
+bornées à deux secondes ; `rediss:` active TLS. Lua compte atomiquement une
+fenêtre glissante et applique la durée de blocage, avec l’heure du serveur.
+Les clés expirent, partagent un hash tag de cluster et utilisent un namespace
+par application/environnement. Les identifiants des pairs sont hachés.
+Une panne retourne 503 sans repli local. La readiness vérifie PostgreSQL et
+Valkey activé ; la liveness reste indépendante. L’arrêt ferme le client.
+Better Auth conserve ses sessions et quotas dans PostgreSQL.
+
+Compose fournit un serveur local éphémère, sans éviction des clés : une pression
+mémoire ne doit pas supprimer silencieusement les quotas. Un redémarrage remet
+les compteurs à zéro. Le service sans authentification écoute seulement sur
+loopback ; accès, TLS, secrets, capacité et disponibilité déployés appartiennent
+à la plateforme. Aucun moteur générique de plugins n’est ajouté.

@@ -147,3 +147,13 @@ Le champ auth-input associe chaque label et erreur à un identifiant unique. Il 
   isolées, leur nettoyage et les délais de polling.
 
 - `scripts/test-docker-logs.mjs` : test local du fragment de collecte, des labels de service et de la sélection par environnement/opt-in.
+
+## Intégrations d’infrastructure optionnelles
+
+- `compose.valkey.yml` : serveur Valkey local indépendant et éphémère.
+- `apps/api/src/infrastructure/valkey` : activation validée et cycle de vie client.
+- `apps/api/src/infrastructure/rate-limit/valkey-rate-limit-store.ts` : quotas Nest atomiques partagés.
+- `apps/api/test/valkey` : tests avec conteneur possédé, via `pnpm valkey:test`.
+
+Les intégrations restent explicites, avec infrastructure séparée et tests dédiés.
+Un cache applicatif nécessite un consommateur réel.

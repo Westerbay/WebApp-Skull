@@ -25,7 +25,7 @@ and request ID without leaking invalid inputs. Better Auth keeps its responses.
 
 Global Nest Throttler uses the socket peer, normalizes IPv6 subnets and ignores
 untrusted forwarded headers. `RateLimit` overrides quotas; `SkipRateLimit`
-exempts probes. Its process-local store needs replacement before using replicas.
+exempts probes. Its default store is process-local; optional Valkey shares quotas between replicas.
 Better Auth uses PostgreSQL `customStorage.consume`: a single upsert checks and
 increments under one row lock. This avoids the Drizzle 1.7.4 adapter's stale
 predicate after lock contention. Expired counters are purged.
@@ -170,3 +170,21 @@ back to the Compose service. Renaming the API service keeps its dashboard querie
 `LOKI_TENANT_ID`. The fragment deploys no application or Loki/Grafana backend.
 The platform owns Docker socket privileges, access, TLS, retention and backups.
 Environment labels filter logs and do not isolate access permissions.
+
+## Optional Valkey
+
+The API owns `infrastructure/valkey` and the Nest storage adapter. Explicit
+`VALKEY_ENABLED=true` and `VALKEY_URL` activate it; disabled mode creates no
+connection. ioredis supplies the protocol client, bounded commands, TLS via
+`rediss:` and reconnection. Lua atomically counts a rolling window and applies
+a separate block duration using server time. Keys expire and share a cluster
+hash tag; namespaces separate applications/environments. Peer keys are hashed.
+A failed quota check returns 503, never a local fallback. Health probes are
+exempt; readiness checks both PostgreSQL and enabled Valkey. Shutdown closes
+the client. Better Auth quotas and sessions stay in PostgreSQL.
+
+The local Compose service uses no eviction so memory pressure cannot silently
+remove quotas. It is ephemeral: restarting Valkey resets counters. It has no
+authentication and binds only to loopback; deployed access, credentials, TLS,
+capacity and availability belong to the platform. No generic plugin runtime or
+application-data cache is introduced.
