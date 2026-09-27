@@ -6,6 +6,11 @@ import type { CurrentUser } from "@workspace/contracts/identity"
 import type { UsersQuery } from "@workspace/contracts/users"
 import type { ListUsers } from "./users.types.js"
 
+function escapeLikePattern(value: string) {
+  // Treat SQL LIKE metacharacters as literal search text.
+  return value.replace(/[\\%_]/g, "\\function getUserCursor")
+}
+
 function getUserCursor(user: CurrentUser) {
   return user.id
 }
@@ -14,8 +19,7 @@ export function createListUsers(database: Database): ListUsers {
   const listUsers = async ({ cursor, limit, search }: UsersQuery) => {
     let searchFilter
     if (search) {
-      // Treat SQL LIKE metacharacters as literal search text.
-      const pattern = `%${search.replace(/[\\%_]/g, "\\$&")}%`
+      const pattern = `%${escapeLikePattern(search)}%`
       searchFilter = or(
         ilike(schema.user.name, pattern),
         ilike(schema.user.email, pattern)
