@@ -1,5 +1,5 @@
 import { getLocalizedCallbackUrl } from "@workspace/i18n/routing"
-import type { SignUpFormValues } from "../schemas/auth-form.types"
+import type { SignUpFormValues } from "../schemas/auth-form"
 import { useForm } from "@tanstack/react-form"
 import { useRouter } from "@tanstack/react-router"
 import { useState } from "react"

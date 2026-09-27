@@ -1,4 +1,4 @@
-import type { ResetPasswordFormValues } from "../schemas/auth-form.types"
+import type { ResetPasswordFormValues } from "../schemas/auth-form"
 import { useForm } from "@tanstack/react-form"
 import { useRouter } from "@tanstack/react-router"
 import { useState } from "react"

@@ -25,6 +25,7 @@ CI checks quality, secrets, real integration and mobile E2E in owned environment
 The connected dashboard demonstrates TanStack Table pagination. Contracts,
 server page construction and the `useInfiniteQuery` wrapper are reusable.
 Configuration stays with its owner; table orchestration and rendering are split.
+Validated contracts and form values derive their types from Zod schemas.
 The business domain beyond this example remains undefined.
 
 The project uses the [MIT license](../LICENSE), copyright Mathis Dubuisson.

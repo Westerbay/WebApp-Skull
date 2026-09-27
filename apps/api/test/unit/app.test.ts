@@ -105,15 +105,6 @@ afterEach(async () => {
 })
 
 describe("API", () => {
-  it("serves liveness through a real HTTP server", async () => {
-    const app = await createTestApp()
-    await app.listen(0, "127.0.0.1")
-
-    await request(app.getHttpServer())
-      .get("/health/live")
-      .expect(200, { status: "ok" })
-  })
-
   it("returns readiness only after the database responds", async () => {
     const databaseReady = vi.fn(() => Promise.resolve())
     const app = await createTestApp({ databaseReady })

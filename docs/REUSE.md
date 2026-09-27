@@ -23,7 +23,7 @@
   client with cookies, public API URL and named HTTP statuses.
 - `apps/web/src/lib/auth/redirect.ts`: restrictive internal redirect validation.
 - `apps/web/src/lib/seo/private-head.ts`: auth/private noindex metadata.
-- `apps/web/src/features/auth`: schemas, explicit form types, named action
+- `apps/web/src/features/auth`: schemas and inferred form types, named action
   hooks, AuthPanel and AuthInput. Unique IDs associate labels/help/errors.
   PasswordInput owns visibility; PasswordStrength is shared by signup/reset.
 

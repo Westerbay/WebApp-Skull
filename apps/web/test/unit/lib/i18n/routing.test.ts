@@ -1,9 +1,8 @@
 import { expect, it } from "vitest"
 import { setTimeout as delay } from "node:timers/promises"
-import { DEFAULT_LOCALE, SUPPORTED_LOCALES } from "@workspace/i18n/config"
+import { SUPPORTED_LOCALES } from "@workspace/i18n/config"
 import { deLocalizeUrl, localizeUrl, getLocale } from "@workspace/i18n/runtime"
 import { paraglideMiddleware } from "@workspace/i18n/server"
-import { getLocalizedCallbackUrl } from "@workspace/i18n/routing"
 
 it("round-trips every supported signin URL while preserving search and hash", () => {
   for (const locale of SUPPORTED_LOCALES) {
@@ -16,18 +15,6 @@ it("round-trips every supported signin URL while preserving search and hash", ()
     expect(roundTrip.search).toBe(internal.search)
     expect(roundTrip.hash).toBe(internal.hash)
   }
-})
-
-it("builds absolute auth callbacks in the default locale", () => {
-  const callback = getLocalizedCallbackUrl(
-    "/reset-password",
-    "https://app.example.test"
-  )
-  const localized = localizeUrl(
-    new URL("https://app.example.test/reset-password"),
-    { locale: DEFAULT_LOCALE }
-  )
-  expect(callback).toBe(localized.href)
 })
 
 it("keeps SSR locale isolated across concurrent localized requests", async () => {

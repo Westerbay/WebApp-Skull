@@ -69,9 +69,10 @@ Better Auth et ne constitue pas un réglage public du projet.
 Les imports serveur utilisent NodeNext et des extensions `.js` explicites dans
 le TypeScript. Le web utilise le mode de résolution Bundler.
 L'identité publique est un fichier JSON importé avec l'attribut `type: json`.
-TypeScript infère sa structure via `resolveJsonModule`. Les interfaces des
-contrats applicatifs sont explicites et leurs schémas sont vérifiés avec
-`satisfies z.ZodType<Contrat>`. Les configurations techniques restent
+TypeScript infère sa structure via `resolveJsonModule`. Les types des données
+validées sont déduits de leurs schémas Zod avec `z.infer` ; les valeurs de
+formulaire utilisent `z.input`. Les props et ports sans validation gardent des
+interfaces explicites. Les configurations techniques restent
 dans leurs modules TypeScript et les valeurs de déploiement à la frontière env.
 
 Le web lit l'URL publique uniquement depuis `apps/web/src/lib/api/config.ts`.

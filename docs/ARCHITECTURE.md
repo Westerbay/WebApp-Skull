@@ -40,9 +40,12 @@ Better Auth converts lifetimes to seconds and emails display the same durations.
 API defaults and readiness live in `apps/api/src/config/api.config.ts`; shared
 web cache defaults in `apps/web/src/lib/query/query.config.ts`.
 
-Application interfaces are explicit and schemas are checked with
-`satisfies z.ZodType<Contract>`. Use library-native types where available; avoid
-casts, `any`, non-null assertions and derived utility types in feature code.
+Validated data types are inferred from their Zod schemas with `z.infer`;
+form values use `z.input` to describe values before parsing. Keep explicit
+interfaces for props and service ports without runtime validation, and simple
+generic types where schema inference would add complexity. Use library-native
+types where available; avoid casts, `any`, non-null assertions and derived
+utility types in feature code.
 Nested functions use named `const` arrow functions. Behavior callbacks are
 named before the options or JSX that use them. Prefer `if` for object, array,
 JSX and operation choices; reserve ternaries for simple values.

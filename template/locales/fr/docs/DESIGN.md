@@ -65,9 +65,10 @@ des colonnes. Le typage utilise les génériques et annotations sans assertion.
 
 ## Lisibilité du code d’interface
 
-Les props et valeurs de formulaire utilisent des interfaces explicites ou les
-types natifs des bibliothèques. Éviter les types dérivés avec `ComponentProps`,
-`Pick`, `Partial`, `Omit`, `ReturnType` et `typeof`. Les callbacks déclarés dans
+Les valeurs de formulaire utilisent `z.input` depuis leurs schémas Zod.
+Les props utilisent des interfaces explicites ou les types natifs des
+bibliothèques. Éviter les types dérivés avec `ComponentProps`,
+`Pick`, `Partial`, `Omit` et `ReturnType`. Les callbacks déclarés dans
 un composant ou un hook utilisent `const handleAction = () => {}`.
 
 Réserver les ternaires aux choix simples de valeurs ; utiliser des `if` pour

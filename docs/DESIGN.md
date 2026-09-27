@@ -38,10 +38,10 @@ Errors keep loaded rows and offer Retry. Loading and empty states are explicit.
 
 The feature separates orchestration, columns, rendering, navigation and feedback.
 Handlers and render callbacks are named before JSX/options. Nested functions use
-`const fn = () => {}`. Props and form values use explicit interfaces or native
-library types instead of `ComponentProps`, `Pick`, `Partial`, `Omit`, `ReturnType`
-and type-level `typeof`. Use `if` for complex choices and ternaries only for
-simple values. Toaster CSS variables belong in the shared stylesheet.
+`const fn = () => {}`. Form values use `z.input` from their validation schemas.
+Props use explicit interfaces or native library types instead of `ComponentProps`,
+`Pick`, `Partial`, `Omit`, `ReturnType`. Use `if` for complex choices and ternaries
+only for simple values. Toaster CSS variables belong in the shared stylesheet.
 
 Use native elements with the correct meaning; purely visual wrappers can remain
 `div`. Shared UI patterns belong in `packages/ui`; feature-specific components

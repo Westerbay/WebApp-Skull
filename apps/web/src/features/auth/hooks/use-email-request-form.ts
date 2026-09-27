@@ -1,5 +1,5 @@
 import { getLocalizedCallbackUrl } from "@workspace/i18n/routing"
-import type { EmailFormValues } from "../schemas/auth-form.types"
+import type { EmailFormValues } from "../schemas/auth-form"
 import { useForm } from "@tanstack/react-form"
 import { useState } from "react"
 import { network_error } from "@workspace/i18n/messages"

@@ -33,7 +33,8 @@ Les styles et tokens communs sont dans `packages/ui/src/styles/globals.css`.
 - `apps/web/src/lib/api/http-status.ts` : statuts nommés utilisés par le client.
 - `apps/web/src/features/auth/schemas/auth-form.constraints.ts` : contrainte du nom
   propre aux formulaires d’authentification. Les schémas utilisent directement
-  les bornes de mot de passe du contrat auth partagé.
+  les bornes de mot de passe du contrat auth partagé. Les types des valeurs sont
+  déduits de ces schémas avec `z.input` dans `auth-form.ts`.
 
 - `packages/contracts/src/auth.constraints.ts` : bornes du mot de passe et durées des jetons partagées
   entre validation web, configuration serveur Better Auth et contenu des emails.
