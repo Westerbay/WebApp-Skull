@@ -5,11 +5,6 @@ export const apiErrorSchema = z.object({
   message: z.string(),
   requestId: z.string(),
   details: z.unknown().optional(),
-}) satisfies z.ZodType<ApiError>
+})
 
-export interface ApiError {
-  code: string
-  message: string
-  requestId: string
-  details?: unknown
-}
+export type ApiError = z.infer<typeof apiErrorSchema>

@@ -24,6 +24,7 @@ des pages serveur et le hook `useInfiniteQuery` sont réutilisables. Le domaine 
 au-delà de cet exemple reste à définir. Les contraintes partagées, la taille
 d’affichage et les réglages Faker ont leurs modules propriétaires ; le tableau
 sépare son orchestration de ses composants de rendu.
+Les types des contrats validés et des formulaires sont déduits des schémas Zod.
 
 Le projet est distribué sous [licence MIT](../LICENSE), avec Mathis Dubuisson
 comme titulaire du copyright. La citation du dépôt lors d’une réutilisation

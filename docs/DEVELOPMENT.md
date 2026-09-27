@@ -118,8 +118,10 @@ pnpm test:integration
 pnpm test:e2e
 ```
 
-Unit tests live in each package/application's `test/unit`. API integration and
-E2E have separate configs and suffixes. The shared harness creates UUID Compose
+Unit tests live in each package/application's `test/unit`. Assertions protect
+rules, transformations and integration behavior; avoid getter/pass-through
+tests and expected values computed by the same implementation. API integration
+and E2E have separate configs and suffixes. The shared harness creates UUID Compose
 projects with tmpfs PostgreSQL, non-relaying Mailpit and dynamic loopback ports.
 It does not read `.env`, touch dev volumes or accept arbitrary DB URLs. Each run
 applies guarded migrations and seeds twice. Shutdown removes only owned services.

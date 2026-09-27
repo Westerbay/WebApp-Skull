@@ -36,3 +36,8 @@ export const resetPasswordSchema = z
     path: ["confirmPassword"],
     message: password_mismatch(),
   })
+
+export type EmailFormValues = z.input<typeof emailSchema>
+export type SignInFormValues = z.input<typeof signInSchema>
+export type SignUpFormValues = z.input<typeof signUpSchema>
+export type ResetPasswordFormValues = z.input<typeof resetPasswordSchema>

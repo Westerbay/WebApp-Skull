@@ -1,10 +1,7 @@
+import type { CurrentUser } from "@workspace/contracts/identity"
+
 export type AuthSession = Readonly<{
-  user: Readonly<{
-    id: string
-    name: string
-    email: string
-    emailVerified: boolean
-  }>
+  user: Readonly<CurrentUser>
   session: Readonly<{
     id: string
   }>

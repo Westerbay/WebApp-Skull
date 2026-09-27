@@ -4,6 +4,7 @@ import { getRequestId } from "./request-context.js"
 import type { ArgumentsHost, ExceptionFilter } from "@nestjs/common"
 import type { Request, Response } from "express"
 import type { ZodIssue } from "zod"
+import type { ApiError } from "@workspace/contracts/common"
 
 type ErrorDetails = ReadonlyArray<Readonly<{ code: string; path: string }>>
 type ErrorResponse = Readonly<{ code: string; message: string }>
@@ -85,12 +86,7 @@ export class HttpErrorFilter implements ExceptionFilter {
     }
 
     const errorResponse = ERROR_RESPONSES[status] ?? INTERNAL_ERROR_RESPONSE
-    const body: {
-      code: string
-      message: string
-      requestId: string
-      details?: ErrorDetails
-    } = {
+    const body: ApiError = {
       ...errorResponse,
       requestId,
     }

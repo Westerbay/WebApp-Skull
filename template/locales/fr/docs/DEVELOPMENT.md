@@ -144,6 +144,9 @@ pnpm test:e2e
 
 Les tests rapides des applications et packages sont centralisés sous leur
 dossier `test/unit`, avec une arborescence qui reflète la responsabilité testée.
+Les assertions protègent des règles, transformations et intégrations ; éviter
+les tests de getters ou de relais triviaux et les résultats attendus calculés
+par la même implémentation.
 Leurs configurations Vitest ne chargent que ces fichiers. Les tests API avec
 services réels vivent sous `test/integration` avec le suffixe
 `.integration.test.ts` ; les parcours navigateur vivent sous `test/e2e` avec le
