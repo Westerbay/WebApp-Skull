@@ -1,5 +1,13 @@
 # Réutilisation
 
+## Composition et recherche
+
+- `apps/web/src/features/auth/form-context.ts` et `hooks/use-auth-form.ts` :
+  composition native des quatre formulaires auth. AuthInput lit AppField ;
+  AuthSubmitButton lit l’état de soumission dans AppForm.
+- `packages/contracts/src/users.ts` et `users.constraints.ts` : schéma de
+  recherche et longueur maximale partagés entre la frontière API et la saisie.
+
 ## Mots de passe compromis
 
 `apps/web/src/features/auth/auth-error.ts` traduit les erreurs Better Auth,

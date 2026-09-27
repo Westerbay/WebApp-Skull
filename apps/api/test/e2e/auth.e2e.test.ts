@@ -16,7 +16,7 @@ import {
   password,
   webPort,
 } from "../support/auth.harness.js"
-import type { Page, Route } from "@playwright/test"
+import type { Page, Request, Route } from "@playwright/test"
 
 const requestedLocale = process.env.AUTH_TEST_LOCALE ?? DEFAULT_LOCALE
 if (!isLocale(requestedLocale)) throw new Error("Unsupported test locale")
@@ -171,6 +171,73 @@ async function checkUsersPagination(page: Page) {
   }
 }
 
+async function checkUsersSearch(page: Page) {
+  const search = page.getByRole("searchbox", {
+    name: messages.users_search_label({}, { locale: testLocale }),
+  })
+  const table = page.getByRole("table", {
+    name: messages.users_title({}, { locale: testLocale }),
+  })
+  const requests: Array<URL> = []
+  const recordRequest = (request: Request) => {
+    const url = new URL(request.url())
+    if (url.pathname === "/api/users") requests.push(url)
+  }
+  page.on("request", recordRequest)
+  await page.clock.install()
+  await page.clock.pauseAt(new Date(Date.now() + 1000))
+  try {
+    await search.fill("bro")
+    await page.clock.runFor(200)
+    await search.fill("browser@")
+    await page.clock.runFor(200)
+    await search.fill("browser@example.test")
+    await page.clock.runFor(usersTableConfig.searchDebounceMs - 1)
+    expect(requests).toHaveLength(0)
+    const searchResponse = page.waitForResponse((response) => {
+      const url = new URL(response.url())
+      return (
+        url.pathname === "/api/users" &&
+        url.searchParams.get("search") === "browser@example.test"
+      )
+    })
+    await page.clock.runFor(1)
+    await searchResponse
+    // Resume notification timers once the debounce boundary has been checked.
+    await page.clock.resume()
+    await browserExpect(table.locator("tbody tr")).toHaveCount(1)
+    await browserExpect(table).toContainText("browser@example.test")
+    expect(requests).toHaveLength(1)
+    expect(requests[0]?.searchParams.has("cursor")).toBe(false)
+    await browserExpect(
+      page.getByRole("button", {
+        name: messages.users_previous({}, { locale: testLocale }),
+      })
+    ).toBeDisabled()
+    await page.screenshot({
+      path: "../../output/playwright/users-search-mobile.png",
+      fullPage: true,
+    })
+    await search.fill("no-user-matches-this-search")
+    await browserExpect(table).toContainText(
+      messages.users_empty({}, { locale: testLocale })
+    )
+    await search.fill("")
+    await browserExpect(table.locator("tbody tr")).toHaveCount(
+      usersTableConfig.pageSize
+    )
+    await browserExpect(
+      page.getByRole("status").filter({
+        hasText: messages.users_page({ page: 1 }, { locale: testLocale }),
+      })
+    ).toBeVisible()
+    expect(requests).toHaveLength(2)
+  } finally {
+    page.off("request", recordRequest)
+    await page.clock.resume()
+  }
+}
+
 it("completes localized signup, verification, reset and logout in a mobile browser", async () => {
   await database.db
     .update(schema.rateLimit)
@@ -299,6 +366,7 @@ it("completes localized signup, verification, reset and logout in a mobile brows
       })
     ).toBeVisible()
     await checkUsersPagination(page)
+    await checkUsersSearch(page)
     await page.screenshot({
       path: "../../output/playwright/auth-home-mobile.png",
       fullPage: true,

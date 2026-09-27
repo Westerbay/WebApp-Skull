@@ -1,5 +1,5 @@
 import type { ResetPasswordFormValues } from "../schemas/auth-form"
-import { useForm } from "@tanstack/react-form"
+import { useAuthForm } from "./use-auth-form"
 import { useRouter } from "@tanstack/react-router"
 import { useState } from "react"
 import { toast } from "sonner"
@@ -40,7 +40,7 @@ export function useResetPasswordForm(token: string) {
     }
   }
 
-  const form = useForm({
+  const form = useAuthForm({
     defaultValues: RESET_PASSWORD_DEFAULT_VALUES,
     validators: { onSubmit: resetPasswordSchema },
     onSubmit: handleSubmit,

@@ -1,9 +1,9 @@
-import { asc, gt } from "drizzle-orm"
+import { and, asc, gt, ilike, or } from "drizzle-orm"
 import { schema } from "@workspace/database"
 import { createCursorPage } from "../../infrastructure/pagination/cursor-page.js"
 import type { Database } from "@workspace/database"
 import type { CurrentUser } from "@workspace/contracts/identity"
-import type { CursorPagination } from "@workspace/contracts/pagination"
+import type { UsersQuery } from "@workspace/contracts/users"
 import type { ListUsers } from "./users.types.js"
 
 function getUserCursor(user: CurrentUser) {
@@ -11,7 +11,18 @@ function getUserCursor(user: CurrentUser) {
 }
 
 export function createListUsers(database: Database): ListUsers {
-  const listUsers = async ({ cursor, limit }: CursorPagination) => {
+  const listUsers = async ({ cursor, limit, search }: UsersQuery) => {
+    let searchFilter
+    if (search) {
+      // Treat SQL LIKE metacharacters as literal search text.
+      const pattern = `%${search.replace(/[\\%_]/g, "\\$&")}%`
+      searchFilter = or(
+        ilike(schema.user.name, pattern),
+        ilike(schema.user.email, pattern)
+      )
+    }
+    let cursorFilter
+    if (cursor !== undefined) cursorFilter = gt(schema.user.id, cursor)
     const rows = await database
       .select({
         id: schema.user.id,
@@ -20,7 +31,7 @@ export function createListUsers(database: Database): ListUsers {
         emailVerified: schema.user.emailVerified,
       })
       .from(schema.user)
-      .where(cursor === undefined ? undefined : gt(schema.user.id, cursor))
+      .where(and(cursorFilter, searchFilter))
       .orderBy(asc(schema.user.id))
       .limit(limit + 1)
     return createCursorPage(rows, limit, getUserCursor)

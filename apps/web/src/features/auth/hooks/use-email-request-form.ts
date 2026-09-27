@@ -1,6 +1,6 @@
 import { getLocalizedCallbackUrl } from "@workspace/i18n/routing"
 import type { EmailFormValues } from "../schemas/auth-form"
-import { useForm } from "@tanstack/react-form"
+import { useAuthForm } from "./use-auth-form"
 import { useState } from "react"
 import { network_error } from "@workspace/i18n/messages"
 import { authClient } from "@/lib/auth/auth-client"
@@ -46,7 +46,7 @@ export function useEmailRequestForm(kind: "verification" | "reset") {
     }
   }
 
-  const form = useForm({
+  const form = useAuthForm({
     defaultValues: EMAIL_REQUEST_DEFAULT_VALUES,
     validators: { onSubmit: emailSchema },
     onSubmit: handleSubmit,

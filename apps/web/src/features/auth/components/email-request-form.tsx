@@ -1,7 +1,5 @@
 import { useHydrated } from "@tanstack/react-router"
-import { Button } from "@workspace/ui/components/button"
 import { FieldError, FieldGroup } from "@workspace/ui/components/field"
-import { Spinner } from "@workspace/ui/components/spinner"
 import {
   email_label,
   resend_verification,
@@ -21,38 +19,23 @@ export function EmailRequestForm({ kind }: { kind: "verification" | "reset" }) {
     void form.handleSubmit()
   }
   const action = kind === "verification" ? resend_verification() : send_reset()
+  const renderEmailField = () => (
+    <AuthInput label={email_label()} type="email" autoComplete="email" />
+  )
   return (
     <form method="post" onSubmit={handleSubmit} noValidate>
       <fieldset disabled={!hydrated} className="min-w-0">
         <FieldGroup>
-          <form.Field name="email">
-            {(field) => (
-              <AuthInput
-                name={field.name}
-                label={email_label()}
-                type="email"
-                autoComplete="email"
-                value={field.state.value}
-                onChange={field.handleChange}
-                onBlur={field.handleBlur}
-                errors={field.state.meta.errors}
-              />
-            )}
-          </form.Field>
+          <form.AppField name="email">{renderEmailField}</form.AppField>
           {serverError && <FieldError role="alert">{serverError}</FieldError>}
           {received && (
             <p role="status" className="text-sm text-muted-foreground">
               {email_request_received()}
             </p>
           )}
-          <form.Subscribe selector={(state) => state.isSubmitting}>
-            {(pending) => (
-              <Button type="submit" disabled={pending} className="min-h-11">
-                {pending && <Spinner />}
-                {action}
-              </Button>
-            )}
-          </form.Subscribe>
+          <form.AppForm>
+            <form.AuthSubmitButton label={action} />
+          </form.AppForm>
         </FieldGroup>
       </fieldset>
     </form>

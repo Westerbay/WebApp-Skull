@@ -26,7 +26,7 @@ export class UsersController {
     type: ApiErrorDto,
   })
   @ApiBadRequestResponse({
-    description: "Invalid pagination parameters",
+    description: "Invalid pagination or search parameters",
     type: ApiErrorDto,
   })
   @ZodResponse({ status: HttpStatus.OK, type: UsersPageDto })

@@ -94,5 +94,8 @@
   "users_email": "Adresse email",
   "users_name": "Nom",
   "users_description": "Consultez les comptes et passez à la page suivante.",
-  "project_description": "Application web sécurisée."
+  "project_description": "Application web sécurisée.",
+  "users_search_label": "Rechercher des utilisateurs",
+  "users_search_placeholder": "Nom ou adresse email",
+  "users_search_pending": "Recherche en attente…"
 }

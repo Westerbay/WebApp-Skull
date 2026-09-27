@@ -1,5 +1,12 @@
 # Design
 
+## Recherche utilisateurs
+
+Le champ de recherche possède un label et reste modifiable pendant les appels.
+Un statut traduit annonce l’attente des 300 ms. Pagination et retry restent
+désactivés tant que le filtre appliqué diffère de la saisie. Les erreurs, le
+chargement et les résultats vides conservent leurs retours accessibles.
+
 ## Mots de passe compromis
 
 Les erreurs de mot de passe compromis demandent de choisir un autre mot de

@@ -30,6 +30,12 @@ compromised passwords and reset-specific recovery instructions.
   hooks, AuthPanel and AuthInput. Unique IDs associate labels/help/errors.
   PasswordInput owns visibility; PasswordStrength is shared by signup/reset.
 
+- `apps/web/src/features/auth/form-context.ts` and `hooks/use-auth-form.ts`:
+  native TanStack Form composition for the four auth form hooks. AuthInput
+  reads its AppField context; AuthSubmitButton reads AppForm submission state.
+- `packages/contracts/src/users.ts` and `users.constraints.ts`: users search
+  schema and length bound shared by the API boundary and search input.
+
 ## Localization
 
 - `packages/i18n/src/config.ts`: default/supported locales from generated runtime.

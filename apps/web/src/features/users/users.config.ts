@@ -2,4 +2,5 @@ import { cursorPaginationConstraints } from "@workspace/contracts/pagination/con
 
 export const usersTableConfig = {
   pageSize: cursorPaginationConstraints.defaultLimit,
+  searchDebounceMs: 300,
 }

@@ -1,5 +1,5 @@
 import type { SignInFormValues } from "../schemas/auth-form"
-import { useForm } from "@tanstack/react-form"
+import { useAuthForm } from "./use-auth-form"
 import { useRouter } from "@tanstack/react-router"
 import { useState } from "react"
 import { network_error } from "@workspace/i18n/messages"
@@ -29,7 +29,7 @@ export function useSignInForm(redirect: string) {
     }
   }
 
-  const form = useForm({
+  const form = useAuthForm({
     defaultValues: SIGN_IN_DEFAULT_VALUES,
     validators: { onSubmit: signInSchema },
     onSubmit: handleSubmit,

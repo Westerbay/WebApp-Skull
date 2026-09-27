@@ -33,6 +33,14 @@ belongs to Paraglide. Keep specific mappings before the final fallback.
 Interface and email text comes from the same catalogs. Auth callbacks retain
 the URL language. API endpoints and data are not translated.
 
+## Web maintenance
+
+`pnpm --filter web lint` includes the recommended TanStack Query and Router
+plugins. Keep search filters in query keys and pass abort signals to HTTP.
+The users debounce delay is in `features/users/users.config.ts`. Devtools panels
+and the Vite Devtools bridge are not installed; Start owns its router plugin.
+Auth fields render inside AppField; submission controls render inside AppForm.
+
 ## Validation
 
 ```bash

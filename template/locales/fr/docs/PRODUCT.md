@@ -1,5 +1,13 @@
 # Produit
 
+## Recherche utilisateurs
+
+La recherche trouve une partie du nom ou de l’email sans tenir compte de la
+casse, sur toute la liste. Après 300 ms sans saisie, le filtre s’applique et
+revient à la première page. Effacer le champ rétablit la liste complète.
+La saisie est limitée à 100 caractères ; les caractères SQL `%` et `_` restent
+littéraux.
+
 ## Mots de passe compromis
 
 En staging/production, les nouveaux mots de passe sont vérifiés avec Have I

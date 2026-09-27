@@ -25,8 +25,10 @@ profiles demonstrate cursor pagination over four dashboard pages. Logs are
 sanitized; PostgreSQL readiness is bounded and resources close on shutdown.
 CI checks quality, secrets, real integration and mobile E2E in owned environments.
 
-The connected dashboard demonstrates TanStack Table pagination. Contracts,
-server page construction and the `useInfiniteQuery` wrapper are reusable.
+The connected dashboard demonstrates TanStack Table pagination and server-side
+name/email search with a 300 ms debounce. Authentication forms share native
+TanStack Form contexts; specialized Query/Router lint rules guard future changes.
+Contracts, server page construction and the `useInfiniteQuery` wrapper are reusable.
 Configuration stays with its owner; table orchestration and rendering are split.
 Validated contracts and form values derive their types from Zod schemas.
 The business domain beyond this example remains undefined.

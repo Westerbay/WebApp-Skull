@@ -94,5 +94,8 @@
   "users_email": "Email address",
   "users_name": "Name",
   "users_description": "View accounts and continue to the next page.",
-  "project_description": "A secure web application."
+  "project_description": "A secure web application.",
+  "users_search_label": "Search users",
+  "users_search_placeholder": "Name or email address",
+  "users_search_pending": "Waiting to search…"
 }

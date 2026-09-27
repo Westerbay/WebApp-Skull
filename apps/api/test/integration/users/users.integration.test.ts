@@ -79,3 +79,92 @@ it("traverses PostgreSQL users without duplicates and continues after a cursor r
       await database.db.delete(schema.user).where(eq(schema.user.id, id))
   }
 })
+
+it("searches names and emails case-insensitively with literal wildcards and filtered cursors", async () => {
+  const firstUser = {
+    id: "search-test-001",
+    name: "Needle Search One",
+    email: "first@users-search.example.test",
+    emailVerified: true,
+  }
+  const fixtures = [
+    firstUser,
+    {
+      id: "search-test-002",
+      name: "Needle Search Two",
+      email: "second@users-search.example.test",
+      emailVerified: true,
+    },
+    {
+      id: "search-test-003",
+      name: "100% literal_under\\slash",
+      email: "literal@users-search.example.test",
+      emailVerified: true,
+    },
+    {
+      id: "search-test-004",
+      name: "1000 literalXunder/slash",
+      email: "other@users-search.example.test",
+      emailVerified: true,
+    },
+  ]
+  await database.db.insert(schema.user).values(fixtures)
+  const app = await createApiApp({
+    authHandler: (_request, response) => response.sendStatus(404),
+    getSession: async () => ({
+      user: firstUser,
+      session: { id: "search-test-session" },
+    }),
+    databaseReady: database.ready,
+    listUsers: createListUsers(database.db),
+  })
+  await app.init()
+  try {
+    const first = await request(app.getHttpServer())
+      .get("/api/users")
+      .query({ search: "  nEeDlE sEaRcH  ", limit: 1 })
+      .expect(200)
+    expect(usersPageSchema.parse(first.body)).toEqual({
+      items: [fixtures[0]],
+      nextCursor: firstUser.id,
+    })
+    const next = await request(app.getHttpServer())
+      .get("/api/users")
+      .query({
+        search: "needle search",
+        limit: 1,
+        cursor: first.body.nextCursor,
+      })
+      .expect(200)
+    expect(usersPageSchema.parse(next.body)).toEqual({
+      items: [fixtures[1]],
+      nextCursor: null,
+    })
+    const email = await request(app.getHttpServer())
+      .get("/api/users")
+      .query({ search: "FIRST@USERS-SEARCH" })
+      .expect(200)
+    expect(usersPageSchema.parse(email.body).items).toEqual([fixtures[0]])
+    for (const search of ["%", "_", "\\"]) {
+      const literal = await request(app.getHttpServer())
+        .get("/api/users")
+        .query({ search })
+        .expect(200)
+      expect(usersPageSchema.parse(literal.body).items).toEqual([fixtures[2]])
+    }
+    const empty = await request(app.getHttpServer())
+      .get("/api/users")
+      .query({ search: "no-user-matches-this-search" })
+      .expect(200)
+    expect(usersPageSchema.parse(empty.body)).toEqual({
+      items: [],
+      nextCursor: null,
+    })
+  } finally {
+    await app.close()
+    for (const fixture of fixtures)
+      await database.db
+        .delete(schema.user)
+        .where(eq(schema.user.id, fixture.id))
+  }
+})

@@ -38,6 +38,9 @@ Use a native HTML table with headings and caption. Only its named scrollable
 `section` overflows horizontally on mobile; it is keyboard-accessible. Previous
 and Next announce the current page and disable unavailable or pending actions.
 Errors keep loaded rows and offer Retry. Loading and empty states are explicit.
+The labelled search field stays responsive while its request waits 300 ms.
+A localized status announces the waiting state; pagination/retry are disabled
+until the applied filter catches up. Search remains editable during requests.
 
 The feature separates orchestration, columns, rendering, navigation and feedback.
 Handlers and render callbacks are named before JSX/options. Nested functions use

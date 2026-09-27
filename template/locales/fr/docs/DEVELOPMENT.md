@@ -1,5 +1,14 @@
 # Développement
 
+## Maintenance web
+
+`pnpm --filter web lint` active les plugins recommandés TanStack Query et Router.
+Inclure les filtres dans les clés de cache et transmettre les signaux
+d’annulation au client HTTP. Le délai de recherche se règle dans
+`features/users/users.config.ts`. Les panneaux Devtools et leur bridge Vite ne
+sont pas installés ; Start possède son plugin Router. Les champs auth restent
+dans AppField et les contrôles de soumission dans AppForm.
+
 ## Mots de passe compromis
 
 Les contrôles Have I Been Pwned sont activés avec `APP_ENV=staging` ou
