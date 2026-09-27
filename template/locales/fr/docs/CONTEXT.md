@@ -1,9 +1,9 @@
-#Des commandes interactives créent et suppriment les worktrees Git dans
-`.worktree/`, ignoré à la racine du dépôt principal.
-
-Contexte
+# Contexte
 
 ## Recherche utilisateurs et formulaires
+
+Des commandes interactives créent et suppriment les worktrees Git dans
+`.worktree/`, ignoré à la racine du dépôt principal.
 
 Le tableau recherche les noms et emails côté serveur après 300 ms sans saisie.
 Les formulaires auth partagent les contextes natifs TanStack Form. Le lint web

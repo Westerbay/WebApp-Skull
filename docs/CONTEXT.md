@@ -1,9 +1,9 @@
-#Local Git worktrees can be created and safely removed with interactive commands
-in the ignored `.worktree/` directory at the main repository root.
-
-Context
+# Context
 
 ## Current state
+
+Local Git worktrees can be created and safely removed with interactive commands
+in the ignored `.worktree/` directory at the main repository root.
 
 Have I Been Pwned rejects compromised new passwords in staging/production.
 Development/test remain offline; provider errors block password writes.
