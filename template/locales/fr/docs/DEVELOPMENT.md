@@ -1,5 +1,15 @@
 # Développement
 
+## Mots de passe compromis
+
+Les contrôles Have I Been Pwned sont activés avec `APP_ENV=staging` ou
+`production`, sans clé API ni migration. Autoriser HTTPS sortant vers
+`api.pwnedpasswords.com`. Development/test n’effectuent aucun appel. Les tests
+unitaires exercent la factory auth réelle avec un adaptateur mémoire et des
+réponses HIBP simulées. Le plugin ne configure pas de timeout : la latence du
+service peut retarder la soumission. Ces tests ne vérifient pas le réseau de
+production.
+
 ## Environnement
 
 Utiliser Node.js 24 et pnpm 12. Copier `.env.example` vers `.env` pour le

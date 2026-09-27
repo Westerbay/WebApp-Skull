@@ -2,6 +2,13 @@
 
 ## Boundaries
 
+Better Auth's Have I Been Pwned plugin checks password hashing on signup,
+change and reset in staging/production; development/test skip checks. Only the
+first five characters of the SHA-1 hash go to `api.pwnedpasswords.com`, never
+the password or full hash. Provider errors block writes. Better Auth 1.7.4
+consumes reset tokens before hashing, so a rejected password or unavailable
+checker requires a fresh reset link. Local fixture hashing stays offline.
+
 ```text
 apps/web → packages/contracts, packages/ui, packages/i18n, OpenAPI client
 apps/api → packages/contracts, packages/database, packages/email

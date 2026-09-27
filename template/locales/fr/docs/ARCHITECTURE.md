@@ -1,5 +1,14 @@
 # Architecture
 
+## Mots de passe compromis
+
+Le plugin Have I Been Pwned vérifie le hash à l’inscription, au changement et
+au reset en staging/production. Seuls les cinq premiers caractères du hash
+SHA-1 sont transmis à `api.pwnedpasswords.com`, jamais le mot de passe ni le
+hash complet. Une erreur bloque l’écriture. Development/test et le hashing
+direct des fixtures restent hors ligne. Better Auth 1.7.4 consomme le token de
+reset avant le hash : un refus ou une indisponibilité exige un nouveau lien.
+
 ## Dépendances
 
 ```text

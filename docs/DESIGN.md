@@ -7,6 +7,9 @@ screens must not expose infrastructure vocabulary.
 
 ## Authentication
 
+Compromised-password submission errors ask the user to choose another password.
+Reset rejection and server failure messages also request a new reset link.
+
 Use a readable single column, explicit labels and controls at least 44px high.
 Validation errors stay by the field; submission errors stay in the form. Email
 acceptance does not promise delivery. A root Sonner announces signout and reset

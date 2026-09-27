@@ -1,5 +1,12 @@
 # Produit
 
+## Mots de passe compromis
+
+En staging/production, les nouveaux mots de passe sont vérifiés avec Have I
+Been Pwned. Les mots de passe compromis sont refusés ; une erreur du service
+laisse le mot de passe inchangé. La connexion existante n’est pas vérifiée.
+Après un refus ou une erreur pendant le reset, demander un nouveau lien.
+
 ## Capacités
 
 Créer un compte avec nom, email et mot de passe ; confirmer l’adresse avec le
