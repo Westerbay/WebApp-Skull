@@ -1,5 +1,11 @@
 # Contexte
 
+## Recherche utilisateurs et formulaires
+
+Le tableau recherche les noms et emails côté serveur après 300 ms sans saisie.
+Les formulaires auth partagent les contextes natifs TanStack Form. Le lint web
+active les règles spécialisées Query et Router.
+
 ## Mots de passe compromis
 
 Have I Been Pwned refuse les nouveaux mots de passe compromis en staging et

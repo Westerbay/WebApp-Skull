@@ -8,6 +8,9 @@ verification link or reset a password.
 
 The dashboard shows a sample user table with names, emails and verification
 status in pages of 20. Next loads another page; Previous returns to cached data.
+Search matches part of a name or email without case sensitivity. A 300 ms pause
+in typing applies the filter and returns to page one; clearing it restores the
+unfiltered list. Search is limited to 100 characters; SQL wildcards are literal.
 Passwords can be shown or hidden. Signup and reset show an advisory strength
 meter that does not change acceptance rules.
 

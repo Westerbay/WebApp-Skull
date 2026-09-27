@@ -15,16 +15,12 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "^4",
-    "@tanstack/react-devtools": "0.10.12",
     "@tanstack/react-form": "^1.33.2",
     "@tanstack/react-query": "^5.101.4",
-    "@tanstack/react-query-devtools": "^5.101.4",
     "@tanstack/react-router": "1.170.35",
-    "@tanstack/react-router-devtools": "1.167.1",
     "@tanstack/react-router-ssr-query": "^1.167.1",
     "@tanstack/react-start": "1.168.52",
     "@tanstack/react-table": "8.21.3",
-    "@tanstack/router-plugin": "1.168.37",
     "@workspace/config": "workspace:*",
     "@workspace/contracts": "workspace:*",
     "@workspace/i18n": "workspace:*",
@@ -44,8 +40,9 @@
     "zod": "4.6.2"
   },
   "devDependencies": {
-    "@tanstack/devtools-vite": "0.8.5",
     "@tanstack/eslint-config": "0.3.2",
+    "@tanstack/eslint-plugin-query": "5.104.0",
+    "@tanstack/eslint-plugin-router": "1.162.0",
     "@types/node": "24.5.2",
     "@types/react": "^19",
     "@types/react-dom": "^19",

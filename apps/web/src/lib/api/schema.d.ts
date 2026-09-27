@@ -203,6 +203,7 @@ export interface operations {
       query?: {
         cursor?: string
         limit?: number
+        search?: string
       }
       header?: never
       path?: never
@@ -218,7 +219,7 @@ export interface operations {
           "application/json": components["schemas"]["UsersPageDto_Output"]
         }
       }
-      /** @description Invalid pagination parameters */
+      /** @description Invalid pagination or search parameters */
       400: {
         headers: {
           [name: string]: unknown

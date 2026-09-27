@@ -1,5 +1,17 @@
 # Architecture
 
+## Recherche et composition des formulaires
+
+`usersQuerySchema` étend la pagination avec une recherche facultative, trimée
+et limitée à 100 caractères. PostgreSQL combine le curseur avec ILIKE sur nom
+ou email, paramétré et avec les caractères spéciaux LIKE échappés. Les clés de
+cache incluent le filtre appliqué. Le hook local `useDebouncedValue` nettoie son
+minuteur au changement et au démontage ; la feature possède le délai de 300 ms.
+Changer le filtre remet la navigation à zéro, même avec des pages en cache ;
+une ancienne requête de page ne peut pas avancer une recherche différente.
+Les formulaires auth utilisent AppField pour les champs et AppForm pour le
+bouton de soumission, avec les contextes natifs TanStack Form.
+
 ## Mots de passe compromis
 
 Le plugin Have I Been Pwned vérifie le hash à l’inscription, au changement et

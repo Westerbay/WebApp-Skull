@@ -4,10 +4,6 @@ import type {
   HTMLInputTypeAttribute,
 } from "react"
 
-export interface AuthFieldError {
-  message?: string
-}
-
 export interface AuthTextInputProps {
   id: string
   name: string
@@ -22,13 +18,8 @@ export interface AuthTextInputProps {
 }
 
 export interface AuthInputProps {
-  name: string
   label: string
   type?: HTMLInputTypeAttribute
   autoComplete: string
-  value: string
-  onChange: (value: string) => void
-  onBlur: () => void
-  errors: Array<AuthFieldError | undefined>
   showStrength?: boolean
 }

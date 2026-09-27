@@ -1,6 +1,6 @@
 import { getLocalizedCallbackUrl } from "@workspace/i18n/routing"
 import type { SignUpFormValues } from "../schemas/auth-form"
-import { useForm } from "@tanstack/react-form"
+import { useAuthForm } from "./use-auth-form"
 import { useRouter } from "@tanstack/react-router"
 import { useState } from "react"
 import { network_error } from "@workspace/i18n/messages"
@@ -40,7 +40,7 @@ export function useSignUpForm() {
     }
   }
 
-  const form = useForm({
+  const form = useAuthForm({
     defaultValues: SIGN_UP_DEFAULT_VALUES,
     validators: { onSubmit: signUpSchema },
     onSubmit: handleSubmit,

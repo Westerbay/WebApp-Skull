@@ -9,7 +9,6 @@ import {
 
 export const Route = createFileRoute("/")({
   ssr: false,
-  head: () => privateHead(home_title(), home_description()),
   beforeLoad: async ({ context }) => {
     try {
       return {
@@ -25,6 +24,7 @@ export const Route = createFileRoute("/")({
       throw error
     }
   },
+  head: () => privateHead(home_title(), home_description()),
   component: HomePage,
 })
 

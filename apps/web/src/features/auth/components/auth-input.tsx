@@ -16,22 +16,20 @@ import { PasswordStrength } from "./password-strength"
 import { PasswordInput } from "./password-input"
 
 import type { AuthInputProps } from "./auth-input.types"
+import { useFieldContext } from "../form-context"
 
 export function AuthInput({
-  name,
   label,
   type = "text",
   autoComplete,
-  value,
-  onChange,
-  onBlur,
-  errors,
   showStrength = false,
 }: AuthInputProps) {
+  const field = useFieldContext<string>()
+  const value = field.state.value
   const inputId = useId()
   const isPassword = type === "password"
   const tooLong = isPassword && value.length > authPasswordConstraints.maxLength
-  let fieldErrors = errors
+  let fieldErrors = field.state.meta.errors
   if (tooLong) {
     fieldErrors = [
       {
@@ -54,16 +52,16 @@ export function AuthInput({
   const describedBy = descriptionIds.join(" ") || undefined
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
-    onChange(event.target.value)
+    field.handleChange(event.target.value)
   }
 
   const inputProps = {
     id: inputId,
-    name,
+    name: field.name,
     autoComplete,
     value,
     onChange: handleChange,
-    onBlur,
+    onBlur: field.handleBlur,
     "aria-invalid": invalid,
     "aria-describedby": describedBy,
   }

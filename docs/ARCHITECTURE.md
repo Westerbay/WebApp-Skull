@@ -41,6 +41,10 @@ interactions and state; shared clients and query configuration live in web
 primitives. Server imports use NodeNext `.js` extensions; web uses Bundler
 resolution. Public product identity is JSON in `packages/config`.
 
+Auth forms share native TanStack Form contexts. AuthInput reads its AppField
+context; AuthSubmitButton subscribes to submission state inside AppForm. Form
+hooks retain validation, errors, auth calls and navigation responsibilities.
+
 Constraints use `.constraints.ts`; technical settings use `.config.ts` or
 `config.ts`. Password limits and token lifetimes belong to the auth contract;
 Better Auth converts lifetimes to seconds and emails display the same durations.
@@ -78,7 +82,13 @@ the lookahead row and returns the last visible ID or `null` at the end.
 
 `useCursorInfiniteQuery` owns initial/next cursor parameters and preserves
 native observer options, selection and cancellation. Query keys include page
-size and the private prefix. Users table hooks manage cached navigation and
+size, the applied search and the private prefix. `usersQuerySchema` extends
+pagination with optional trimmed search, bounded to 100 characters. PostgreSQL
+uses parameterized ILIKE on name/email with literal LIKE metacharacters and
+combines this filter with the existing cursor. A local `useDebouncedValue` hook
+cleans up its timer on changes/unmount; the users feature owns the 300 ms delay.
+Search changes reset navigation, including when restoring cached results; stale
+page fetches cannot advance a different search. Users table hooks manage cached navigation and
 retry; rendering, columns, feedback and pagination are separate. A retry after
 backward navigation still resumes the failed request. No total count or random
 page access is calculated. Constraints, feature page size and Faker settings

@@ -1,7 +1,5 @@
 import { useHydrated } from "@tanstack/react-router"
-import { Button } from "@workspace/ui/components/button"
 import { FieldError, FieldGroup } from "@workspace/ui/components/field"
-import { Spinner } from "@workspace/ui/components/spinner"
 import {
   new_password_label,
   confirm_password_label,
@@ -19,48 +17,33 @@ export function ResetPasswordForm({ token }: { token: string }) {
     event.stopPropagation()
     void form.handleSubmit()
   }
+  const renderPasswordField = () => (
+    <AuthInput
+      label={new_password_label()}
+      showStrength
+      type="password"
+      autoComplete="new-password"
+    />
+  )
+  const renderConfirmPasswordField = () => (
+    <AuthInput
+      label={confirm_password_label()}
+      type="password"
+      autoComplete="new-password"
+    />
+  )
   return (
     <form method="post" onSubmit={handleSubmit} noValidate>
       <fieldset disabled={!hydrated} className="min-w-0">
         <FieldGroup>
-          <form.Field name="password">
-            {(field) => (
-              <AuthInput
-                name={field.name}
-                label={new_password_label()}
-                showStrength
-                type="password"
-                autoComplete="new-password"
-                value={field.state.value}
-                onChange={field.handleChange}
-                onBlur={field.handleBlur}
-                errors={field.state.meta.errors}
-              />
-            )}
-          </form.Field>
-          <form.Field name="confirmPassword">
-            {(field) => (
-              <AuthInput
-                name={field.name}
-                label={confirm_password_label()}
-                type="password"
-                autoComplete="new-password"
-                value={field.state.value}
-                onChange={field.handleChange}
-                onBlur={field.handleBlur}
-                errors={field.state.meta.errors}
-              />
-            )}
-          </form.Field>
+          <form.AppField name="password">{renderPasswordField}</form.AppField>
+          <form.AppField name="confirmPassword">
+            {renderConfirmPasswordField}
+          </form.AppField>
           {serverError && <FieldError role="alert">{serverError}</FieldError>}
-          <form.Subscribe selector={(state) => state.isSubmitting}>
-            {(pending) => (
-              <Button type="submit" disabled={pending} className="min-h-11">
-                {pending && <Spinner />}
-                {reset_submit()}
-              </Button>
-            )}
-          </form.Subscribe>
+          <form.AppForm>
+            <form.AuthSubmitButton label={reset_submit()} />
+          </form.AppForm>
         </FieldGroup>
       </fieldset>
     </form>

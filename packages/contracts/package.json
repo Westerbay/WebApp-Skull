@@ -23,6 +23,7 @@
     "./identity": "./src/identity.ts",
     "./pagination": "./src/pagination.ts",
     "./users": "./src/users.ts",
+    "./users/constraints": "./src/users.constraints.ts",
     "./pagination/constraints": "./src/pagination.constraints.ts"
   }
 }

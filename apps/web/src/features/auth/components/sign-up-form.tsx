@@ -1,7 +1,5 @@
 import { useHydrated } from "@tanstack/react-router"
-import { Button } from "@workspace/ui/components/button"
 import { FieldError, FieldGroup } from "@workspace/ui/components/field"
-import { Spinner } from "@workspace/ui/components/spinner"
 import {
   name_label,
   email_label,
@@ -20,62 +18,31 @@ export function SignUpForm() {
     event.stopPropagation()
     void form.handleSubmit()
   }
+  const renderNameField = () => (
+    <AuthInput label={name_label()} type="text" autoComplete="name" />
+  )
+  const renderEmailField = () => (
+    <AuthInput label={email_label()} type="email" autoComplete="email" />
+  )
+  const renderPasswordField = () => (
+    <AuthInput
+      label={password_label()}
+      showStrength
+      type="password"
+      autoComplete="new-password"
+    />
+  )
   return (
     <form method="post" onSubmit={handleSubmit} noValidate>
       <fieldset disabled={!hydrated} className="min-w-0">
         <FieldGroup>
-          <form.Field name="name">
-            {(field) => (
-              <AuthInput
-                name={field.name}
-                label={name_label()}
-                type="text"
-                autoComplete="name"
-                value={field.state.value}
-                onChange={field.handleChange}
-                onBlur={field.handleBlur}
-                errors={field.state.meta.errors}
-              />
-            )}
-          </form.Field>
-          <form.Field name="email">
-            {(field) => (
-              <AuthInput
-                name={field.name}
-                label={email_label()}
-                type="email"
-                autoComplete="email"
-                value={field.state.value}
-                onChange={field.handleChange}
-                onBlur={field.handleBlur}
-                errors={field.state.meta.errors}
-              />
-            )}
-          </form.Field>
-          <form.Field name="password">
-            {(field) => (
-              <AuthInput
-                name={field.name}
-                label={password_label()}
-                showStrength
-                type="password"
-                autoComplete="new-password"
-                value={field.state.value}
-                onChange={field.handleChange}
-                onBlur={field.handleBlur}
-                errors={field.state.meta.errors}
-              />
-            )}
-          </form.Field>
+          <form.AppField name="name">{renderNameField}</form.AppField>
+          <form.AppField name="email">{renderEmailField}</form.AppField>
+          <form.AppField name="password">{renderPasswordField}</form.AppField>
           {serverError && <FieldError role="alert">{serverError}</FieldError>}
-          <form.Subscribe selector={(state) => state.isSubmitting}>
-            {(pending) => (
-              <Button type="submit" disabled={pending} className="min-h-11">
-                {pending && <Spinner />}
-                {sign_up()}
-              </Button>
-            )}
-          </form.Subscribe>
+          <form.AppForm>
+            <form.AuthSubmitButton label={sign_up()} />
+          </form.AppForm>
         </FieldGroup>
       </fieldset>
     </form>
