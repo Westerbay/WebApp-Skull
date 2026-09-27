@@ -14,7 +14,7 @@ export const apiRateLimitConfig = {
 
 export const API_THROTTLER_NAME = "api"
 
-export const apiThrottlerOptions: ThrottlerModuleOptions = {
+export const apiThrottlerOptions = {
   throttlers: [
     {
       name: API_THROTTLER_NAME,
@@ -22,4 +22,4 @@ export const apiThrottlerOptions: ThrottlerModuleOptions = {
       ttl: seconds(apiRateLimitConfig.default.windowSeconds),
     },
   ],
-}
+} satisfies ThrottlerModuleOptions

@@ -29,6 +29,7 @@ import {
 import { IdentityController } from "./modules/identity/identity.controller.js"
 import { UsersController } from "./modules/users/users.controller.js"
 import { LIST_USERS } from "./modules/users/users.types.js"
+import type { ThrottlerStorage } from "@nestjs/throttler"
 import type { INestApplication } from "@nestjs/common"
 import type { RequestHandler } from "express"
 import type { Logger } from "pino"
@@ -44,6 +45,7 @@ export type ApiDependencies = Readonly<{
   allowedOrigin?: string
   readinessTimeoutMs?: number
   logger?: Logger
+  rateLimitStorage?: ThrottlerStorage
 }>
 
 export async function createApiApp(
@@ -53,7 +55,13 @@ export async function createApiApp(
   const httpLogging = createHttpLogging(logger)
 
   @Module({
-    imports: [httpLogging.module, ThrottlerModule.forRoot(apiThrottlerOptions)],
+    imports: [
+      httpLogging.module,
+      ThrottlerModule.forRoot({
+        ...apiThrottlerOptions,
+        storage: dependencies.rateLimitStorage,
+      }),
+    ],
     controllers: [HealthController, IdentityController, UsersController],
     providers: [
       { provide: LIST_USERS, useValue: dependencies.listUsers },

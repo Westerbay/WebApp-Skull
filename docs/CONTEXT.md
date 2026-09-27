@@ -9,7 +9,7 @@ The application supports signup, email verification, explicit signin, password
 reset and signout. Password visibility and a local strength meter are available.
 Better Auth owns `/api/auth/*`; NestJS protects `/api/me` and `/api/users`.
 PostgreSQL stores auth data and Better Auth rate limits. Nest controllers have
-separate in-memory quotas; health probes are exempt.
+in-memory quotas by default, or shared quotas through optional Valkey; health probes are exempt.
 
 The active catalogs in `packages/i18n/messages` provide interface and email
 translations. `packages/i18n/project.inlang/settings.json` defines the supported
@@ -51,10 +51,17 @@ those deployments remain undefined.
 ## Current limitations
 
 Email tracking is process-local, without a durable queue or delivery guarantee
-after a crash. CI does not exercise real staging SMTP. Nest rate limits are not
+after a crash. CI does not exercise real staging SMTP. Without Valkey, Nest rate limits are not
 shared between replicas. Localization covers interface/email messages and page
 pathnames; no translated-content domain is included.
 
 The standalone Docker collector integration uses explicit environment/opt-in
 labels and a configurable Loki endpoint, optional token file and tenant. Its
 flow is verified with owned local containers; staging/production are not deployed.
+
+## Optional integrations
+
+Observability and Valkey are opt-in integrations with separate Compose files.
+Valkey shares Nest quotas through atomic rolling-window operations; no application
+data or auth sessions are cached. Enabled Valkey is required at startup and for
+readiness; quota checks return 503 on failure without an in-memory fallback.

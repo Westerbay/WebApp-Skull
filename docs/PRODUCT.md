@@ -39,3 +39,9 @@ After a reset check rejects a password or fails, request a new reset link.
 
 No additional business domain, roles, OAuth, MFA, file storage, durable jobs or
 mandatory external email provider is defined.
+
+## Optional shared quotas
+
+Valkey can share the existing Nest quotas across API instances. Without it,
+quotas remain process-local. A failed shared quota check returns 503. Better
+Auth limits remain in PostgreSQL; health probes remain exempt.
