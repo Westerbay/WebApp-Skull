@@ -2,6 +2,9 @@
 
 ## Shared contracts and identity
 
+`apps/web/src/features/auth/auth-error.ts` translates provider errors, including
+compromised passwords and reset-specific recovery instructions.
+
 - `packages/config/src/project.json`: product name and description; technical
   settings stay with their owner.
 - `packages/contracts/src/common.ts`: HTTP error envelope.

@@ -29,7 +29,7 @@ export function useResetPasswordForm(token: string) {
         newPassword: value.password,
       })
       if (result.error) {
-        setServerError(authErrorMessage(result.error))
+        setServerError(authErrorMessage(result.error, "reset-password"))
         return
       }
       await clearPrivateCache(router.options.context.queryClient)

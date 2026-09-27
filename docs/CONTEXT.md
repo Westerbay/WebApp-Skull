@@ -2,6 +2,9 @@
 
 ## Current state
 
+Have I Been Pwned rejects compromised new passwords in staging/production.
+Development/test remain offline; provider errors block password writes.
+
 The application supports signup, email verification, explicit signin, password
 reset and signout. Password visibility and a local strength meter are available.
 Better Auth owns `/api/auth/*`; NestJS protects `/api/me` and `/api/users`.

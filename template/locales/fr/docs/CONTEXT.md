@@ -1,5 +1,11 @@
 # Contexte
 
+## Mots de passe compromis
+
+Have I Been Pwned refuse les nouveaux mots de passe compromis en staging et
+production. Development/test restent hors ligne ; une erreur du service bloque
+l’enregistrement.
+
 ## État actuel
 
 L’application propose inscription, vérification d’adresse, connexion explicite,

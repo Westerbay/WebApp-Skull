@@ -3,6 +3,7 @@ import { authPasswordConstraints } from "@workspace/contracts/auth/constraints"
 import projectConfig from "@workspace/config/project" with { type: "json" }
 import { betterAuth } from "better-auth"
 import { drizzleAdapter } from "better-auth/adapters/drizzle"
+import { haveIBeenPwned } from "better-auth/plugins"
 import { getAuthEmailLocale } from "./email-locale.js"
 
 import { createRateLimitStore } from "./rate-limit-store.js"
@@ -23,6 +24,11 @@ export function createAuth(
     baseURL: env.BETTER_AUTH_URL,
     secret: env.BETTER_AUTH_SECRET,
     trustedOrigins: [env.WEB_URL],
+    plugins: [
+      haveIBeenPwned({
+        enabled: ["staging", "production"].includes(env.APP_ENV),
+      }),
+    ],
     database: drizzleAdapter(db, {
       provider: "pg",
       schema,

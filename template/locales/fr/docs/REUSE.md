@@ -1,5 +1,10 @@
 # Réutilisation
 
+## Mots de passe compromis
+
+`apps/web/src/features/auth/auth-error.ts` traduit les erreurs Better Auth,
+dont les mots de passe compromis et les instructions de récupération du reset.
+
 ## Configuration et contrats transverses
 
 - `packages/config/src/project.json` : identité publique du produit (nom et

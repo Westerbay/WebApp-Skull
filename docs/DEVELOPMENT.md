@@ -102,6 +102,13 @@ size in users config. Keep the latter within contract bounds.
 
 ## Email
 
+Have I Been Pwned checks are enabled for `APP_ENV=staging` and `production`,
+without an API key or migration. Allow outbound HTTPS to
+`api.pwnedpasswords.com`. Development/test skip calls. Unit tests exercise the
+real auth factory with an in-memory adapter and mocked HIBP responses.
+The stock plugin has no configured request timeout; provider latency can delay
+password submission. Offline tests do not verify production connectivity.
+
 Mailpit defaults to SMTP 1025 and UI `http://localhost:8025`; adjust the Mailpit
 ports and API SMTP_PORT together. Compose has no external relay. APP_ENV is
 separate from NODE_ENV: development/staging default to capture, tests to memory.

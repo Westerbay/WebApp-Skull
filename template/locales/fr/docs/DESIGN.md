@@ -1,5 +1,11 @@
 # Design
 
+## Mots de passe compromis
+
+Les erreurs de mot de passe compromis demandent de choisir un autre mot de
+passe. Au reset, un refus ou une erreur serveur indique également de demander
+un nouveau lien de réinitialisation.
+
 L'interface utilise les tokens Tailwind définis dans
 `packages/ui/src/styles/globals.css` et les primitives de `packages/ui`.
 

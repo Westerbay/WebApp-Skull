@@ -13,6 +13,10 @@ meter that does not change acceptance rules.
 
 ## Rules
 
+New passwords are checked against Have I Been Pwned in staging/production.
+Compromised passwords are refused; existing signin passwords are not checked.
+After a reset check rejects a password or fails, request a new reset link.
+
 - Verification is required before signin and access to private routes.
 - Signup and verification do not automatically sign in.
 - Passwords contain 8–128 characters and are not transformed.
