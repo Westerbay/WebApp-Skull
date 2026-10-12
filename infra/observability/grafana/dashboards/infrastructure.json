@@ -779,6 +779,361 @@
       }
     },
     {
+      "id": 23,
+      "title": "PostgreSQL query statistics",
+      "type": "row",
+      "collapsed": false,
+      "panels": [],
+      "gridPos": {
+        "x": 0,
+        "y": 31,
+        "w": 24,
+        "h": 1
+      }
+    },
+    {
+      "title": "SQL statistics collection",
+      "type": "timeseries",
+      "description": "Separate PostgreSQL exporter health. Failure does not change API readiness.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "up{job=\"skull-postgres-statements\",environment=~\"$environment\",service_name=~\"$service\"}",
+          "legendFormat": "{{instance}} enabled",
+          "queryType": "range"
+        },
+        {
+          "refId": "B",
+          "expr": "skull_postgres_statements_up{environment=~\"$environment\",service_name=~\"$service\"}",
+          "legendFormat": "{{instance}} up",
+          "queryType": "range"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "No data",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "fillOpacity": 8,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": ["lastNotNull", "max"]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "id": 17,
+      "gridPos": {
+        "x": 0,
+        "y": 32,
+        "w": 8,
+        "h": 8
+      }
+    },
+    {
+      "title": "SQL executions",
+      "type": "timeseries",
+      "description": "Current database and application role, including monitoring SQL. Replicas observing the same database/role are deduplicated with max. Source resets and entry eviction can distort rates; these are diagnostic trends, not billing or SLO counters.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "max by (environment, service_name) (rate(skull_postgres_statements_calls_total{environment=~\"$environment\",service_name=~\"$service\"}[$__rate_interval]) and on (service_name, environment, instance) (skull_postgres_statements_up{environment=~\"$environment\",service_name=~\"$service\"} == 1))",
+          "legendFormat": "SQL executions/s",
+          "queryType": "range"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops",
+          "noValue": "No data",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "fillOpacity": 8,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": ["lastNotNull", "max"]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "id": 18,
+      "gridPos": {
+        "x": 8,
+        "y": 32,
+        "w": 8,
+        "h": 8
+      }
+    },
+    {
+      "title": "Mean SQL execution time",
+      "type": "timeseries",
+      "description": "Current database and application role, including monitoring SQL. Replicas observing the same database/role are deduplicated with max. Source resets and entry eviction can distort rates; these are diagnostic trends, not billing or SLO counters. Weighted mean over the selected rate window, not a percentile or API response time.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "max by (environment, service_name) (rate(skull_postgres_statements_execution_seconds_total{environment=~\"$environment\",service_name=~\"$service\"}[$__rate_interval]) and on (service_name, environment, instance) (skull_postgres_statements_up{environment=~\"$environment\",service_name=~\"$service\"} == 1)) / (max by (environment, service_name) (rate(skull_postgres_statements_calls_total{environment=~\"$environment\",service_name=~\"$service\"}[$__rate_interval]) and on (service_name, environment, instance) (skull_postgres_statements_up{environment=~\"$environment\",service_name=~\"$service\"} == 1)) > 0)",
+          "legendFormat": "Mean SQL execution",
+          "queryType": "range"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "noValue": "No data",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "fillOpacity": 8,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": ["lastNotNull", "max"]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "id": 19,
+      "gridPos": {
+        "x": 16,
+        "y": 32,
+        "w": 8,
+        "h": 8
+      }
+    },
+    {
+      "title": "Shared-buffer hit ratio",
+      "type": "timeseries",
+      "description": "Current database and application role, including monitoring SQL. Replicas observing the same database/role are deduplicated with max. Source resets and entry eviction can distort rates; these are diagnostic trends, not billing or SLO counters. PostgreSQL shared-buffer hits; reads may still be served by the operating-system cache.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "max by (environment, service_name) (rate(skull_postgres_statements_shared_blocks_hit_total{environment=~\"$environment\",service_name=~\"$service\"}[$__rate_interval]) and on (service_name, environment, instance) (skull_postgres_statements_up{environment=~\"$environment\",service_name=~\"$service\"} == 1)) / ((max by (environment, service_name) (rate(skull_postgres_statements_shared_blocks_hit_total{environment=~\"$environment\",service_name=~\"$service\"}[$__rate_interval]) and on (service_name, environment, instance) (skull_postgres_statements_up{environment=~\"$environment\",service_name=~\"$service\"} == 1)) + max by (environment, service_name) (rate(skull_postgres_statements_shared_blocks_read_total{environment=~\"$environment\",service_name=~\"$service\"}[$__rate_interval]) and on (service_name, environment, instance) (skull_postgres_statements_up{environment=~\"$environment\",service_name=~\"$service\"} == 1))) > 0)",
+          "legendFormat": "Shared-buffer hit ratio",
+          "queryType": "range"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "noValue": "No data",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "fillOpacity": 8,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": ["lastNotNull", "max"]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "id": 20,
+      "gridPos": {
+        "x": 0,
+        "y": 40,
+        "w": 8,
+        "h": 8
+      }
+    },
+    {
+      "title": "Temporary blocks written",
+      "type": "timeseries",
+      "description": "Current database and application role, including monitoring SQL. Replicas observing the same database/role are deduplicated with max. Source resets and entry eviction can distort rates; these are diagnostic trends, not billing or SLO counters. Rising values can indicate sorting/hashing spills; block counts are not bytes.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "max by (environment, service_name) (rate(skull_postgres_statements_temp_blocks_written_total{environment=~\"$environment\",service_name=~\"$service\"}[$__rate_interval]) and on (service_name, environment, instance) (skull_postgres_statements_up{environment=~\"$environment\",service_name=~\"$service\"} == 1))",
+          "legendFormat": "Temporary blocks/s",
+          "queryType": "range"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops",
+          "noValue": "No data",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "fillOpacity": 8,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": ["lastNotNull", "max"]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "id": 21,
+      "gridPos": {
+        "x": 8,
+        "y": 40,
+        "w": 8,
+        "h": 8
+      }
+    },
+    {
+      "title": "Tracked query families",
+      "type": "timeseries",
+      "description": "Current database and application role, including monitoring SQL. Replicas observing the same database/role are deduplicated with max. Source resets and entry eviction can distort rates; these are diagnostic trends, not billing or SLO counters. Fixed aggregate only; no SQL text or query identifiers are exported.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "max by (environment, service_name) (skull_postgres_statements_tracked{environment=~\"$environment\",service_name=~\"$service\"} and on (service_name, environment, instance) (skull_postgres_statements_up{environment=~\"$environment\",service_name=~\"$service\"} == 1))",
+          "legendFormat": "Retained query families",
+          "queryType": "range"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "No data",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "fillOpacity": 8,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": ["lastNotNull", "max"]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "id": 22,
+      "gridPos": {
+        "x": 16,
+        "y": 40,
+        "w": 8,
+        "h": 8
+      }
+    },
+    {
       "title": "Valkey memory",
       "type": "timeseries",
       "description": "No data when disabled/unavailable. A zero maximum means unlimited and is omitted.",
@@ -835,7 +1190,7 @@
       "id": 12,
       "gridPos": {
         "x": 0,
-        "y": 31,
+        "y": 48,
         "w": 8,
         "h": 8
       }
@@ -891,7 +1246,7 @@
       "id": 13,
       "gridPos": {
         "x": 8,
-        "y": 31,
+        "y": 48,
         "w": 8,
         "h": 8
       }
@@ -953,7 +1308,7 @@
       "id": 14,
       "gridPos": {
         "x": 16,
-        "y": 31,
+        "y": 48,
         "w": 8,
         "h": 8
       }
@@ -994,7 +1349,7 @@
       "id": 15,
       "gridPos": {
         "x": 0,
-        "y": 39,
+        "y": 56,
         "w": 12,
         "h": 7
       },
@@ -1061,7 +1416,7 @@
       "id": 16,
       "gridPos": {
         "x": 12,
-        "y": 39,
+        "y": 56,
         "w": 12,
         "h": 7
       },

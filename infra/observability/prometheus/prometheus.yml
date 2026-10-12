@@ -58,6 +58,19 @@ scrape_configs:
         regex: "pg_up|pg_exporter_last_scrape_.*|skull_postgres_.*|redis_up|redis_memory_used_bytes|redis_memory_max_bytes|redis_connected_clients|redis_evicted_keys_total|redis_rejected_connections_total|redis_exporter_last_scrape_duration_seconds"
       - action: labeldrop
         regex: server
+  - job_name: skull-postgres-statements
+    metrics_path: /api/v0/component/prometheus.exporter.postgres.statements/metrics
+    static_configs:
+      - targets: [alloy:12345]
+        labels:
+          service_name: skull-api
+          environment: development
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        action: keep
+        regex: "pg_up|pg_exporter_last_scrape_.*|skull_postgres_.*|redis_up|redis_memory_used_bytes|redis_memory_max_bytes|redis_connected_clients|redis_evicted_keys_total|redis_rejected_connections_total|redis_exporter_last_scrape_duration_seconds"
+      - action: labeldrop
+        regex: server
   - job_name: skull-valkey
     metrics_path: /api/v0/component/prometheus.exporter.redis.valkey/metrics
     static_configs:

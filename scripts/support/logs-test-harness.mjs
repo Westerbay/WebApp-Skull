@@ -73,6 +73,9 @@ export async function createLogsTestHarness() {
         `
     postgres:
       image: postgres:17.6-alpine
+      command: ["postgres", "-c", "shared_preload_libraries=pg_stat_statements", "-c", "compute_query_id=auto"]
+      volumes:
+        - ${root}infra/postgres/query-statistics.sql:/docker-entrypoint-initdb.d/query-statistics.sql:ro
       environment:
         POSTGRES_DB: skull_auth_test
         POSTGRES_USER: skull_auth_test

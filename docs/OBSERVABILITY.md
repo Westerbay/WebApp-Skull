@@ -48,12 +48,12 @@ real. It never seeds an application database.
 
 ## What the dashboards measure
 
-| Dashboard           | Purpose                                                                                                                                                                                                          |
-| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| API overview        | Scrape health, readiness probe, application traffic, 5xx ratio, successful p50/p95/p99, failed-request latency, in-flight work and deployed versions.                                                            |
-| API routes and logs | HTTP outcomes, 401/403/429 trends, busiest/failing/slowest normalized routes, structured errors and request-ID correlation.                                                                                      |
-| API infrastructure  | Node.js CPU, RSS/heap, event-loop delay, garbage collection, process uptime, observed restarts, dependency observations, PostgreSQL connections, Valkey resources, monitoring-service scrapes and firing alerts. |
-| API auth and email  | Better Auth HTTP outcomes and quota blocks, email transport outcomes/duration and sanitized provider/failure events.                                                                                             |
+| Dashboard           | Purpose                                                                                                                                                                                                                           |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| API overview        | Scrape health, readiness probe, application traffic, 5xx ratio, successful p50/p95/p99, failed-request latency, in-flight work and deployed versions.                                                                             |
+| API routes and logs | HTTP outcomes, 401/403/429 trends, busiest/failing/slowest normalized routes, structured errors and request-ID correlation.                                                                                                       |
+| API infrastructure  | Node.js CPU, RSS/heap, event-loop delay, garbage collection, process uptime, observed restarts, dependency observations, PostgreSQL connections and SQL workload, Valkey resources, monitoring-service scrapes and firing alerts. |
+| API auth and email  | Better Auth HTTP outcomes and quota blocks, email transport outcomes/duration and sanitized provider/failure events.                                                                                                              |
 
 Health endpoints are excluded from application traffic/error/latency graphs and
 alerts. Successful, client-error and server-error durations are separate.
@@ -85,6 +85,12 @@ API-instance filters apply only to API process signals, not shared infrastructur
 Valkey's dependency alert is gated by the API's enabled flag. Exporter scrape
 failures are surfaced separately from API readiness; missing data is not success.
 
+A separate PostgreSQL exporter collects `pg_stat_statements` aggregates by default.
+Its failures do not hide basic PostgreSQL observations. Development Compose sets
+up fresh databases automatically; deployed databases require administrator setup.
+See [POSTGRESQL-PERFORMANCE.md](POSTGRESQL-PERFORMANCE.md) for activation, scope,
+reset/eviction semantics and temporary `auto_explain` use.
+
 Node.js metrics concern the API process, not the whole host. Restart detection
 needs a stable instance identity and samples on both sides of the restart; container
 replacement counters, host disk/network metrics, database query traces and end-user
@@ -101,7 +107,7 @@ The API owns validation in
 - `APP_VERSION` is a bounded release identifier, such as a Git SHA; default `unknown`.
 
 Infrastructure collection is configured in `infra/observability/config.alloy`,
-with aggregate SQL in `postgres.yml`. Local Compose
+with aggregate SQL in `postgres.yml` and `postgres-statements.yml`. Local Compose
 accepts `OBS_POSTGRES_DSN` and `OBS_VALKEY_URL`; its defaults match `.env.example`
 and target host services through `host.docker.internal`. Export these variables
 in the shell when using different targets. `logs:up` does not load a real `.env`.
@@ -112,7 +118,7 @@ Production should configure one collector per database/role and Valkey instance,
 with credentials supplied by the platform's secret mechanism. Preserve read-only
 SQL and timeout options, and use verified TLS for remote PostgreSQL targets.
 The local DSN disables TLS only for the development container. Do not give the API additional monitoring privileges.
-Remove the Valkey
+Remove the statements scrape job to opt out of SQL statistics; remove the Valkey
 scrape job when Valkey is unused. Alloy already includes both exporters, so no
 additional container images or application packages are required. Exporter endpoints
 and Alloy's diagnostic UI must remain private. The supplied Compose is local only.
@@ -157,6 +163,14 @@ Prometheus evaluates the rules and the infrastructure dashboard shows firing
 conditions. No notification destination is configured. Production must route
 alerts through its Alertmanager/Grafana setup, test delivery, replace the local
 `dashboard_url` annotations and link these runbooks from its documentation.
+
+### PostgresQueryStatisticsUnavailable
+
+SQL statistics collection has failed for two minutes while enabled. Check `pg_stat_statements` installation in `public`, server preload,
+the collector role's read permissions and query timeout. PostgreSQL readiness
+is independent of this warning. Follow
+[POSTGRESQL-PERFORMANCE.md](POSTGRESQL-PERFORMANCE.md) for setup; do not reset
+statistics or grant broad monitoring privileges to clear the alert.
 
 ### ApiUnavailable
 

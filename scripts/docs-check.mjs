@@ -12,6 +12,7 @@ const documents = [
   "docs/DESIGN.md",
   "docs/REUSE.md",
   "docs/DEVELOPMENT.md",
+  "docs/POSTGRESQL-PERFORMANCE.md",
 ]
 
 const failures = []

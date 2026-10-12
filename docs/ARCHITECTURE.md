@@ -88,6 +88,12 @@ Alloy embeds upstream PostgreSQL and Redis/Valkey exporters. Dependency collecti
 is read-only and independent of API processes; its failures do not affect requests. Service, environment and instance identity are indexed;
 request and user identifiers never become metric/index labels.
 
+SQL workload collection defaults to enabled in the observability stack. A separate
+PostgreSQL exporter executes bounded aggregate queries using `pg_stat_statements(false)`,
+scoped to its configured database and role. SQL text and query identifiers stay out
+of telemetry. The platform installs/preloads the extension; application migrations
+do not. Infrastructure collection needs no application observer or provider port.
+
 A separate Docker collector forwards opted-in staging or production API containers
 to externally managed Loki. The platform owns deployed storage, access, probes
 and notification routing. See [OBSERVABILITY.md](OBSERVABILITY.md) for operations.

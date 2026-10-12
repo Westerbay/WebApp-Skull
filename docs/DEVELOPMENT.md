@@ -104,6 +104,9 @@ pnpm logs:down
 See [OBSERVABILITY.md](OBSERVABILITY.md) for a self-contained preview, metrics
 network access, dashboard scope, production integration and alert runbooks.
 Alloy embeds PostgreSQL and Valkey exporters independently of the API.
+PostgreSQL SQL statistics are enabled by default in the observability stack. Setup and
+diagnostic procedures are documented in
+[POSTGRESQL-PERFORMANCE.md](POSTGRESQL-PERFORMANCE.md).
 
 ## Optional shared quotas
 

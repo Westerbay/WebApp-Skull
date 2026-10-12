@@ -5,6 +5,8 @@ groups:
         expr: label_replace(pg_up{job="skull-postgres"} * (1 - pg_exporter_last_scrape_error{job="skull-postgres"}), "dependency", "postgres", "job", ".*") or label_replace(redis_up{job="skull-valkey"} and on(service_name, environment) (max by(service_name, environment) (skull_dependency_enabled{dependency="valkey"}) == 1), "dependency", "valkey", "job", ".*")
       - record: skull_dependency_observation_duration_seconds
         expr: label_replace(pg_exporter_last_scrape_duration_seconds{job="skull-postgres"}, "dependency", "postgres", "job", ".*") or label_replace(redis_exporter_last_scrape_duration_seconds{job="skull-valkey"}, "dependency", "valkey", "job", ".*")
+      - record: skull_postgres_statements_up
+        expr: up{job="skull-postgres-statements"} * pg_up{job="skull-postgres-statements"} * (1 - pg_exporter_last_scrape_error{job="skull-postgres-statements"})
       - record: skull:http_requests:rate5m
         expr: sum by (service_name, environment) (rate(skull_http_requests_total{route!~"/health/.*"}[5m]))
       - record: skull:http_server_errors:rate5m
@@ -71,6 +73,16 @@ groups:
           description: Check replica/pool counts and long-running work before increasing capacity.
           dashboard_url: http://localhost:3002/d/skull-api-infrastructure
           runbook: docs/OBSERVABILITY.md#postgresconnectionpressure
+      - alert: PostgresQueryStatisticsUnavailable
+        expr: skull_postgres_statements_up == 0 or up{job="skull-postgres-statements"} == 0
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: Optional PostgreSQL query statistics cannot be collected
+          description: Check extension installation, preload, read permissions and observation timeout. API readiness is independent of these statistics.
+          dashboard_url: http://localhost:3002/d/skull-api-infrastructure
+          runbook: docs/OBSERVABILITY.md#postgresquerystatisticsunavailable
       - alert: ValkeyMemoryPressure
         expr: (redis_memory_used_bytes / redis_memory_max_bytes > 0.8) and (redis_memory_max_bytes > 0)
         for: 10m
