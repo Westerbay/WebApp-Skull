@@ -223,6 +223,49 @@ try {
       (await promQuery("rate(skull_http_requests_total[5m])")).length > 0
     )
   })
+  const exporter = harness.getServiceUrl("alloy", 12345)
+  const readStatistics = async () => {
+    const response = await fetch(
+      exporter +
+        "/api/v0/component/prometheus.exporter.postgres.statements/metrics"
+    )
+    assert.equal(response.status, 200)
+    const body = await response.text()
+    assert.match(body, /pg_exporter_last_scrape_error(?:\{[^\n]*\})? 0/)
+    assert.ok(!body.includes("private-sql-literal"))
+    assert.ok(!/queryid=|query=|userid=/.test(body))
+    return Number(
+      body.match(
+        /^skull_postgres_statements_rows_total(?:\{[^\n]*\})? (\S+)/m
+      )?.[1]
+    )
+  }
+  const ownRows = await readStatistics()
+  assert.ok(Number.isFinite(ownRows))
+  harness.executePostgres(
+    "CREATE ROLE skull_stats_other; SET ROLE skull_stats_other; SELECT * FROM generate_series(1, 10000); RESET ROLE"
+  )
+  assert.ok(
+    (await readStatistics()) - ownRows < 10000,
+    "Exporter must exclude statements executed by another role"
+  )
+  await waitFor(async () => {
+    assert.equal(
+      (await promQuery("skull_postgres_statements_up"))[0]?.value[1],
+      "1"
+    )
+    assert.ok((await promQuery("skull_postgres_connections_value")).length > 0)
+    assert.ok((await promQuery("redis_memory_used_bytes")).length > 0)
+    const infrastructure = await promQuery(
+      '{job=~"skull-postgres.*|skull-valkey"}'
+    )
+    assert.ok(!JSON.stringify(infrastructure).includes("private-"))
+    assert.ok(
+      infrastructure.every(
+        ({ metric }) => !metric.queryid && !metric.query && !metric.server
+      )
+    )
+  })
   await waitFor(async () => {
     assert.ok(
       (
@@ -321,6 +364,36 @@ try {
     }
   }
   assert.ok(checked >= 40)
+  harness.executePostgres("DROP EXTENSION pg_stat_statements")
+  await waitFor(async () => {
+    assert.equal(
+      (await promQuery("skull_postgres_statements_up"))[0]?.value[1],
+      "0"
+    )
+    assert.equal(
+      (
+        await promQuery(
+          "skull_postgres_statements_calls_total and on(service_name, environment, instance) (skull_postgres_statements_up == 1)"
+        )
+      ).length,
+      0
+    )
+    assert.equal(
+      (await promQuery('skull_dependency_up{dependency="postgres"}'))[0]
+        ?.value[1],
+      "1"
+    )
+  })
+  assert.equal((await fetch(api + "/health/ready")).status, 200)
+  harness.executePostgres(
+    "CREATE EXTENSION pg_stat_statements WITH SCHEMA public"
+  )
+  await waitFor(async () => {
+    assert.equal(
+      (await promQuery("skull_postgres_statements_up"))[0]?.value[1],
+      "1"
+    )
+  })
   harness.setValkeyAvailable(false)
   assert.equal((await fetch(api + "/health/ready")).status, 503)
   assert.equal((await fetch(api + "/health/live")).status, 200)

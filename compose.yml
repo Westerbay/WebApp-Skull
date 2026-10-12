@@ -4,6 +4,12 @@ services:
   postgres:
     image: postgres:17.6-alpine
     restart: unless-stopped
+    command:
+      - postgres
+      - -c
+      - shared_preload_libraries=pg_stat_statements
+      - -c
+      - compute_query_id=auto
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
@@ -17,6 +23,7 @@ services:
       retries: 20
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./infra/postgres/query-statistics.sql:/docker-entrypoint-initdb.d/query-statistics.sql:ro
 
   mailpit:
     image: axllent/mailpit:v1.29.2

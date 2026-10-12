@@ -1,0 +1,40 @@
+# Do not enable the per-query collector: SQL text and query IDs stay private.
+skull_postgres_statements:
+  query: |
+    SELECT count(*)::double precision AS tracked,
+      coalesce(sum(calls), 0)::double precision AS calls_total,
+      coalesce(sum(total_exec_time), 0)::double precision / 1000 AS execution_seconds_total,
+      coalesce(sum(rows), 0)::double precision AS rows_total,
+      coalesce(sum(shared_blks_hit), 0)::double precision AS shared_blocks_hit_total,
+      coalesce(sum(shared_blks_read), 0)::double precision AS shared_blocks_read_total,
+      coalesce(sum(temp_blks_written), 0)::double precision AS temp_blocks_written_total,
+      (SELECT extract(epoch FROM stats_reset)::double precision
+       FROM public.pg_stat_statements_info) AS reset_timestamp_seconds
+    FROM public.pg_stat_statements(false)
+    WHERE dbid = (SELECT oid FROM pg_database WHERE datname = current_database())
+      AND userid = current_user::regrole::oid AND toplevel
+  metrics:
+    - tracked:
+        usage: GAUGE
+        description: Retained top-level query families in the configured database and role.
+    - calls_total:
+        usage: COUNTER
+        description: Successful SQL executions; source totals may reset or lose evicted entries.
+    - execution_seconds_total:
+        usage: COUNTER
+        description: SQL execution seconds, excluding network and pool wait.
+    - rows_total:
+        usage: COUNTER
+        description: Rows retrieved or affected.
+    - shared_blocks_hit_total:
+        usage: COUNTER
+        description: PostgreSQL shared-buffer hits.
+    - shared_blocks_read_total:
+        usage: COUNTER
+        description: Shared blocks read; operating-system caching may avoid disk reads.
+    - temp_blocks_written_total:
+        usage: COUNTER
+        description: Temporary blocks written, not bytes.
+    - reset_timestamp_seconds:
+        usage: GAUGE
+        description: Last global statistics reset as Unix seconds.

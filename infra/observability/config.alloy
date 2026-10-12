@@ -41,11 +41,19 @@ loki.write "local" {
 }
 
 // Embedded upstream exporters own connection management and collection.
+// Separate PostgreSQL exporters keep optional statistics failures independent.
 prometheus.exporter.postgres "database" {
   data_source_names = [sys.env("OBS_POSTGRES_DSN")]
   disable_default_metrics = true
   disable_settings_metrics = true
   custom_queries_config_path = "/etc/alloy/postgres.yml"
+}
+
+prometheus.exporter.postgres "statements" {
+  data_source_names = [sys.env("OBS_POSTGRES_DSN")]
+  disable_default_metrics = true
+  disable_settings_metrics = true
+  custom_queries_config_path = "/etc/alloy/postgres-statements.yml"
 }
 
 prometheus.exporter.redis "valkey" {

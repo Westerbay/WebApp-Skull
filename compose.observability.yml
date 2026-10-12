@@ -56,6 +56,7 @@ services:
     volumes:
       - ./infra/observability/config.alloy:/etc/alloy/config.alloy:ro
       - ./infra/observability/postgres.yml:/etc/alloy/postgres.yml:ro
+      - ./infra/observability/postgres-statements.yml:/etc/alloy/postgres-statements.yml:ro
       - ./output/logs:/var/log/skull:ro
       - alloy_data:/var/lib/alloy
     depends_on:

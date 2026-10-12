@@ -1,14 +1,16 @@
 # WebApp Skull
 
 A reusable TypeScript web application with email/password authentication,
-cursor pagination and guarded local development tools.
+cursor pagination, guarded local development tools and a provisioned observability
+stack for logs, metrics, dashboards and alerts.
 
 ## Stack
 
 Node.js 24, pnpm 12, Turborepo, NestJS 11/Express, TanStack Start/Router/Query/Form,
 Tailwind/shadcn, Better Auth, Zod, OpenAPI/openapi-typescript/openapi-fetch,
 Drizzle/PostgreSQL 17, Vitest, React Email/Nodemailer, Mailpit, Paraglide,
-Sonner, Playwright, Docker Compose, Pino, GitHub Actions and Gitleaks.
+Sonner, Playwright, Docker Compose, Pino, Grafana, Prometheus, Loki, Alloy,
+Blackbox Exporter, GitHub Actions and Gitleaks.
 
 ## Start
 
@@ -24,6 +26,43 @@ pnpm dev
 Web: `http://localhost:3000`; API: `http://localhost:3001`; Swagger: `/docs` on the
 API; health: `/health/live`; Mailpit: `http://localhost:8025`; PostgreSQL: port 5433.
 Setup starts infrastructure and applies guarded migrations without seeding.
+
+## Observability
+
+The template includes four Grafana dashboards backed by Prometheus metrics and
+structured API logs in Loki. Dashboard provisioning, collectors and starter
+alert rules live in `infra/observability` and are versioned with the application.
+
+| Dashboard           | What it shows                                                                                       |
+| ------------------- | --------------------------------------------------------------------------------------------------- |
+| API overview        | Traffic, errors, latency percentiles, readiness and deployed versions.                              |
+| API routes and logs | Route outcomes, slow/failing routes, structured errors and request-ID correlation.                  |
+| API infrastructure  | Node.js resources, PostgreSQL connections and SQL workload, Valkey resources and monitoring health. |
+| API auth and email  | Authentication HTTP outcomes, quota blocks and email transport outcomes/duration.                   |
+
+After the normal project setup, start the local observability stack and application:
+
+```bash
+pnpm logs:up
+pnpm dev:logs
+```
+
+Open [Grafana](http://localhost:3002/d/skull-api-overview). PostgreSQL SQL statistics
+are enabled by default in the observability stack; standard development Compose
+preloads `pg_stat_statements` and installs it in fresh databases. Existing volumes
+need the explicit installation described in the
+[PostgreSQL performance guide](docs/POSTGRESQL-PERFORMANCE.md).
+
+Try the dashboards without project setup using `pnpm logs:preview`. It creates
+isolated services and sample traffic, then removes its owned resources on Ctrl+C.
+`pnpm logs:check` validates alert rules; `pnpm logs:test` exercises metrics, logs,
+probes and dashboard queries against isolated services without a local `.env`.
+
+The local stack is optional. Deployed environments need platform-managed access,
+storage, extension setup and alert notification routing. See the
+[observability guide](docs/OBSERVABILITY.md) for metric definitions, privacy,
+production integration and runbooks, and the
+[development guide](docs/DEVELOPMENT.md) for commands.
 
 ## Languages
 
@@ -75,6 +114,7 @@ packages/database    Drizzle schemas, migrations and client
 packages/email       server email templates and transport
 packages/i18n        selected catalogs and generated Paraglide runtime
 packages/ui          shared primitives and styles
+infra                PostgreSQL initialization and observability configuration
 docs                 current project documentation
 ```
 
@@ -87,10 +127,3 @@ Both clients use session cookies. Read [docs/CONTEXT.md](docs/CONTEXT.md) and
 WebApp-Skull uses the [MIT license](LICENSE). When reusing this project, please
 mention it and link to [its repository](https://github.com/Westerbay/WebApp-Skull).
 Attribution is optional and is not an extra license condition.
-
-## Local observability
-
-Start the optional Alloy/Loki/Grafana stack with `pnpm logs:up`, then feed API
-JSON logs with `pnpm dev:logs`. Open [Grafana](http://localhost:3002).
-`pnpm logs:test` verifies the complete flow in isolated containers without a
-database or an environment file. See [DEVELOPMENT.md](docs/DEVELOPMENT.md).

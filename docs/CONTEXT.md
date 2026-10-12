@@ -14,7 +14,8 @@ The template supports signup, email verification, signin, password reset and
 signout. The dashboard demonstrates cursor pagination and search. Development
 email is captured locally. Optional Valkey shares Nest rate limits across
 replicas; an optional Grafana stack provides logs, metrics, dashboards and
-readiness probes and starter alert rules. Alloy embeds dependency exporters,
+readiness probes and starter alert rules. PostgreSQL SQL workload statistics
+default to enabled in the observability stack. Alloy embeds dependency exporters,
 so infrastructure monitoring is independent of API processes. Neither Valkey nor the observability
 stack is required for the base application.
 
@@ -26,6 +27,8 @@ stack is required for the base application.
 - [REUSE.md](REUSE.md): reusable extension points.
 - [DEVELOPMENT.md](DEVELOPMENT.md): setup, commands and procedures.
 - [OBSERVABILITY.md](OBSERVABILITY.md): dashboards, metrics, alerts and runbooks.
+- [POSTGRESQL-PERFORMANCE.md](POSTGRESQL-PERFORMANCE.md): SQL statistics setup,
+  interpretation and targeted query diagnostics.
 
 ## Current limitations
 

@@ -90,3 +90,41 @@ tests:
               description: Missing metrics are unknown health, not zero errors. Check the private listener and scrape target.
               dashboard_url: http://localhost:3002/d/skull-api-infrastructure
               runbook: docs/OBSERVABILITY.md#apimetricsmissing
+  - name: SQL statistics query failures alert while basic database monitoring stays healthy
+    interval: 1m
+    input_series:
+      - series: 'up{job="skull-postgres-statements",service_name="skull-api",environment="test",instance="alloy:12345"}'
+        values: "1+0x4"
+      - series: 'pg_up{job="skull-postgres-statements",service_name="skull-api",environment="test",instance="alloy:12345"}'
+        values: "1+0x4"
+      - series: 'pg_exporter_last_scrape_error{job="skull-postgres-statements",service_name="skull-api",environment="test",instance="alloy:12345"}'
+        values: "1+0x4"
+    alert_rule_test:
+      - eval_time: 1m
+        alertname: PostgresQueryStatisticsUnavailable
+        exp_alerts: []
+      - eval_time: 3m
+        alertname: PostgresQueryStatisticsUnavailable
+        exp_alerts:
+          - exp_labels:
+              job: skull-postgres-statements
+              service_name: skull-api
+              environment: test
+              instance: alloy:12345
+              severity: warning
+            exp_annotations:
+              summary: Optional PostgreSQL query statistics cannot be collected
+              description: Check extension installation, preload, read permissions and observation timeout. API readiness is independent of these statistics.
+              dashboard_url: http://localhost:3002/d/skull-api-infrastructure
+              runbook: docs/OBSERVABILITY.md#postgresquerystatisticsunavailable
+  - name: configured exporter scrape failure is unknown rather than healthy
+    interval: 1m
+    input_series:
+      - series: 'up{job="skull-postgres-statements",service_name="skull-api",environment="test",instance="alloy:12345"}'
+        values: "0+0x4"
+    promql_expr_test:
+      - expr: ALERTS{alertname="PostgresQueryStatisticsUnavailable",alertstate="firing"}
+        eval_time: 3m
+        exp_samples:
+          - labels: 'ALERTS{alertname="PostgresQueryStatisticsUnavailable",alertstate="firing",job="skull-postgres-statements",service_name="skull-api",environment="test",instance="alloy:12345",severity="warning"}'
+            value: 1
