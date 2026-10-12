@@ -32,6 +32,7 @@ describe("tracked auth email dispatch", () => {
         event: "email.failed",
         kind: "verification",
         requestId: "request-test-1",
+        durationMs: expect.any(Number),
       },
     ])
   })

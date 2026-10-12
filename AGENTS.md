@@ -22,6 +22,18 @@ Do not add layers, repositories or ports without a concrete need. Validate
 external inputs at their boundary. Never read, modify or commit a real `.env`
 file. Never migrate, reset or seed a remote or unverified database.
 
+## Runtime validation
+
+When validating an unknown object, prefer a Zod schema over a chain of
+`typeof`, null and property-existence checks when it makes the contract easier
+to read. Search for an existing schema first; keep adapter-specific schemas
+with their owning module and genuinely shared contracts in `packages/contracts`.
+Use `safeParse` when invalid input has an expected fallback, and preserve the
+existing rejection, privacy and normalization rules. Do not coerce values
+unless conversion is part of the contract. Simple primitive checks may remain
+plain TypeScript when a schema adds no clarity. Avoid abstractions or design
+patterns without a concrete need.
+
 ## Completing a change
 
 Run proportionate checks and inspect the final diff. Update a document only

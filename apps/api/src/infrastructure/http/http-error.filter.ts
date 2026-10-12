@@ -1,9 +1,9 @@
 import { Catch, HttpException, HttpStatus, Logger } from "@nestjs/common"
 import { ZodSerializationException, ZodValidationException } from "nestjs-zod"
+import { z } from "zod"
 import { getRequestId } from "./request-context.js"
 import type { ArgumentsHost, ExceptionFilter } from "@nestjs/common"
 import type { Request, Response } from "express"
-import type { ZodIssue } from "zod"
 import type { ApiError } from "@workspace/contracts/common"
 
 type ErrorDetails = ReadonlyArray<Readonly<{ code: string; path: string }>>
@@ -43,13 +43,21 @@ const INTERNAL_ERROR_RESPONSE: ErrorResponse = {
   message: "Internal server error",
 }
 
+// Read only public issue metadata from the adapter's unknown error shape.
+const validationErrorSchema = z.object({
+  issues: z.array(
+    z.object({
+      code: z.string(),
+      path: z.array(z.union([z.string(), z.number()])),
+    })
+  ),
+})
+
 function getValidationDetails(exception: ZodValidationException): ErrorDetails {
-  const error = exception.getZodError()
+  const error = validationErrorSchema.safeParse(exception.getZodError())
+  if (!error.success) return []
 
-  if (!error || typeof error !== "object" || !("issues" in error)) return []
-  if (!Array.isArray(error.issues)) return []
-
-  return error.issues.map((issue: ZodIssue) => ({
+  return error.data.issues.map((issue) => ({
     code: issue.code,
     path: issue.path.join("."),
   }))

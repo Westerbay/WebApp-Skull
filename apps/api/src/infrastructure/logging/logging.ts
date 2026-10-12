@@ -1,5 +1,6 @@
 import { mkdirSync } from "node:fs"
 import { dirname } from "node:path"
+import { hostname } from "node:os"
 import pino from "pino"
 import type { DestinationStream, Logger, TransportSingleOptions } from "pino"
 import type { ApiEnv } from "../../config/env.js"
@@ -54,7 +55,15 @@ export function createApiLogger(
     {
       enabled: environment !== "test",
       level,
-      base: { service_name: "skull-api", environment },
+      formatters: {
+        level: (severity, numericLevel) => ({ level: numericLevel, severity }),
+      },
+      base: {
+        service_name: "skull-api",
+        environment,
+        instance_id: hostname(),
+        version: options.version ?? "unknown",
+      },
       redact: { paths: REDACTED_PATHS, censor: "[Redacted]" },
       transport,
     },

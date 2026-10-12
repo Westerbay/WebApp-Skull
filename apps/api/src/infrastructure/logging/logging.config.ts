@@ -12,6 +12,7 @@ export interface LoggingOptions {
     | "fatal"
     | "silent"
   readonly file?: string
+  readonly version?: string
 }
 
 const loggingSchema = z.object({

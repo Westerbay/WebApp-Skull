@@ -3,7 +3,11 @@ import { Body, Controller, Post } from "@nestjs/common"
 import { APP_FILTER, APP_PIPE } from "@nestjs/core"
 import { Test } from "@nestjs/testing"
 import express from "express"
-import { ZodValidationPipe, createZodDto } from "nestjs-zod"
+import {
+  ZodValidationException,
+  ZodValidationPipe,
+  createZodDto,
+} from "nestjs-zod"
 import request from "supertest"
 import { z } from "zod"
 import { afterEach, describe, expect, it, vi } from "vitest"
@@ -209,6 +213,53 @@ describe("API", () => {
       details: [{ code: "invalid_format", path: "email" }],
     })
     expect(JSON.stringify(response.body)).not.toContain("private invalid email")
+  })
+
+  it("omits unsupported validation details without breaking the error response", async () => {
+    validationHandler.mockImplementationOnce(() => {
+      throw new ZodValidationException({ issues: [null] })
+    })
+    const app = await createValidationTestApp()
+    await app.init()
+
+    const response = await request(app.getHttpServer())
+      .post("/test/validation")
+      .send({ email: "valid@example.test" })
+      .expect(400)
+
+    expect(response.body).toEqual({
+      code: "VALIDATION_ERROR",
+      message: "Request validation failed",
+      requestId: response.headers["x-request-id"],
+      details: [],
+    })
+  })
+
+  it("exposes only validation codes and nested paths from adapter errors", async () => {
+    validationHandler.mockImplementationOnce(() => {
+      throw new ZodValidationException({
+        issues: [
+          {
+            code: "invalid_type",
+            path: ["users", 0, "email"],
+            message: "private validation message",
+            input: "private input",
+          },
+        ],
+      })
+    })
+    const app = await createValidationTestApp()
+    await app.init()
+
+    const response = await request(app.getHttpServer())
+      .post("/test/validation")
+      .send({ email: "valid@example.test" })
+      .expect(400)
+
+    expect(response.body.details).toEqual([
+      { code: "invalid_type", path: "users.0.email" },
+    ])
+    expect(JSON.stringify(response.body)).not.toContain("private")
   })
 
   it("returns the authenticated identity from /api/me", async () => {

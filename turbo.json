@@ -20,7 +20,11 @@
     "EMAIL_ALLOWED_RECIPIENTS",
     "LOG_FORMAT",
     "LOG_LEVEL",
-    "LOG_FILE"
+    "LOG_FILE",
+    "METRICS_ENABLED",
+    "METRICS_HOST",
+    "METRICS_PORT",
+    "APP_VERSION"
   ],
   "tasks": {
     "build": {
