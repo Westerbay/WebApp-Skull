@@ -90,37 +90,19 @@ tokens and personal data. Liveness does not contact dependencies; readiness
 checks PostgreSQL and enabled Valkey. Configure proxy trust only for a verified
 proxy chain.
 
-For local Grafana/Loki/Alloy inspection, run:
+The optional observability stack provides four Grafana dashboards, Loki logs,
+Prometheus metrics, a readiness probe and starter alert rules:
 
 ```bash
 pnpm logs:up
 pnpm dev:logs
+pnpm logs:check
 pnpm logs:test
 pnpm logs:down
 ```
 
-`dev:logs` runs the application with a JSON mirror at
-`output/logs/api.jsonl`; Grafana is at `http://localhost:3002` by default.
-The mirror has no automatic rotation. `logs:test` uses owned temporary
-containers and verifies real HTTP ingestion. The local stack is for
-development and has no authenticated Grafana/Loki endpoint.
-
-`compose.logs-collector.yml` is a separate collector fragment for an external
-Loki backend. It requires `APP_ENV=staging|production` and the full `LOKI_URL`;
-`LOKI_TOKEN_FILE` and `LOKI_TENANT_ID` are optional. Opt-in API containers need
-`skull.logs=true` and `skull.logs.environment=APP_ENV` labels and JSON stdout.
-The platform must supply secure access, retention and backups. Validate the
-fragment and local collector behavior without contacting that backend:
-
-Docker socket access gives the collector broad host privileges, even with a
-read-only mount. Run it only on a trusted platform; environment labels filter
-logs but do not grant access control.
-
-```bash
-APP_ENV=staging LOKI_URL=https://logs.example.invalid/loki/api/v1/push \
-  docker compose --env-file /dev/null -f compose.logs-collector.yml config --quiet
-pnpm logs:test:docker
-```
+See [OBSERVABILITY.md](OBSERVABILITY.md) for a self-contained preview, metrics
+network access, dashboard scope, production integration and alert runbooks.
 
 ## Optional shared quotas
 

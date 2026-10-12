@@ -5,6 +5,27 @@ export interface ValkeyConnection {
   client: Redis
   ready: () => Promise<void>
   close: () => Promise<void>
+  observe: () => Promise<ValkeyObservation>
+}
+
+export interface ValkeyObservation {
+  connectedClients: number
+  usedMemoryBytes: number
+  maxMemoryBytes: number
+  evictedKeys: number
+  rejectedConnections: number
+}
+
+function infoNumber(info: string, key: string) {
+  const value = info
+    .split(/\r?\n/)
+    .find((line) => line.startsWith(key + ":"))
+    ?.slice(key.length + 1)
+  const parsed = Number(value)
+  if (value === undefined || !Number.isFinite(parsed) || parsed < 0) {
+    throw new Error("Invalid Valkey observation")
+  }
+  return parsed
 }
 
 export function createValkey(
@@ -26,5 +47,15 @@ export function createValkey(
     client.disconnect()
     return Promise.resolve()
   }
-  return { client, ready, close }
+  const observe = async (): Promise<ValkeyObservation> => {
+    const info = await client.info()
+    return {
+      connectedClients: infoNumber(info, "connected_clients"),
+      usedMemoryBytes: infoNumber(info, "used_memory"),
+      maxMemoryBytes: infoNumber(info, "maxmemory"),
+      evictedKeys: infoNumber(info, "evicted_keys"),
+      rejectedConnections: infoNumber(info, "rejected_connections"),
+    }
+  }
+  return { client, ready, close, observe }
 }

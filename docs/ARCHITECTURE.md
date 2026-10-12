@@ -75,11 +75,17 @@ Pino emits sanitized HTTP logs with request IDs. Readiness checks PostgreSQL
 and enabled Valkey; shutdown drains email and closes resources. Migration and
 seed CLIs reject remote or unverified database targets before connecting.
 
-The optional log stack mirrors development JSON to Alloy, Loki and Grafana.
-A separate Docker collector can forward opted-in staging or production API
-containers to an externally managed Loki endpoint. Service and environment are
-indexed; request and user identifiers stay in log bodies or are omitted. The
-platform owns collector access, retention and backups.
+The optional observability stack sends sanitized JSON through Alloy to Loki and
+exposes process/HTTP/email/dependency metrics on a separate, opt-in private HTTP
+listener for Prometheus. A Blackbox probe checks readiness outside the API process.
+Grafana provisions four dashboards; Prometheus evaluates starter alert rules.
+Dependency observations are bounded and read-only; their failures do not affect
+application requests. Service, environment and instance identity are indexed;
+request and user identifiers never become metric/index labels.
+
+A separate Docker collector forwards opted-in staging or production API containers
+to externally managed Loki. The platform owns deployed storage, access, probes
+and notification routing. See [OBSERVABILITY.md](OBSERVABILITY.md) for operations.
 
 Valkey is enabled explicitly and holds only Nest rolling-window counters. It
 does not store sessions or application data. Its local Compose service is

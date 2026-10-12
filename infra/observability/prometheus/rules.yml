@@ -1,0 +1,109 @@
+groups:
+  - name: skull-api
+    rules:
+      - record: skull:http_requests:rate5m
+        expr: sum by (service_name, environment) (rate(skull_http_requests_total{route!~"/health/.*"}[5m]))
+      - record: skull:http_server_errors:rate5m
+        expr: sum by (service_name, environment) (rate(skull_http_requests_total{route!~"/health/.*",status=~"5.."}[5m])) or 0 * skull:http_requests:rate5m
+      - record: skull:http_success_latency:p95
+        expr: histogram_quantile(0.95, sum by (service_name, environment, le) (rate(skull_http_request_duration_seconds_bucket{route!~"/health/.*",outcome="success"}[5m])))
+      - alert: ApiUnavailable
+        expr: probe_success{job="skull-api-probe"} == 0 or up{job="skull-api-probe"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: API readiness probe has failed for two minutes
+          description: The probe runs outside the API process. Check API reachability, PostgreSQL and enabled Valkey.
+          dashboard_url: http://localhost:3002/d/skull-api-overview
+          runbook: docs/OBSERVABILITY.md#apiunavailable
+      - alert: ApiMetricsMissing
+        expr: up{job="skull-api"} == 0 or absent(up{job="skull-api"})
+        for: 3m
+        labels:
+          severity: warning
+        annotations:
+          summary: API metrics cannot be scraped
+          description: Missing metrics are unknown health, not zero errors. Check the private listener and scrape target.
+          dashboard_url: http://localhost:3002/d/skull-api-infrastructure
+          runbook: docs/OBSERVABILITY.md#apimetricsmissing
+      - alert: ApiHighServerErrorRate
+        expr: (skull:http_server_errors:rate5m / skull:http_requests:rate5m > 0.05) and (skull:http_requests:rate5m >= 0.1)
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: More than 5% of API requests fail with 5xx
+          description: Requires at least 30 requests per five minutes. Inspect failing routes and recent deployments.
+          dashboard_url: http://localhost:3002/d/skull-api-logs
+          runbook: docs/OBSERVABILITY.md#apihighservererrorrate
+      - alert: ApiSlowRequests
+        expr: (skull:http_success_latency:p95 > 1) and (skull:http_requests:rate5m >= 0.1)
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: API successful-request p95 exceeds one second
+          description: Inspect slow routes, event-loop delay and dependency observations.
+          dashboard_url: http://localhost:3002/d/skull-api-overview
+          runbook: docs/OBSERVABILITY.md#apislowrequests
+      - alert: ApiDependencyUnavailable
+        expr: skull_dependency_up == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: An enabled API dependency cannot be observed
+          description: Check the named dependency's availability and observation permissions. Disabled Valkey produces no up series.
+          dashboard_url: http://localhost:3002/d/skull-api-infrastructure
+          runbook: docs/OBSERVABILITY.md#apidependencyunavailable
+      - alert: PostgresConnectionPressure
+        expr: skull_postgres_server_connections{kind="used"} / ignoring(kind) skull_postgres_server_connections{kind="max"} > 0.8
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: PostgreSQL is using more than 80% of its connection capacity
+          description: Check replica/pool counts and long-running work before increasing capacity.
+          dashboard_url: http://localhost:3002/d/skull-api-infrastructure
+          runbook: docs/OBSERVABILITY.md#postgresconnectionpressure
+      - alert: ValkeyMemoryPressure
+        expr: (skull_valkey_memory_bytes{kind="used"} / ignoring(kind) skull_valkey_memory_bytes{kind="max"} > 0.8) and ignoring(kind) (skull_valkey_memory_bytes{kind="max"} > 0)
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: Valkey is using more than 80% of its configured memory limit
+          description: Check quotas and namespace growth. A zero maximum means unlimited and is not a measured capacity.
+          dashboard_url: http://localhost:3002/d/skull-api-infrastructure
+          runbook: docs/OBSERVABILITY.md#valkeymemorypressure
+      - alert: ApiEventLoopDelay
+        expr: nodejs_eventloop_lag_p99_seconds > 0.1
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: Node.js event-loop p99 delay exceeds 100 milliseconds
+          description: Check CPU pressure, synchronous work and garbage collection alongside API latency.
+          dashboard_url: http://localhost:3002/d/skull-api-infrastructure
+          runbook: docs/OBSERVABILITY.md#apieventloopdelay
+      - alert: AuthEmailFailures
+        expr: (sum by (service_name, environment) (increase(skull_email_events_total{event="email.failed"}[10m])) / sum by (service_name, environment) (increase(skull_email_events_total{event=~"email.accepted|email.failed"}[10m])) > 0.1) and (sum by (service_name, environment) (increase(skull_email_events_total{event=~"email.accepted|email.failed"}[10m])) >= 5)
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: More than 10% of auth email dispatches fail
+          description: Requires at least five outcomes per ten minutes. Check SMTP availability and transport logs; acceptance does not prove inbox delivery.
+          dashboard_url: http://localhost:3002/d/skull-api-auth-email
+          runbook: docs/OBSERVABILITY.md#authemailfailures
+      - alert: ObservabilityCollectorUnavailable
+        expr: up{job=~"skull-loki|skull-alloy|skull-blackbox"} == 0
+        for: 3m
+        labels:
+          severity: warning
+        annotations:
+          summary: An observability service cannot be scraped
+          description: Check collector/store health before interpreting missing application logs or probes.
+          dashboard_url: http://localhost:3002/d/skull-api-infrastructure
+          runbook: docs/OBSERVABILITY.md#observabilitycollectorunavailable

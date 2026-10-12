@@ -17,11 +17,13 @@ loki.process "api" {
     expressions = {
       environment = "environment",
       time = "time",
+      instance_id = "instance_id",
     }
   }
   stage.labels {
     values = {
       environment = "",
+      instance_id = "",
     }
   }
   stage.timestamp {

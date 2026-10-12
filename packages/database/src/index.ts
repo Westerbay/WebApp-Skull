@@ -1,4 +1,8 @@
-export { createDatabase, type Database } from "./client.js"
+export {
+  createDatabase,
+  type Database,
+  type DatabaseObservation,
+} from "./client.js"
 export * as schema from "./schema/index.js"
 export {
   verifyDatabaseTarget,

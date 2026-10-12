@@ -13,8 +13,8 @@ shared extension points.
 The template supports signup, email verification, signin, password reset and
 signout. The dashboard demonstrates cursor pagination and search. Development
 email is captured locally. Optional Valkey shares Nest rate limits across
-replicas; an optional Alloy/Loki/Grafana stack collects API logs. Neither is
-required for the base application.
+replicas; an optional Grafana stack provides logs, metrics, dashboards and
+readiness probes. Neither is required for the base application.
 
 ## Documentation map
 
@@ -23,14 +23,17 @@ required for the base application.
 - [DESIGN.md](DESIGN.md): interface conventions.
 - [REUSE.md](REUSE.md): reusable extension points.
 - [DEVELOPMENT.md](DEVELOPMENT.md): setup, commands and procedures.
+- [OBSERVABILITY.md](OBSERVABILITY.md): dashboards, metrics, alerts and runbooks.
 
 ## Current limitations
 
 The business domain beyond the sample remains undefined. Email dispatch has no
 durable queue or delivery guarantee after a crash. Nest quotas are process-local
 without Valkey. Localization covers interface and email copy and public page
-paths, not translated content records. Staging and production deployment of the
-optional log collector is not supplied or exercised against a real backend.
+paths, not translated content records. Production observability hosting,
+notification routing and independent public probes remain platform
+responsibilities; traces are not supplied. The deployed Docker log
+collector is verified locally, not against a staging or production backend.
 
 The project uses the [MIT license](../LICENSE), copyright Mathis Dubuisson.
 Attribution when reusing the template is encouraged but optional.
