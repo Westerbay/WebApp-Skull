@@ -13,6 +13,9 @@ const child = spawn("pnpm", ["dev"], {
     LOG_FILE: fileURLToPath(
       new URL("../output/logs/api.jsonl", import.meta.url)
     ),
+    METRICS_ENABLED: "true",
+    METRICS_HOST: process.env.METRICS_HOST ?? "0.0.0.0",
+    METRICS_PORT: process.env.METRICS_PORT ?? "9464",
   },
 })
 

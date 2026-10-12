@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto"
 import { execFileSync } from "node:child_process"
-import { mkdtemp, mkdir, writeFile, rm } from "node:fs/promises"
+import { mkdtemp, mkdir, writeFile, readFile, rm } from "node:fs/promises"
 import { fileURLToPath } from "node:url"
 
 export const logsTestConfig = {
@@ -8,6 +8,7 @@ export const logsTestConfig = {
   pollIntervalMs: 1000,
   lokiPort: 3100,
   grafanaPort: 3000,
+  prometheusPort: 9090,
   queryWindow: "5m",
   queryLimit: "1000",
   diagnosticTail: "15",
@@ -29,12 +30,67 @@ export async function createLogsTestHarness() {
     grafana:
       ports: !override
         - "127.0.0.1::${logsTestConfig.grafanaPort}"
+    prometheus:
+      ports: !override
+        - "127.0.0.1::${logsTestConfig.prometheusPort}"
     alloy:
-      ports: !override []
+      environment:
+        OBS_POSTGRES_DSN: "postgresql://skull_auth_test:isolated-fixture-only@postgres:5432/skull_auth_test?sslmode=disable&connect_timeout=2&statement_timeout=1500&default_transaction_read_only=on"
+        OBS_VALKEY_URL: redis://valkey:6379
+      ports: !override ["127.0.0.1::12345"]
       volumes:
         - ${directory}:/var/log/skull:ro
   `
   )
+
+  const configureMetrics = async (apiPort, metricsPort) => {
+    const config = await readFile(
+      new URL(
+        "../../infra/observability/prometheus/prometheus.yml",
+        import.meta.url
+      ),
+      "utf8"
+    )
+    const prometheusConfig = directory + "/prometheus.yml"
+    await writeFile(
+      prometheusConfig,
+      config
+        .replace("scrape_interval: 15s", "scrape_interval: 5s")
+        .replace("evaluation_interval: 15s", "evaluation_interval: 2s")
+        .replace(
+          "host.docker.internal:9464",
+          "host.docker.internal:" + metricsPort
+        )
+        .replace("host.docker.internal:3001", "host.docker.internal:" + apiPort)
+    )
+    const overrideConfig = (await readFile(override, "utf8")).replace(
+      "    prometheus:\n",
+      `    prometheus:\n      volumes:\n        - ${prometheusConfig}:/etc/prometheus/prometheus.yml:ro\n`
+    )
+    await writeFile(
+      override,
+      overrideConfig +
+        `
+    postgres:
+      image: postgres:17.6-alpine
+      environment:
+        POSTGRES_DB: skull_auth_test
+        POSTGRES_USER: skull_auth_test
+        POSTGRES_PASSWORD: isolated-fixture-only
+      ports: ["127.0.0.1::5432"]
+      tmpfs: [/var/lib/postgresql/data]
+      healthcheck:
+        test: ["CMD-SHELL", "pg_isready -U skull_auth_test -d skull_auth_test"]
+        interval: 1s
+        timeout: 3s
+        retries: 40
+    valkey:
+      image: valkey/valkey:8.1.3-alpine
+      command: ["valkey-server", "--save", "", "--appendonly", "no"]
+      ports: ["127.0.0.1::6379"]
+  `
+    )
+  }
 
   const compose = (...args) =>
     execFileSync(
@@ -114,6 +170,7 @@ export async function createLogsTestHarness() {
         environment,
         level: 30,
         time: Date.now(),
+        instance_id: "docker-probe",
         event:
           "probe." + environment + "." + (enabled ? "enabled" : "disabled"),
       }) + "\n"
@@ -146,7 +203,7 @@ export async function createLogsTestHarness() {
 
   const start = () => compose("up", "-d")
   const diagnostics = () =>
-    compose("logs", "--tail", logsTestConfig.diagnosticTail, "alloy")
+    compose("logs", "--tail", logsTestConfig.diagnosticTail)
   const close = async () => {
     try {
       if (collectorStarted)
@@ -167,6 +224,25 @@ export async function createLogsTestHarness() {
     close,
     startDockerCollector,
     createLogProbe,
+    configureMetrics,
+    executePostgres: (statement) =>
+      compose(
+        "exec",
+        "-T",
+        "postgres",
+        "psql",
+        "-U",
+        "skull_auth_test",
+        "-d",
+        "skull_auth_test",
+        "-v",
+        "ON_ERROR_STOP=1",
+        "-c",
+        statement
+      ),
+    setValkeyAvailable: (available) =>
+      // Preserve the random published port while simulating a stalled dependency.
+      compose(available ? "unpause" : "pause", "valkey"),
   }
 }
 

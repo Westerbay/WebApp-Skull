@@ -40,17 +40,19 @@ try {
   assert.ok(!lines.some((line) => line.event === "probe.production.enabled"))
   assert.ok(!lines.some((line) => line.event === "probe.staging.disabled"))
   const grafana = harness.getServiceUrl("grafana", logsTestConfig.grafanaPort)
-  const response = await fetch(
-    grafana +
-      "/api/datasources/proxy/uid/loki/loki/api/v1/query_range?" +
-      new URLSearchParams({
-        query,
-        since: logsTestConfig.queryWindow,
-        limit: logsTestConfig.queryLimit,
-      })
-  )
-  assert.equal(response.status, 200)
-  assert.ok((await response.json()).data.result.length > 0)
+  await waitFor(async () => {
+    const response = await fetch(
+      grafana +
+        "/api/datasources/proxy/uid/loki/loki/api/v1/query_range?" +
+        new URLSearchParams({
+          query,
+          since: logsTestConfig.queryWindow,
+          limit: logsTestConfig.queryLimit,
+        })
+    )
+    assert.equal(response.status, 200)
+    assert.ok((await response.json()).data.result.length > 0)
+  })
   console.log(
     "Verified locally: integration Compose, Docker opt-in, environment isolation and stable service label through Grafana."
   )

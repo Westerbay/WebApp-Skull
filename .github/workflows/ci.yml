@@ -72,6 +72,9 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm test:integration
       - run: pnpm valkey:test
+      - run: pnpm logs:check
+      - run: pnpm logs:test
+      - run: pnpm logs:test:docker
 
   e2e:
     runs-on: ubuntu-24.04
