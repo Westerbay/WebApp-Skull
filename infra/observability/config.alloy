@@ -17,11 +17,13 @@ loki.process "api" {
     expressions = {
       environment = "environment",
       time = "time",
+      instance_id = "instance_id",
     }
   }
   stage.labels {
     values = {
       environment = "",
+      instance_id = "",
     }
   }
   stage.timestamp {
@@ -36,4 +38,19 @@ loki.write "local" {
   endpoint {
     url = "http://loki:3100/loki/api/v1/push"
   }
+}
+
+// Embedded upstream exporters own connection management and collection.
+prometheus.exporter.postgres "database" {
+  data_source_names = [sys.env("OBS_POSTGRES_DSN")]
+  disable_default_metrics = true
+  disable_settings_metrics = true
+  custom_queries_config_path = "/etc/alloy/postgres.yml"
+}
+
+prometheus.exporter.redis "valkey" {
+  redis_addr = sys.env("OBS_VALKEY_URL")
+  connection_timeout = "2s"
+  redis_metrics_only = true
+  export_key_values = false
 }

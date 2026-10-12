@@ -1,0 +1,32 @@
+# Fixed aggregates only; monitoring uses the configured database and role.
+skull_postgres_connections:
+  query: |
+    SELECT state, value FROM (
+      SELECT count(*)::double precision AS total,
+        count(*) FILTER (WHERE state = 'active')::double precision AS active,
+        count(*) FILTER (WHERE wait_event_type = 'Lock')::double precision AS lock_waiting
+      FROM pg_stat_activity
+      WHERE datname = current_database() AND usename = current_user AND backend_type = 'client backend'
+    ) counts CROSS JOIN LATERAL (VALUES
+      ('total', total), ('active', active), ('lock_waiting', lock_waiting)
+    ) states(state, value)
+  metrics:
+    - state:
+        usage: LABEL
+        description: Application connection state.
+    - value:
+        usage: GAUGE
+        description: Connections scoped to the configured database and role.
+skull_postgres_server_connections:
+  query: |
+    SELECT 'used' AS kind, count(*)::double precision AS value
+      FROM pg_stat_activity WHERE backend_type = 'client backend'
+    UNION ALL
+    SELECT 'max', current_setting('max_connections')::double precision
+  metrics:
+    - kind:
+        usage: LABEL
+        description: Used connections or configured capacity.
+    - value:
+        usage: GAUGE
+        description: Server-wide connection usage and capacity.
