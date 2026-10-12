@@ -1,0 +1,431 @@
+{
+  "uid": "skull-api-auth-email",
+  "title": "Skull API auth and email",
+  "description": "Operational signals for Skull API. No data means unknown. See docs/OBSERVABILITY.md for scope, thresholds and runbooks.",
+  "schemaVersion": 41,
+  "version": 2,
+  "refresh": "15s",
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "timezone": "browser",
+  "tags": ["skull", "observability"],
+  "editable": false,
+  "annotations": {
+    "list": [
+      {
+        "name": "Deployments",
+        "enable": true,
+        "iconColor": "#5794F2",
+        "datasource": {
+          "type": "loki",
+          "uid": "loki"
+        },
+        "target": {
+          "expr": "{service_name=~\"$service\",environment=~\"$environment\",instance_id=~\"$instance_id\"} | json | __error__=\"\" | event=\"api.started\" | line_format \"Started version {{.version}}\"",
+          "refId": "Deployments"
+        },
+        "tagKeys": "version",
+        "titleFormat": "API started",
+        "textFormat": "{{line}}"
+      }
+    ]
+  },
+  "links": [
+    {
+      "title": "API overview",
+      "type": "link",
+      "url": "/d/skull-api-overview",
+      "includeVars": true,
+      "keepTime": true
+    },
+    {
+      "title": "API routes and logs",
+      "type": "link",
+      "url": "/d/skull-api-logs",
+      "includeVars": true,
+      "keepTime": true
+    },
+    {
+      "title": "API infrastructure",
+      "type": "link",
+      "url": "/d/skull-api-infrastructure",
+      "includeVars": true,
+      "keepTime": true
+    }
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "environment",
+        "label": "Environment",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "query": "label_values(skull_build_info, environment)",
+        "refresh": 1,
+        "multi": false,
+        "includeAll": false,
+        "current": {
+          "text": "development",
+          "value": "development"
+        }
+      },
+      {
+        "name": "service",
+        "label": "Service",
+        "type": "custom",
+        "query": "skull-api",
+        "current": {
+          "text": "skull-api",
+          "value": "skull-api"
+        }
+      },
+      {
+        "name": "instance_id",
+        "label": "API instance",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "query": "label_values(skull_build_info{service_name=~\"$service\",environment=~\"$environment\"}, instance_id)",
+        "refresh": 1,
+        "multi": true,
+        "includeAll": true,
+        "allValue": ".*",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "route",
+        "label": "Route (regex)",
+        "type": "textbox",
+        "query": ".*",
+        "current": {
+          "text": ".*",
+          "value": ".*"
+        }
+      },
+      {
+        "name": "method",
+        "label": "Method",
+        "type": "custom",
+        "query": "GET,HEAD,POST,PUT,PATCH,DELETE,OPTIONS,OTHER",
+        "includeAll": true,
+        "allValue": ".*",
+        "multi": true,
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      }
+    ]
+  },
+  "panels": [
+    {
+      "title": "Auth HTTP outcomes",
+      "type": "timeseries",
+      "description": "HTTP responses from Better Auth, not a count of authenticated users or confirmed account actions.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (route, status) (rate(skull_http_requests_total{environment=~\"$environment\",service_name=~\"$service\",instance_id=~\"$instance_id\",route!~\"/health/.*\",route=~\"$route\",method=~\"$method\",route=~\"/api/auth/.*\"}[$__rate_interval]))",
+          "legendFormat": "{{route}} HTTP {{status}}",
+          "queryType": "range"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "noValue": "No data",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "fillOpacity": 8,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": ["lastNotNull", "max"]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "id": 1,
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "title": "Auth rate-limit blocks",
+      "type": "timeseries",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (route) (rate(skull_http_requests_total{environment=~\"$environment\",service_name=~\"$service\",instance_id=~\"$instance_id\",route!~\"/health/.*\",route=~\"$route\",method=~\"$method\",route=~\"/api/auth/.*\",status=\"429\"}[$__rate_interval]))",
+          "legendFormat": "{{route}}",
+          "queryType": "range"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "noValue": "No data",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "fillOpacity": 8,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": ["lastNotNull", "max"]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "id": 2,
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "title": "Email transport outcomes",
+      "type": "timeseries",
+      "description": "Accepted means the configured transport accepted the message; does not prove inbox delivery. Development may use a memory transport.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (kind, event) (rate(skull_email_events_total{environment=~\"$environment\",service_name=~\"$service\",instance_id=~\"$instance_id\"}[$__rate_interval]))",
+          "legendFormat": "{{kind}} {{event}}",
+          "queryType": "range"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops",
+          "noValue": "No data",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "fillOpacity": 8,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": ["lastNotNull", "max"]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "id": 3,
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "title": "Email dispatch p95",
+      "type": "timeseries",
+      "description": "Time from enqueue through rendering to transport acceptance or failure.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "histogram_quantile(.95, sum by (le, kind, outcome) (rate(skull_email_dispatch_duration_seconds_bucket{environment=~\"$environment\",service_name=~\"$service\",instance_id=~\"$instance_id\"}[$__rate_interval])))",
+          "legendFormat": "{{kind}} {{outcome}}",
+          "queryType": "range"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "noValue": "No data",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "fillOpacity": 8,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": ["lastNotNull", "max"]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "id": 4,
+      "gridPos": {
+        "x": 12,
+        "y": 8,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "title": "Email failure and drain logs",
+      "type": "logs",
+      "description": "Safe structured events without recipient addresses or token links.",
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "{service_name=~\"$service\",environment=~\"$environment\",instance_id=~\"$instance_id\"} | json | __error__=\"\" | event =~ \"email.failed|email.drain_timeout\" | line_format \"level={{.severity}} {{if .msg}}{{.msg}}{{else}}{{.event}}{{end}} {{if .request_method}}{{.request_method}} {{.route}} status={{.response_status}} duration={{.durationMs}}ms{{end}} {{if .kind}}kind={{.kind}}{{end}} {{if .request_requestId}}request={{.request_requestId}}{{else if .requestId}}request={{.requestId}}{{end}}\"",
+          "legendFormat": "Email failure and drain logs",
+          "queryType": "range"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "options": {
+        "showTime": true,
+        "showLogDetails": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": true,
+        "enableLogDetails": true,
+        "dedupStrategy": "none"
+      },
+      "id": 5,
+      "gridPos": {
+        "x": 0,
+        "y": 16,
+        "w": 24,
+        "h": 9
+      }
+    },
+    {
+      "title": "Auth provider errors",
+      "type": "logs",
+      "description": "Sanitized provider log levels. Detailed credentials and provider messages are not collected.",
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "{service_name=~\"$service\",environment=~\"$environment\",instance_id=~\"$instance_id\"} | json | __error__=\"\" | event=\"auth.provider\" | providerLevel =~ \"error|warn\" | line_format \"level={{.severity}} {{if .msg}}{{.msg}}{{else}}{{.event}}{{end}} {{if .request_method}}{{.request_method}} {{.route}} status={{.response_status}} duration={{.durationMs}}ms{{end}} {{if .kind}}kind={{.kind}}{{end}} {{if .request_requestId}}request={{.request_requestId}}{{else if .requestId}}request={{.requestId}}{{end}}\"",
+          "legendFormat": "Auth provider errors",
+          "queryType": "range"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "options": {
+        "showTime": true,
+        "showLogDetails": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": true,
+        "enableLogDetails": true,
+        "dedupStrategy": "none"
+      },
+      "id": 6,
+      "gridPos": {
+        "x": 0,
+        "y": 25,
+        "w": 24,
+        "h": 8
+      }
+    }
+  ],
+  "timepicker": {
+    "refresh_intervals": ["15s", "30s", "1m", "5m"]
+  }
+}

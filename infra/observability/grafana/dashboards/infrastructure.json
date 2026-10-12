@@ -1,0 +1,1101 @@
+{
+  "uid": "skull-api-infrastructure",
+  "title": "Skull API infrastructure",
+  "description": "Operational signals for Skull API. No data means unknown. See docs/OBSERVABILITY.md for scope, thresholds and runbooks.",
+  "schemaVersion": 41,
+  "version": 3,
+  "refresh": "15s",
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "timezone": "browser",
+  "tags": ["skull", "observability"],
+  "editable": false,
+  "annotations": {
+    "list": [
+      {
+        "name": "Deployments",
+        "enable": true,
+        "iconColor": "#5794F2",
+        "datasource": {
+          "type": "loki",
+          "uid": "loki"
+        },
+        "target": {
+          "expr": "{service_name=~\"$service\",environment=~\"$environment\",instance_id=~\"$instance_id\"} | json | __error__=\"\" | event=\"api.started\" | line_format \"Started version {{.version}}\"",
+          "refId": "Deployments"
+        },
+        "tagKeys": "version",
+        "titleFormat": "API started",
+        "textFormat": "{{line}}"
+      }
+    ]
+  },
+  "links": [
+    {
+      "title": "API overview",
+      "type": "link",
+      "url": "/d/skull-api-overview",
+      "includeVars": true,
+      "keepTime": true
+    },
+    {
+      "title": "API routes and logs",
+      "type": "link",
+      "url": "/d/skull-api-logs",
+      "includeVars": true,
+      "keepTime": true
+    },
+    {
+      "title": "API auth and email",
+      "type": "link",
+      "url": "/d/skull-api-auth-email",
+      "includeVars": true,
+      "keepTime": true
+    }
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "environment",
+        "label": "Environment",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "query": "label_values(skull_build_info, environment)",
+        "refresh": 1,
+        "multi": false,
+        "includeAll": false,
+        "current": {
+          "text": "development",
+          "value": "development"
+        }
+      },
+      {
+        "name": "service",
+        "label": "Service",
+        "type": "custom",
+        "query": "skull-api",
+        "current": {
+          "text": "skull-api",
+          "value": "skull-api"
+        }
+      },
+      {
+        "name": "instance_id",
+        "label": "API instance",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "query": "label_values(skull_build_info{service_name=~\"$service\",environment=~\"$environment\"}, instance_id)",
+        "refresh": 1,
+        "multi": true,
+        "includeAll": true,
+        "allValue": ".*",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "route",
+        "label": "Route (regex)",
+        "type": "textbox",
+        "query": ".*",
+        "current": {
+          "text": ".*",
+          "value": ".*"
+        }
+      },
+      {
+        "name": "method",
+        "label": "Method",
+        "type": "custom",
+        "query": "GET,HEAD,POST,PUT,PATCH,DELETE,OPTIONS,OTHER",
+        "includeAll": true,
+        "allValue": ".*",
+        "multi": true,
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      }
+    ]
+  },
+  "panels": [
+    {
+      "title": "CPU used by API",
+      "type": "timeseries",
+      "description": "CPU cores used by the Node.js process; not host CPU percentage.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "rate(process_cpu_seconds_total{environment=~\"$environment\",service_name=~\"$service\",instance_id=~\"$instance_id\"}[$__rate_interval])",
+          "legendFormat": "{{instance_id}}",
+          "queryType": "range"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "No data",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "fillOpacity": 8,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": ["lastNotNull", "max"]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "id": 1,
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 8,
+        "h": 8
+      }
+    },
+    {
+      "title": "API memory",
+      "type": "timeseries",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "process_resident_memory_bytes{environment=~\"$environment\",service_name=~\"$service\",instance_id=~\"$instance_id\"}",
+          "legendFormat": "RSS {{instance_id}}",
+          "queryType": "range"
+        },
+        {
+          "refId": "B",
+          "expr": "nodejs_heap_size_used_bytes{environment=~\"$environment\",service_name=~\"$service\",instance_id=~\"$instance_id\"}",
+          "legendFormat": "Heap used {{instance_id}}",
+          "queryType": "range"
+        },
+        {
+          "refId": "C",
+          "expr": "nodejs_heap_size_total_bytes{environment=~\"$environment\",service_name=~\"$service\",instance_id=~\"$instance_id\"}",
+          "legendFormat": "Heap allocated {{instance_id}}",
+          "queryType": "range"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "noValue": "No data",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "fillOpacity": 8,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": ["lastNotNull", "max"]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "id": 2,
+      "gridPos": {
+        "x": 8,
+        "y": 0,
+        "w": 8,
+        "h": 8
+      }
+    },
+    {
+      "title": "Event-loop delay",
+      "type": "timeseries",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "nodejs_eventloop_lag_p99_seconds{environment=~\"$environment\",service_name=~\"$service\",instance_id=~\"$instance_id\"}",
+          "legendFormat": "p99 {{instance_id}}",
+          "queryType": "range"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "noValue": "No data",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "fillOpacity": 8,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": ["lastNotNull", "max"]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "id": 3,
+      "gridPos": {
+        "x": 16,
+        "y": 0,
+        "w": 8,
+        "h": 8
+      }
+    },
+    {
+      "title": "Process uptime",
+      "type": "timeseries",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "time() - process_start_time_seconds{environment=~\"$environment\",service_name=~\"$service\",instance_id=~\"$instance_id\"}",
+          "legendFormat": "{{instance_id}}",
+          "queryType": "range"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "noValue": "No data",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "fillOpacity": 8,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": ["lastNotNull", "max"]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "id": 4,
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 8,
+        "h": 8
+      }
+    },
+    {
+      "title": "Observed restarts",
+      "type": "stat",
+      "description": "Detects restarts only for stable instance identities with samples before and after the restart. It is not a container restart counter.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "changes(process_start_time_seconds{environment=~\"$environment\",service_name=~\"$service\",instance_id=~\"$instance_id\"}[$__range])",
+          "legendFormat": "Observed restarts",
+          "queryType": "range"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "No data",
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "area",
+        "textMode": "auto"
+      },
+      "id": 5,
+      "gridPos": {
+        "x": 8,
+        "y": 8,
+        "w": 8,
+        "h": 8
+      }
+    },
+    {
+      "title": "Garbage collection p95",
+      "type": "timeseries",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "histogram_quantile(.95, sum by (le, kind) (rate(nodejs_gc_duration_seconds_bucket{environment=~\"$environment\",service_name=~\"$service\",instance_id=~\"$instance_id\"}[$__rate_interval])))",
+          "legendFormat": "{{kind}}",
+          "queryType": "range"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "noValue": "No data",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "fillOpacity": 8,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": ["lastNotNull", "max"]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "id": 6,
+      "gridPos": {
+        "x": 16,
+        "y": 8,
+        "w": 8,
+        "h": 8
+      }
+    },
+    {
+      "title": "Dependency configuration",
+      "type": "table",
+      "description": "Valkey zero means intentionally disabled, not unavailable.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "skull_dependency_enabled{environment=~\"$environment\",service_name=~\"$service\",instance_id=~\"$instance_id\"}",
+          "legendFormat": "Dependency configuration",
+          "queryType": "range",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "No data",
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm"
+      },
+      "id": 7,
+      "gridPos": {
+        "x": 0,
+        "y": 16,
+        "w": 8,
+        "h": 7
+      },
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "__name__": true,
+              "job": true,
+              "instance": true,
+              "service_name": true
+            },
+            "indexByName": {
+              "instance_id": 0,
+              "dependency": 1,
+              "state": 2,
+              "kind": 3,
+              "version": 4,
+              "environment": 5,
+              "Value": 6
+            },
+            "renameByName": {
+              "instance_id": "API instance",
+              "version": "Version",
+              "environment": "Environment",
+              "Value": "Value"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "title": "Dependency observations",
+      "type": "table",
+      "description": "Exporter observations run independently of the API. Zero means a failed observation; readiness is checked separately. Valkey is shown here when enabled by the API.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "skull_dependency_up{environment=~\"$environment\",service_name=~\"$service\"}",
+          "legendFormat": "Dependency observations",
+          "queryType": "range",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "No data",
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm"
+      },
+      "id": 8,
+      "gridPos": {
+        "x": 8,
+        "y": 16,
+        "w": 8,
+        "h": 7
+      },
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "__name__": true,
+              "job": true,
+              "instance": true,
+              "service_name": true
+            },
+            "indexByName": {
+              "instance_id": 0,
+              "dependency": 1,
+              "state": 2,
+              "kind": 3,
+              "version": 4,
+              "environment": 5,
+              "Value": 6
+            },
+            "renameByName": {
+              "instance_id": "API instance",
+              "version": "Version",
+              "environment": "Environment",
+              "Value": "Value"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "title": "Dependency observation duration",
+      "type": "timeseries",
+      "description": "Includes connection acquisition and a lightweight read-only observation; not the duration of business queries.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "skull_dependency_observation_duration_seconds{environment=~\"$environment\",service_name=~\"$service\"}",
+          "legendFormat": "{{dependency}} {{instance}}",
+          "queryType": "range"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "noValue": "No data",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "fillOpacity": 8,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": ["lastNotNull", "max"]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "id": 9,
+      "gridPos": {
+        "x": 16,
+        "y": 16,
+        "w": 8,
+        "h": 7
+      }
+    },
+    {
+      "title": "PostgreSQL application connections",
+      "type": "timeseries",
+      "description": "Connections scoped to the exporter database and role. Independent of API replica filters.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "skull_postgres_connections_value{environment=~\"$environment\",service_name=~\"$service\"}",
+          "legendFormat": "{{state}} {{instance}}",
+          "queryType": "range"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "No data",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "fillOpacity": 8,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": ["lastNotNull", "max"]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "id": 10,
+      "gridPos": {
+        "x": 0,
+        "y": 23,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "title": "PostgreSQL server connection capacity",
+      "type": "timeseries",
+      "description": "Server-wide counts; replicas sharing the server must not be summed.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "max(skull_postgres_server_connections_value{environment=~\"$environment\",service_name=~\"$service\",kind=\"used\"})",
+          "legendFormat": "Used",
+          "queryType": "range"
+        },
+        {
+          "refId": "B",
+          "expr": "max(skull_postgres_server_connections_value{environment=~\"$environment\",service_name=~\"$service\",kind=\"max\"})",
+          "legendFormat": "Configured maximum",
+          "queryType": "range"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "No data",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "fillOpacity": 8,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": ["lastNotNull", "max"]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "id": 11,
+      "gridPos": {
+        "x": 12,
+        "y": 23,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "title": "Valkey memory",
+      "type": "timeseries",
+      "description": "No data when disabled/unavailable. A zero maximum means unlimited and is omitted.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "max(redis_memory_used_bytes{environment=~\"$environment\",service_name=~\"$service\"})",
+          "legendFormat": "Used",
+          "queryType": "range"
+        },
+        {
+          "refId": "B",
+          "expr": "max(redis_memory_max_bytes{environment=~\"$environment\",service_name=~\"$service\"} > 0)",
+          "legendFormat": "Configured maximum",
+          "queryType": "range"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "noValue": "No data",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "fillOpacity": 8,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": ["lastNotNull", "max"]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "id": 12,
+      "gridPos": {
+        "x": 0,
+        "y": 31,
+        "w": 8,
+        "h": 8
+      }
+    },
+    {
+      "title": "Valkey connected clients",
+      "type": "timeseries",
+      "description": "Server-level count; not summed across API replicas.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "max(redis_connected_clients{environment=~\"$environment\",service_name=~\"$service\"})",
+          "legendFormat": "Valkey connected clients",
+          "queryType": "range"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "No data",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "fillOpacity": 8,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": ["lastNotNull", "max"]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "id": 13,
+      "gridPos": {
+        "x": 8,
+        "y": 31,
+        "w": 8,
+        "h": 8
+      }
+    },
+    {
+      "title": "Valkey server events",
+      "type": "timeseries",
+      "description": "Evictions and rejected connections reported by the server. Counters reset on server restart.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "max (rate(redis_evicted_keys_total{environment=~\"$environment\",service_name=~\"$service\"}[$__rate_interval]))",
+          "legendFormat": "Evictions",
+          "queryType": "range"
+        },
+        {
+          "refId": "B",
+          "expr": "max (rate(redis_rejected_connections_total{environment=~\"$environment\",service_name=~\"$service\"}[$__rate_interval]))",
+          "legendFormat": "Rejected connections",
+          "queryType": "range"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops",
+          "noValue": "No data",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "fillOpacity": 8,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": ["lastNotNull", "max"]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "id": 14,
+      "gridPos": {
+        "x": 16,
+        "y": 31,
+        "w": 8,
+        "h": 8
+      }
+    },
+    {
+      "title": "Observability service scrapes",
+      "type": "table",
+      "description": "Local monitoring pipeline health. Check these when application data disappears.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "up{job=~\"skull-loki|skull-alloy|skull-blackbox\"}",
+          "legendFormat": "Observability service scrapes",
+          "queryType": "range",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "No data",
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm"
+      },
+      "id": 15,
+      "gridPos": {
+        "x": 0,
+        "y": 39,
+        "w": 12,
+        "h": 7
+      },
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "__name__": true,
+              "job": false,
+              "instance": false,
+              "service_name": true
+            },
+            "indexByName": {
+              "job": 0,
+              "instance": 1,
+              "Value": 2,
+              "environment": 3
+            },
+            "renameByName": {
+              "instance_id": "API instance",
+              "version": "Version",
+              "environment": "Environment",
+              "Value": "Value"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "title": "Active alert conditions",
+      "type": "table",
+      "description": "Prometheus rule state. Notification delivery is configured separately; see the runbook.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "ALERTS{alertstate=\"firing\",environment=~\"$environment\"} or ALERTS{alertstate=\"firing\",environment=\"\"}",
+          "legendFormat": "Active alert conditions",
+          "queryType": "range",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "No data",
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm"
+      },
+      "id": 16,
+      "gridPos": {
+        "x": 12,
+        "y": 39,
+        "w": 12,
+        "h": 7
+      },
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "__name__": true,
+              "job": true,
+              "instance": true,
+              "service_name": true,
+              "Value": true
+            },
+            "indexByName": {
+              "alertname": 0,
+              "severity": 1,
+              "dependency": 2,
+              "instance_id": 3,
+              "environment": 4
+            },
+            "renameByName": {
+              "instance_id": "API instance",
+              "version": "Version",
+              "environment": "Environment",
+              "Value": "Value"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "timepicker": {
+    "refresh_intervals": ["15s", "30s", "1m", "5m"]
+  }
+}

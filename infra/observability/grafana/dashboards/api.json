@@ -1,14 +1,60 @@
 {
   "uid": "skull-api-logs",
-  "title": "Skull API logs",
+  "title": "Skull API routes and logs",
+  "description": "Operational signals for Skull API. No data means unknown. See docs/OBSERVABILITY.md for scope, thresholds and runbooks.",
   "schemaVersion": 41,
-  "version": 1,
-  "refresh": "5s",
+  "version": 2,
+  "refresh": "15s",
   "time": {
-    "from": "now-15m",
+    "from": "now-1h",
     "to": "now"
   },
-  "tags": ["skull", "logs"],
+  "timezone": "browser",
+  "tags": ["skull", "observability"],
+  "editable": false,
+  "annotations": {
+    "list": [
+      {
+        "name": "Deployments",
+        "enable": true,
+        "iconColor": "#5794F2",
+        "datasource": {
+          "type": "loki",
+          "uid": "loki"
+        },
+        "target": {
+          "expr": "{service_name=~\"$service\",environment=~\"$environment\",instance_id=~\"$instance_id\"} | json | __error__=\"\" | event=\"api.started\" | line_format \"Started version {{.version}}\"",
+          "refId": "Deployments"
+        },
+        "tagKeys": "version",
+        "titleFormat": "API started",
+        "textFormat": "{{line}}"
+      }
+    ]
+  },
+  "links": [
+    {
+      "title": "API overview",
+      "type": "link",
+      "url": "/d/skull-api-overview",
+      "includeVars": true,
+      "keepTime": true
+    },
+    {
+      "title": "API infrastructure",
+      "type": "link",
+      "url": "/d/skull-api-infrastructure",
+      "includeVars": true,
+      "keepTime": true
+    },
+    {
+      "title": "API auth and email",
+      "type": "link",
+      "url": "/d/skull-api-auth-email",
+      "includeVars": true,
+      "keepTime": true
+    }
+  ],
   "templating": {
     "list": [
       {
@@ -21,53 +67,147 @@
         },
         "query": "label_values({service_name=\"skull-api\"}, environment)",
         "refresh": 1,
-        "includeAll": false,
         "multi": false,
+        "includeAll": false,
         "current": {
           "text": "development",
           "value": "development"
+        }
+      },
+      {
+        "name": "service",
+        "label": "Service",
+        "type": "custom",
+        "query": "skull-api",
+        "current": {
+          "text": "skull-api",
+          "value": "skull-api"
+        }
+      },
+      {
+        "name": "instance_id",
+        "label": "API instance",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "loki"
+        },
+        "query": "label_values({service_name=~\"$service\",environment=~\"$environment\"}, instance_id)",
+        "refresh": 1,
+        "multi": true,
+        "includeAll": true,
+        "allValue": ".*",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "route",
+        "label": "Route (regex)",
+        "type": "textbox",
+        "query": ".*",
+        "current": {
+          "text": ".*",
+          "value": ".*"
+        }
+      },
+      {
+        "name": "method",
+        "label": "Method",
+        "type": "custom",
+        "query": "GET,HEAD,POST,PUT,PATCH,DELETE,OPTIONS,OTHER",
+        "includeAll": true,
+        "allValue": ".*",
+        "multi": true,
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "status",
+        "label": "HTTP status (regex)",
+        "type": "textbox",
+        "query": ".*",
+        "current": {
+          "text": ".*",
+          "value": ".*"
+        }
+      },
+      {
+        "name": "request_id",
+        "label": "Request ID",
+        "type": "textbox",
+        "query": "",
+        "current": {
+          "text": "",
+          "value": ""
         }
       }
     ]
   },
   "panels": [
     {
+      "title": "HTTP outcomes",
+      "type": "timeseries",
+      "description": "",
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (response_status) (rate({service_name=~\"$service\",environment=~\"$environment\",instance_id=~\"$instance_id\"} | json | __error__=\"\" | response_status != \"\" | route !~ \"/health/.*\" | route =~ \"$route\" | request_method =~ \"$method\" | response_status =~ \"$status\" [$__interval]))",
+          "legendFormat": "HTTP {{response_status}}",
+          "queryType": "range"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "noValue": "No data",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "fillOpacity": 8,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": ["lastNotNull", "max"]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
       "id": 1,
-      "type": "logs",
-      "title": "API logs",
       "gridPos": {
         "x": 0,
         "y": 0,
-        "w": 24,
-        "h": 12
-      },
-      "datasource": {
-        "type": "loki",
-        "uid": "loki"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "expr": "{service_name=\"skull-api\",environment=\"$environment\"} | json"
-        }
-      ],
-      "options": {
-        "showTime": true,
-        "showLogDetails": true,
-        "sortOrder": "Descending",
-        "wrapLogMessage": true
+        "w": 12,
+        "h": 8
       }
     },
     {
-      "id": 2,
-      "type": "logs",
-      "title": "Errors",
-      "gridPos": {
-        "x": 0,
-        "y": 12,
-        "w": 24,
-        "h": 10
-      },
+      "title": "401 / 403 / 429 responses",
+      "type": "timeseries",
+      "description": "Authentication requirements, authorization refusals and rate-limit blocks are separate from server errors.",
       "datasource": {
         "type": "loki",
         "uid": "loki"
@@ -75,15 +215,452 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "{service_name=\"skull-api\",environment=\"$environment\"} | json | level >= 50"
+          "expr": "sum by (response_status) (rate({service_name=~\"$service\",environment=~\"$environment\",instance_id=~\"$instance_id\"} | json | __error__=\"\" | response_status != \"\" | route !~ \"/health/.*\" | route =~ \"$route\" | request_method =~ \"$method\" | response_status =~ \"$status\" | response_status =~ \"401|403|429\" [$__interval]))",
+          "legendFormat": "HTTP {{response_status}}",
+          "queryType": "range"
         }
       ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "noValue": "No data",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "fillOpacity": 8,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": ["lastNotNull", "max"]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "id": 2,
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "title": "Most requested routes",
+      "type": "table",
+      "description": "Counts over the selected time range; uses normalized route templates.",
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "topk(10, sum by (route, request_method) (count_over_time({service_name=~\"$service\",environment=~\"$environment\",instance_id=~\"$instance_id\"} | json | __error__=\"\" | response_status != \"\" | route !~ \"/health/.*\" | route =~ \"$route\" | request_method =~ \"$method\" | response_status =~ \"$status\" [$__range])))",
+          "legendFormat": "",
+          "queryType": "instant",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "No data",
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "route"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Inspect route logs",
+                    "url": "/d/skull-api-logs?${__url_time_range}&var-environment=${environment}&var-service=${service}&var-route=${__value.raw}"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "sortBy": [
+          {
+            "displayName": "Requests",
+            "desc": true
+          }
+        ]
+      },
+      "id": 3,
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 24,
+        "h": 6
+      },
+      "transformations": [
+        {
+          "id": "labelsToFields",
+          "options": {
+            "mode": "columns"
+          }
+        },
+        {
+          "id": "merge",
+          "options": {}
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true
+            },
+            "indexByName": {
+              "route": 0,
+              "request_method": 1,
+              "Value": 2,
+              "Value #A": 2
+            },
+            "renameByName": {
+              "request_method": "Method",
+              "Value": "Requests",
+              "route": "Route",
+              "Value #A": "Requests"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "title": "Routes with server errors",
+      "type": "table",
+      "description": "",
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "topk(10, sum by (route) (count_over_time({service_name=~\"$service\",environment=~\"$environment\",instance_id=~\"$instance_id\"} | json | __error__=\"\" | response_status != \"\" | route !~ \"/health/.*\" | route =~ \"$route\" | request_method =~ \"$method\" | response_status =~ \"$status\" | response_status >= 500 [$__range])))",
+          "legendFormat": "",
+          "queryType": "instant",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "No data",
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "route"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Inspect route logs",
+                    "url": "/d/skull-api-logs?${__url_time_range}&var-environment=${environment}&var-service=${service}&var-route=${__value.raw}"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "sortBy": [
+          {
+            "displayName": "Requests",
+            "desc": true
+          }
+        ]
+      },
+      "id": 4,
+      "gridPos": {
+        "x": 0,
+        "y": 14,
+        "w": 24,
+        "h": 6
+      },
+      "transformations": [
+        {
+          "id": "labelsToFields",
+          "options": {
+            "mode": "columns"
+          }
+        },
+        {
+          "id": "merge",
+          "options": {}
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true
+            },
+            "indexByName": {
+              "route": 0,
+              "request_method": 1,
+              "Value": 2,
+              "Value #A": 2
+            },
+            "renameByName": {
+              "request_method": "Method",
+              "Value": "Requests",
+              "route": "Route",
+              "Value #A": "Requests"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "title": "Slowest successful routes (p95)",
+      "type": "table",
+      "description": "",
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "topk(10, quantile_over_time(.95, {service_name=~\"$service\",environment=~\"$environment\",instance_id=~\"$instance_id\"} | json | __error__=\"\" | response_status != \"\" | route !~ \"/health/.*\" | route =~ \"$route\" | request_method =~ \"$method\" | response_status =~ \"$status\" | response_status < 400 | unwrap durationMs | __error__=\"\" [$__range]) by (route))",
+          "legendFormat": "",
+          "queryType": "instant",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "noValue": "No data",
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "route"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Inspect route logs",
+                    "url": "/d/skull-api-logs?${__url_time_range}&var-environment=${environment}&var-service=${service}&var-route=${__value.raw}"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "sortBy": [
+          {
+            "displayName": "p95",
+            "desc": true
+          }
+        ]
+      },
+      "id": 5,
+      "gridPos": {
+        "x": 0,
+        "y": 20,
+        "w": 24,
+        "h": 6
+      },
+      "transformations": [
+        {
+          "id": "labelsToFields",
+          "options": {
+            "mode": "columns"
+          }
+        },
+        {
+          "id": "merge",
+          "options": {}
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true
+            },
+            "indexByName": {
+              "route": 0,
+              "request_method": 1,
+              "Value": 2,
+              "Value #A": 2
+            },
+            "renameByName": {
+              "request_method": "Method",
+              "Value": "p95",
+              "route": "Route",
+              "Value #A": "p95"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "title": "Error logs",
+      "type": "logs",
+      "description": "All structured errors, including non-HTTP errors. Request ID search also finds correlated email events.",
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "{service_name=~\"$service\",environment=~\"$environment\",instance_id=~\"$instance_id\"} | json | __error__=\"\" | level >= 50 |~ \"${request_id:regex}\" | line_format \"level={{.severity}} {{if .msg}}{{.msg}}{{else}}{{.event}}{{end}} {{if .request_method}}{{.request_method}} {{.route}} status={{.response_status}} duration={{.durationMs}}ms{{end}} {{if .kind}}kind={{.kind}}{{end}} {{if .request_requestId}}request={{.request_requestId}}{{else if .requestId}}request={{.requestId}}{{end}}\"",
+          "legendFormat": "Error logs",
+          "queryType": "range"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
       "options": {
         "showTime": true,
         "showLogDetails": true,
         "sortOrder": "Descending",
-        "wrapLogMessage": true
+        "wrapLogMessage": true,
+        "enableLogDetails": true,
+        "dedupStrategy": "none"
+      },
+      "id": 6,
+      "gridPos": {
+        "x": 0,
+        "y": 26,
+        "w": 24,
+        "h": 9
+      }
+    },
+    {
+      "title": "HTTP request logs",
+      "type": "logs",
+      "description": "Route, method and status filters apply here. Request ID accepts a literal substring.",
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "{service_name=~\"$service\",environment=~\"$environment\",instance_id=~\"$instance_id\"} | json | __error__=\"\" | response_status != \"\" | route !~ \"/health/.*\" | route =~ \"$route\" | request_method =~ \"$method\" | response_status =~ \"$status\" |~ \"${request_id:regex}\" | line_format \"level={{.severity}} {{if .msg}}{{.msg}}{{else}}{{.event}}{{end}} {{if .request_method}}{{.request_method}} {{.route}} status={{.response_status}} duration={{.durationMs}}ms{{end}} {{if .kind}}kind={{.kind}}{{end}} {{if .request_requestId}}request={{.request_requestId}}{{else if .requestId}}request={{.requestId}}{{end}}\"",
+          "legendFormat": "HTTP request logs",
+          "queryType": "range"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "options": {
+        "showTime": true,
+        "showLogDetails": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": true,
+        "enableLogDetails": true,
+        "dedupStrategy": "none"
+      },
+      "id": 7,
+      "gridPos": {
+        "x": 0,
+        "y": 35,
+        "w": 24,
+        "h": 10
+      }
+    },
+    {
+      "title": "All API logs",
+      "type": "logs",
+      "description": "Includes lifecycle and dependency events. Route/method/status filters apply only to HTTP panels.",
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "{service_name=~\"$service\",environment=~\"$environment\",instance_id=~\"$instance_id\"} | json | __error__=\"\" |~ \"${request_id:regex}\" | line_format \"level={{.severity}} {{if .msg}}{{.msg}}{{else}}{{.event}}{{end}} {{if .request_method}}{{.request_method}} {{.route}} status={{.response_status}} duration={{.durationMs}}ms{{end}} {{if .kind}}kind={{.kind}}{{end}} {{if .request_requestId}}request={{.request_requestId}}{{else if .requestId}}request={{.requestId}}{{end}}\"",
+          "legendFormat": "All API logs",
+          "queryType": "range"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "options": {
+        "showTime": true,
+        "showLogDetails": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": true,
+        "enableLogDetails": true,
+        "dedupStrategy": "none"
+      },
+      "id": 8,
+      "gridPos": {
+        "x": 0,
+        "y": 45,
+        "w": 24,
+        "h": 10
       }
     }
-  ]
+  ],
+  "timepicker": {
+    "refresh_intervals": ["15s", "30s", "1m", "5m"]
+  }
 }
