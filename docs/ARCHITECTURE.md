@@ -2,199 +2,86 @@
 
 ## Boundaries
 
-Better Auth's Have I Been Pwned plugin checks password hashing on signup,
-change and reset in staging/production; development/test skip checks. Only the
-first five characters of the SHA-1 hash go to `api.pwnedpasswords.com`, never
-the password or full hash. Provider errors block writes. Better Auth 1.7.4
-consumes reset tokens before hashing, so a rejected password or unavailable
-checker requires a fresh reset link. Local fixture hashing stays offline.
-
 ```text
-apps/web → packages/contracts, packages/ui, packages/i18n, OpenAPI client
+apps/web → packages/contracts, packages/ui, packages/i18n, generated API types
 apps/api → packages/contracts, packages/database, packages/email
 packages/database → Drizzle ORM, PostgreSQL
-packages/core → no application framework
+packages/core → framework-independent ports
 ```
 
-NestJS composes the API. Express mounts the official Better Auth handler under
-`/api/auth` before the Nest JSON parser. A global session guard protects Nest
-controllers unless marked public. `/health/live` and `/health/ready` are public.
-`/api/me` returns only ID, name, email and verification status. Zod validates
-inputs and serializes responses; the error filter provides a stable envelope
-and request ID without leaking invalid inputs. Better Auth keeps its responses.
-
-Global Nest Throttler uses the socket peer, normalizes IPv6 subnets and ignores
-untrusted forwarded headers. `RateLimit` overrides quotas; `SkipRateLimit`
-exempts probes. Its default store is process-local; optional Valkey shares quotas between replicas.
-Better Auth uses PostgreSQL `customStorage.consume`: a single upsert checks and
-increments under one row lock. This avoids the Drizzle 1.7.4 adapter's stale
-predicate after lock contention. Expired counters are purged.
-
-Better Auth owns users, accounts and sessions; these are not copied into a fake
-domain model. `packages/core` owns the technology-independent `EmailSender` port.
-
-## Code placement and types
+NestJS composes the API; Express mounts Better Auth under `/api/auth` before
+Nest's JSON parser. Better Auth owns users, accounts and sessions. Nest protects
+its controllers with a global session guard unless a route is public.
+`packages/core` holds only technology-independent ports, currently
+`EmailSender`. Contracts own boundary schemas; database owns persistence; UI
+owns reusable primitives. Web never imports server modules.
 
 Routes compose navigation, metadata and feature components. Feature hooks own
-interactions and state; shared clients and query configuration live in web
-`lib`. Contracts contain data schemas, database owns persistence, and UI owns
-primitives. Server imports use NodeNext `.js` extensions; web uses Bundler
-resolution. Public product identity is JSON in `packages/config`.
+interactions; shared clients and query configuration live in web `lib`.
+Configurations stay with the module that enforces them. No extra repository or
+port layer is needed for the existing auth and sample users flows.
 
-Auth forms share native TanStack Form contexts. AuthInput reads its AppField
-context; AuthSubmitButton subscribes to submission state inside AppForm. Form
-hooks retain validation, errors, auth calls and navigation responsibilities.
+## Request and identity flow
 
-Constraints use `.constraints.ts`; technical settings use `.config.ts` or
-`config.ts`. Password limits and token lifetimes belong to the auth contract;
-Better Auth converts lifetimes to seconds and emails display the same durations.
-API defaults and readiness live in `apps/api/src/config/api.config.ts`; shared
-web cache defaults in `apps/web/src/lib/query/query.config.ts`.
+Zod validates Nest inputs and serializes responses. Nest errors use a stable
+envelope and request ID; Better Auth keeps its own responses. OpenAPI is
+generated from Nest controllers with inert providers and produces web client
+types without a database or SMTP connection. Both API clients send session
+cookies. The web reads the API URL through `lib/api/config.ts`.
 
-Validated data types are inferred from their Zod schemas with `z.infer`;
-form values use `z.input` to describe values before parsing. Keep explicit
-interfaces for props and service ports without runtime validation, and simple
-generic types where schema inference would add complexity. Use library-native
-types where available; avoid casts, `any`, non-null assertions and derived
-utility types in feature code.
-Nested functions use named `const` arrow functions. Behavior callbacks are
-named before the options or JSX that use them. Prefer `if` for object, array,
-JSX and operation choices; reserve ternaries for simple values.
+Protected route entry makes a fresh `/api/me` check. Auth transitions cancel
+and remove private queries while preserving public ones. The current-user
+response exposes only ID, name, email and verification status. Internal
+redirect targets are validated before navigation.
 
-## HTTP contracts and cache
+Better Auth checks new passwords against Have I Been Pwned in staging and
+production; development and tests stay offline. Checker failures reject the
+password write. A rejected or failed password reset consumes its link, so the
+user must request another. Better Auth owns auth rate limits in PostgreSQL. Nest's default
+quotas are process-local and use the socket peer; probes are exempt. Optional
+Valkey shares Nest quotas across replicas. A failed enabled shared quota check
+returns 503 rather than silently falling back to local counters.
 
-OpenAPI is generated from Nest controllers with inert auth/session providers,
-without DB, SMTP or secrets. `openapi-typescript` generates the web client types.
-Drift checks use temporary files without inspecting the Git index. Both auth
-and OpenAPI clients send session cookies. Web reads the API URL only through
-`lib/api/config.ts`.
+## Sample users and pagination
 
-Private route entry forces a fresh `/api/me` check. Authentication transitions
-cancel and remove every query prefixed `private`; public queries remain intact.
+`/api/users` requires a verified session. Its query schema bounds page size,
+cursor and optional name/email search. Drizzle uses a unique ID order, the
+matching cursor predicate and `limit + 1` rows. The shared page builder returns
+`{ items, nextCursor }`. Search uses parameterized case-insensitive matching
+and treats wildcard characters literally.
 
-## Cursor pagination
+The web hook wraps `useInfiniteQuery`; query keys include page size and applied
+search. The sample feature owns the debounce, cached navigation, retry and table
+rendering. Search changes reset navigation. No total count or random page
+access is implied by this cursor contract.
 
-`/api/users` requires a verified session and passes rate limiting. It exposes
-only ID, name, email and verification status. Inputs accept a nonempty cursor
-up to 256 characters and a limit of 1–100, default 20. Drizzle orders by unique
-user ID, filters `id > cursor` and reads `limit + 1`. `createCursorPage` removes
-the lookahead row and returns the last visible ID or `null` at the end.
+## Localization and email
 
-`useCursorInfiniteQuery` owns initial/next cursor parameters and preserves
-native observer options, selection and cancellation. Query keys include page
-size, the applied search and the private prefix. `usersQuerySchema` extends
-pagination with optional trimmed search, bounded to 100 characters. PostgreSQL
-uses parameterized ILIKE on name/email with literal LIKE metacharacters and
-combines this filter with the existing cursor. A local `useDebouncedValue` hook
-cleans up its timer on changes/unmount; the users feature owns the 300 ms delay.
-Search changes reset navigation, including when restoring cached results; stale
-page fetches cannot advance a different search. Users table hooks manage cached navigation and
-retry; rendering, columns, feedback and pagination are separate. A retry after
-backward navigation still resumes the failed request. No total count or random
-page access is calculated. Constraints, feature page size and Faker settings
-stay with their owners.
+Paraglide compiles the active catalogs and localized public paths from
+`packages/i18n`. Code identifiers and internal routes remain English. A
+single-language project has no locale prefix; a multilingual project prefixes
+every public route. TanStack Router rewrites URLs, while server middleware
+isolates SSR locale state. API paths remain unchanged.
 
-## Localization
+Links use internal paths; auth callbacks derive their public URL from the
+current locale. The API accepts callback locale only from its configured web
+origin and falls back to the base locale otherwise. Email renders localized
+HTML/text. Development uses Mailpit; production requires explicit SMTP
+configuration, and staging SMTP uses an exact recipient allowlist.
 
-Active catalogs are in `packages/i18n/messages/<locale>.json`. Inlang settings
-define the default and supported locales. Application code imports the generated
-Paraglide runtime, which is built from those settings and catalogs.
+## Operations and optional integrations
 
-English file routes form one stable internal tree. `routing.json` maps each
-internal path to public paths. `routing-config.mjs` checks locale coverage and
-duplicate paths, then builds patterns for Paraglide; it does not parse or reorder
-patterns itself. `compile.mjs` uses this configuration.
-The fallback comes last; query parameters and fragments are preserved.
-Single-language projects omit prefixes; multilingual projects prefix all
-locales. TanStack Router rewrites incoming and outgoing URLs with Paraglide.
-The Start server entry uses `paraglideMiddleware`, so concurrent SSR requests
-keep independent locale state. HTML `lang` comes from the runtime.
+Pino emits sanitized HTTP logs with request IDs. Readiness checks PostgreSQL
+and enabled Valkey; shutdown drains email and closes resources. Migration and
+seed CLIs reject remote or unverified database targets before connecting.
 
-Links and redirects use internal paths. External auth callbacks use
-`getLocalizedCallbackUrl`. API email locale is inferred from the callback URL
-only when it belongs to the configured web origin; unsupported/invalid values
-fall back to the base locale. API paths do not change. Public auth paths are
-`/sign-in`, `/sign-up`, `/verify-email`, `/email-verified`, `/forgot-password`
-and `/reset-password` before localization. Redirect targets reject external,
-ambiguous encoded and backslash paths. Auth metadata remains noindex and
-no-referrer; there is no artificial sitemap or canonical.
+The optional log stack mirrors development JSON to Alloy, Loki and Grafana.
+A separate Docker collector can forward opted-in staging or production API
+containers to an externally managed Loki endpoint. Service and environment are
+indexed; request and user identifiers stay in log bodies or are omitted. The
+platform owns collector access, retention and backups.
 
-Localization covers page pathnames; the template includes no translated-content
-domain or content-slug storage.
-
-## Email, logging and lifecycle
-
-React Email renders HTML/text with an explicit locale. Production SMTP requires
-explicit host, sender, credentials and TLS. Staging SMTP is opt-in and uses an
-exact recipient allowlist; recipients are never rewritten. Development captures
-messages in Mailpit without a relay; tests use memory or owned capture services.
-The dispatcher tracks accepted/failed sends, bounds drainage and reports only
-sanitized events. Transport connections are bounded and sockets close on timeout.
-
-Pino logs method, path without query, status and duration. Headers, bodies,
-cookies, tokens, emails, IPs, action URLs and SMTP messages are excluded. Requests
-have `x-request-id`. Readiness probes PostgreSQL with a two-second deadline.
-Shutdown stops traffic, drains email, closes resources and flushes logs.
-
-## Seeds and tests
-
-Migration/seed CLIs guard the target before loading a DB client. Seed scenarios
-prepare all inputs before mutation. The registry owns ordering and rejects
-unknown or duplicate selections. Reserved fixture signatures detect collisions;
-replacement/cleanup is transactional. Reset verification ownership uses the
-Better Auth user ID; email verification JWTs are stateless.
-
-Unit tests live under `test/unit` and mirror responsibilities. API integration
-and browser tests use separate configurations and filename suffixes. A shared
-harness owns UUID Compose projects, tmpfs PostgreSQL, Mailpit and dynamic
-loopback ports. It refuses arbitrary DB URLs and never touches dev volumes or
-`.env`. Auth journey steps deliberately share one identity within one suite;
-independent future suites must own their data. Each run seeds twice and cleans
-up its owned services. Secret scanning examines all Git history.
-
-Password strength uses local zxcvbn dictionaries; passwords never leave the
-browser for scoring and the score does not participate in validation.
-
-## Log collection
-
-The existing `nestjs-pino` integration uses Express middleware for all HTTP
-requests, including Better Auth. Nest adds request context with HTTP auto-logging
-disabled to avoid duplicates. JSON logs contain `service_name=skull-api` and
-`environment=APP_ENV`. `logging.config.ts` validates format, level and the local
-file mirror; `logging.ts` owns logger creation and `http-logging.ts` owns HTTP
-serialization and context integration. Staging/production require JSON stdout.
-
-`compose.observability.yml` is independent of PostgreSQL and Mailpit.
-`pnpm dev:logs` keeps stdout and mirrors API JSON to `output/logs/api.jsonl`.
-Alloy reads this directory and persists collection positions in its volume.
-Loki persists logs and compactor state with seven-day retention; Grafana
-provisions the datasource and dashboard. Only service and environment are indexed;
-request IDs stay in JSON.
-
-`compose.logs-collector.yml` defines only Alloy, with separate project/position
-volumes per environment. `docker.alloy` discovers containers labelled
-`skull.logs=true` and `skull.logs.environment=APP_ENV`. The indexed environment
-comes from the collector; service_name comes from application JSON, falling
-back to the Compose service. Renaming the API service keeps its dashboard queries.
-`LOKI_URL` supplies the destination, with optional `LOKI_TOKEN_FILE` and
-`LOKI_TENANT_ID`. The fragment deploys no application or Loki/Grafana backend.
-The platform owns Docker socket privileges, access, TLS, retention and backups.
-Environment labels filter logs and do not isolate access permissions.
-
-## Optional Valkey
-
-The API owns `infrastructure/valkey` and the Nest storage adapter. Explicit
-`VALKEY_ENABLED=true` and `VALKEY_URL` activate it; disabled mode creates no
-connection. ioredis supplies the protocol client, bounded commands, TLS via
-`rediss:` and reconnection. Lua atomically counts a rolling window and applies
-a separate block duration using server time. Keys expire and share a cluster
-hash tag; namespaces separate applications/environments. Peer keys are hashed.
-A failed quota check returns 503, never a local fallback. Health probes are
-exempt; readiness checks both PostgreSQL and enabled Valkey. Shutdown closes
-the client. Better Auth quotas and sessions stay in PostgreSQL.
-
-The local Compose service uses no eviction so memory pressure cannot silently
-remove quotas. It is ephemeral: restarting Valkey resets counters. It has no
-authentication and binds only to loopback; deployed access, credentials, TLS,
-capacity and availability belong to the platform. No generic plugin runtime or
-application-data cache is introduced.
+Valkey is enabled explicitly and holds only Nest rolling-window counters. It
+does not store sessions or application data. Its local Compose service is
+loopback-only and ephemeral; deployed access and availability belong to the
+platform. See [DEVELOPMENT.md](DEVELOPMENT.md) for setup and validation commands.
