@@ -36,6 +36,7 @@ import type { Logger } from "pino"
 import type { GetSession } from "./infrastructure/auth/session.js"
 
 import type { ListUsers } from "./modules/users/users.types.js"
+import type { ApiMetrics } from "./infrastructure/observability/metrics.js"
 
 export type ApiDependencies = Readonly<{
   authHandler: RequestHandler
@@ -46,6 +47,7 @@ export type ApiDependencies = Readonly<{
   readinessTimeoutMs?: number
   logger?: Logger
   rateLimitStorage?: ThrottlerStorage
+  metrics?: ApiMetrics
 }>
 
 export async function createApiApp(
@@ -89,6 +91,7 @@ export async function createApiApp(
   const expressApp = app.getHttpAdapter().getInstance()
 
   expressApp.use(httpLogging.middleware)
+  if (dependencies.metrics) expressApp.use(dependencies.metrics.middleware)
   expressApp.use(requestContext)
   expressApp.use(
     cors({

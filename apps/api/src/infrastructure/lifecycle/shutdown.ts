@@ -1,6 +1,6 @@
 export type ShutdownResource = Readonly<{
   close: () => Promise<unknown>
-  name: "server" | "email" | "database" | "valkey"
+  name: "server" | "email" | "database" | "valkey" | "metrics"
 }>
 
 export type ShutdownEvent = Readonly<{

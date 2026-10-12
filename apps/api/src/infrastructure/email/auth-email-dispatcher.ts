@@ -8,6 +8,7 @@ export interface EmailEvent {
   event: "email.accepted" | "email.failed" | "email.drain_timeout"
   kind?: AuthEmailInput["kind"]
   requestId?: string
+  durationMs?: number
 }
 
 type AuthEmailDispatchInput = AuthEmailInput & Readonly<{ requestId?: string }>
@@ -21,6 +22,7 @@ export class AuthEmailDispatcher {
   ) {}
 
   enqueue(input: AuthEmailDispatchInput) {
+    const started = performance.now()
     const context = input.requestId ? { requestId: input.requestId } : {}
     if (this.stopping) {
       this.report({
@@ -37,6 +39,7 @@ export class AuthEmailDispatcher {
         this.report({
           event: "email.accepted",
           kind: input.kind,
+          durationMs: performance.now() - started,
           ...context,
         })
       })
@@ -44,6 +47,7 @@ export class AuthEmailDispatcher {
         this.report({
           event: "email.failed",
           kind: input.kind,
+          durationMs: performance.now() - started,
           ...context,
         })
       })

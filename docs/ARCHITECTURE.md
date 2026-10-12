@@ -29,6 +29,11 @@ generated from Nest controllers with inert providers and produces web client
 types without a database or SMTP connection. Both API clients send session
 cookies. The web reads the API URL through `lib/api/config.ts`.
 
+The Better Auth HTTP adapter derives telemetry route templates from configured
+endpoint metadata using Better Auth's routing engine. It records only the matched
+template on the request; logs and metrics share that template. Nest routes use
+Express metadata automatically. Neither requires a parallel endpoint list.
+
 Protected route entry makes a fresh `/api/me` check. Auth transitions cancel
 and remove private queries while preserving public ones. The current-user
 response exposes only ID, name, email and verification status. Internal
