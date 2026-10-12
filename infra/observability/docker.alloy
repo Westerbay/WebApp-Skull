@@ -30,11 +30,13 @@ loki.process "applications" {
     expressions = {
       service_name = "service_name",
       time = "time",
+      instance_id = "instance_id",
     }
   }
   stage.labels {
     values = {
       service_name = "",
+      instance_id = "",
     }
   }
   stage.timestamp {
