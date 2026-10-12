@@ -1,0 +1,728 @@
+{
+  "uid": "skull-api-overview",
+  "title": "Skull API overview",
+  "description": "Operational signals for Skull API. No data means unknown. See docs/OBSERVABILITY.md for scope, thresholds and runbooks.",
+  "schemaVersion": 41,
+  "version": 2,
+  "refresh": "15s",
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "timezone": "browser",
+  "tags": ["skull", "observability"],
+  "editable": false,
+  "annotations": {
+    "list": [
+      {
+        "name": "Deployments",
+        "enable": true,
+        "iconColor": "#5794F2",
+        "datasource": {
+          "type": "loki",
+          "uid": "loki"
+        },
+        "target": {
+          "expr": "{service_name=~\"$service\",environment=~\"$environment\",instance_id=~\"$instance_id\"} | json | __error__=\"\" | event=\"api.started\" | line_format \"Started version {{.version}}\"",
+          "refId": "Deployments"
+        },
+        "tagKeys": "version",
+        "titleFormat": "API started",
+        "textFormat": "{{line}}"
+      }
+    ]
+  },
+  "links": [
+    {
+      "title": "API routes and logs",
+      "type": "link",
+      "url": "/d/skull-api-logs",
+      "includeVars": true,
+      "keepTime": true
+    },
+    {
+      "title": "API infrastructure",
+      "type": "link",
+      "url": "/d/skull-api-infrastructure",
+      "includeVars": true,
+      "keepTime": true
+    },
+    {
+      "title": "API auth and email",
+      "type": "link",
+      "url": "/d/skull-api-auth-email",
+      "includeVars": true,
+      "keepTime": true
+    }
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "environment",
+        "label": "Environment",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "query": "label_values(skull_build_info, environment)",
+        "refresh": 1,
+        "multi": false,
+        "includeAll": false,
+        "current": {
+          "text": "development",
+          "value": "development"
+        }
+      },
+      {
+        "name": "service",
+        "label": "Service",
+        "type": "custom",
+        "query": "skull-api",
+        "current": {
+          "text": "skull-api",
+          "value": "skull-api"
+        }
+      },
+      {
+        "name": "instance_id",
+        "label": "API instance",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "query": "label_values(skull_build_info{service_name=~\"$service\",environment=~\"$environment\"}, instance_id)",
+        "refresh": 1,
+        "multi": true,
+        "includeAll": true,
+        "allValue": ".*",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "route",
+        "label": "Route (regex)",
+        "type": "textbox",
+        "query": ".*",
+        "current": {
+          "text": ".*",
+          "value": ".*"
+        }
+      },
+      {
+        "name": "method",
+        "label": "Method",
+        "type": "custom",
+        "query": "GET,HEAD,POST,PUT,PATCH,DELETE,OPTIONS,OTHER",
+        "includeAll": true,
+        "allValue": ".*",
+        "multi": true,
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      }
+    ]
+  },
+  "panels": [
+    {
+      "title": "Metrics collection",
+      "type": "stat",
+      "description": "Zero means scrape failure; missing data is unknown. This panel covers all replicas.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "min(up{job=\"skull-api\",environment=~\"$environment\",service_name=~\"$service\"})",
+          "legendFormat": "Metrics collection",
+          "queryType": "range"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Unknown",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          },
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "Down",
+                  "color": "red"
+                },
+                "1": {
+                  "text": "Up",
+                  "color": "green"
+                }
+              }
+            },
+            {
+              "type": "special",
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "Unknown",
+                  "color": "gray"
+                }
+              }
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "area",
+        "textMode": "auto"
+      },
+      "id": 1,
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 8,
+        "h": 4
+      }
+    },
+    {
+      "title": "Readiness probe",
+      "type": "stat",
+      "description": "HTTP readiness from outside the API process. Local Docker probe is not internet availability.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "min(probe_success{job=\"skull-api-probe\",environment=~\"$environment\",service_name=~\"$service\"})",
+          "legendFormat": "Readiness probe",
+          "queryType": "range"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Unknown",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          },
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "Down",
+                  "color": "red"
+                },
+                "1": {
+                  "text": "Up",
+                  "color": "green"
+                }
+              }
+            },
+            {
+              "type": "special",
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "Unknown",
+                  "color": "gray"
+                }
+              }
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "area",
+        "textMode": "auto"
+      },
+      "id": 2,
+      "gridPos": {
+        "x": 8,
+        "y": 0,
+        "w": 8,
+        "h": 4
+      }
+    },
+    {
+      "title": "Requests / second",
+      "type": "stat",
+      "description": "Health probes excluded. No recent traffic may produce zero after counters exist; missing counters stay No data.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(rate(skull_http_requests_total{environment=~\"$environment\",service_name=~\"$service\",instance_id=~\"$instance_id\",route!~\"/health/.*\",route=~\"$route\",method=~\"$method\"}[$__rate_interval]))",
+          "legendFormat": "Requests / second",
+          "queryType": "range"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "noValue": "No data",
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "area",
+        "textMode": "auto"
+      },
+      "id": 3,
+      "gridPos": {
+        "x": 16,
+        "y": 0,
+        "w": 8,
+        "h": 4
+      }
+    },
+    {
+      "title": "Server error rate",
+      "type": "stat",
+      "description": "5xx responses divided by all application responses. No traffic has no defined error rate.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "100 * (sum(rate(skull_http_requests_total{environment=~\"$environment\",service_name=~\"$service\",instance_id=~\"$instance_id\",route!~\"/health/.*\",route=~\"$route\",method=~\"$method\",status=~\"5..\"}[$__rate_interval])) or 0 * sum(rate(skull_http_requests_total{environment=~\"$environment\",service_name=~\"$service\",instance_id=~\"$instance_id\",route!~\"/health/.*\",route=~\"$route\",method=~\"$method\"}[$__rate_interval]))) / sum(rate(skull_http_requests_total{environment=~\"$environment\",service_name=~\"$service\",instance_id=~\"$instance_id\",route!~\"/health/.*\",route=~\"$route\",method=~\"$method\"}[$__rate_interval]))",
+          "legendFormat": "Server error rate",
+          "queryType": "range"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "noValue": "No data",
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "area",
+        "textMode": "auto"
+      },
+      "id": 4,
+      "gridPos": {
+        "x": 0,
+        "y": 4,
+        "w": 8,
+        "h": 4
+      }
+    },
+    {
+      "title": "Successful p95",
+      "type": "stat",
+      "description": "95% of successful requests finish within this duration. Histogram estimate.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "histogram_quantile(.95, sum by (le) (rate(skull_http_request_duration_seconds_bucket{environment=~\"$environment\",service_name=~\"$service\",instance_id=~\"$instance_id\",route!~\"/health/.*\",route=~\"$route\",method=~\"$method\",outcome=\"success\"}[$__rate_interval])))",
+          "legendFormat": "Successful p95",
+          "queryType": "range"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "noValue": "No data",
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "area",
+        "textMode": "auto"
+      },
+      "id": 5,
+      "gridPos": {
+        "x": 8,
+        "y": 4,
+        "w": 8,
+        "h": 4
+      }
+    },
+    {
+      "title": "Requests in flight",
+      "type": "stat",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(skull_http_requests_in_flight{environment=~\"$environment\",service_name=~\"$service\",instance_id=~\"$instance_id\"})",
+          "legendFormat": "Requests in flight",
+          "queryType": "range"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "No data",
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "area",
+        "textMode": "auto"
+      },
+      "id": 6,
+      "gridPos": {
+        "x": 16,
+        "y": 4,
+        "w": 8,
+        "h": 4
+      }
+    },
+    {
+      "title": "Traffic by HTTP status",
+      "type": "timeseries",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (status) (rate(skull_http_requests_total{environment=~\"$environment\",service_name=~\"$service\",instance_id=~\"$instance_id\",route!~\"/health/.*\",route=~\"$route\",method=~\"$method\"}[$__rate_interval]))",
+          "legendFormat": "HTTP {{status}}",
+          "queryType": "range"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "noValue": "No data",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "fillOpacity": 8,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": ["lastNotNull", "max"]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "id": 7,
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "title": "Successful request latency",
+      "type": "timeseries",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "histogram_quantile(.5, sum by (le) (rate(skull_http_request_duration_seconds_bucket{environment=~\"$environment\",service_name=~\"$service\",instance_id=~\"$instance_id\",route!~\"/health/.*\",route=~\"$route\",method=~\"$method\",outcome=\"success\"}[$__rate_interval])))",
+          "legendFormat": "p50",
+          "queryType": "range"
+        },
+        {
+          "refId": "B",
+          "expr": "histogram_quantile(.95, sum by (le) (rate(skull_http_request_duration_seconds_bucket{environment=~\"$environment\",service_name=~\"$service\",instance_id=~\"$instance_id\",route!~\"/health/.*\",route=~\"$route\",method=~\"$method\",outcome=\"success\"}[$__rate_interval])))",
+          "legendFormat": "p95",
+          "queryType": "range"
+        },
+        {
+          "refId": "C",
+          "expr": "histogram_quantile(.99, sum by (le) (rate(skull_http_request_duration_seconds_bucket{environment=~\"$environment\",service_name=~\"$service\",instance_id=~\"$instance_id\",route!~\"/health/.*\",route=~\"$route\",method=~\"$method\",outcome=\"success\"}[$__rate_interval])))",
+          "legendFormat": "p99",
+          "queryType": "range"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "noValue": "No data",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "fillOpacity": 8,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": ["lastNotNull", "max"]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "id": 8,
+      "gridPos": {
+        "x": 12,
+        "y": 8,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "title": "Failed request latency",
+      "type": "timeseries",
+      "description": "Separate failed requests from successes: fast failures must not improve the successful-request latency.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "histogram_quantile(.95, sum by (le) (rate(skull_http_request_duration_seconds_bucket{environment=~\"$environment\",service_name=~\"$service\",instance_id=~\"$instance_id\",route!~\"/health/.*\",route=~\"$route\",method=~\"$method\",outcome=\"client_error\"}[$__rate_interval])))",
+          "legendFormat": "client_error",
+          "queryType": "range"
+        },
+        {
+          "refId": "B",
+          "expr": "histogram_quantile(.95, sum by (le) (rate(skull_http_request_duration_seconds_bucket{environment=~\"$environment\",service_name=~\"$service\",instance_id=~\"$instance_id\",route!~\"/health/.*\",route=~\"$route\",method=~\"$method\",outcome=\"server_error\"}[$__rate_interval])))",
+          "legendFormat": "server_error",
+          "queryType": "range"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "noValue": "No data",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "fillOpacity": 8,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": ["lastNotNull", "max"]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "id": 9,
+      "gridPos": {
+        "x": 0,
+        "y": 16,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "title": "API versions",
+      "type": "table",
+      "description": "One row per running API instance and version. Set APP_VERSION to your release identifier.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "skull_build_info{environment=~\"$environment\",service_name=~\"$service\",instance_id=~\"$instance_id\"}",
+          "legendFormat": "API versions",
+          "queryType": "range",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "No data",
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm"
+      },
+      "id": 10,
+      "gridPos": {
+        "x": 12,
+        "y": 16,
+        "w": 12,
+        "h": 8
+      },
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "__name__": true,
+              "job": true,
+              "instance": true,
+              "service_name": true,
+              "Value": true
+            },
+            "indexByName": {
+              "instance_id": 0,
+              "version": 1,
+              "environment": 2
+            },
+            "renameByName": {
+              "instance_id": "API instance",
+              "version": "Version",
+              "environment": "Environment",
+              "Value": "Value"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "timepicker": {
+    "refresh_intervals": ["15s", "30s", "1m", "5m"]
+  }
+}
