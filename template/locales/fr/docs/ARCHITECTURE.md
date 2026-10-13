@@ -39,6 +39,13 @@ concret. Les configurations restent avec le module qui les applique. Les flux
 auth et utilisateurs existants ne nécessitent aucune couche supplémentaire de
 repository ou de port.
 
+Les `modules/<name>` de l’API sont indépendants les uns des autres.
+L’infrastructure et la configuration n’importent jamais les modules applicatifs ;
+aucun de ces dossiers n’importe les points de composition du runtime ou d’OpenAPI.
+`app.ts`, `bootstrap.ts` et `openapi/` composent leurs dépendances. Les contrôles
+couvrent automatiquement les nouveaux noms de modules, tout en autorisant le
+code local au module, l’infrastructure partagée et les adaptateurs de persistance.
+
 ## Flux des requêtes et de l’identité
 
 Zod valide les entrées Nest et sérialise les réponses. Les erreurs Nest utilisent

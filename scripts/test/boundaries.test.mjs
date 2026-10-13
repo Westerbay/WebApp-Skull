@@ -240,3 +240,70 @@ test("allows page composition, feature-local imports and shared mechanisms", asy
   })
   assert.deepEqual(violations, [])
 })
+
+test("rejects API cross-module dependencies for newly introduced modules", async (t) => {
+  const violations = await checkBoundaries(t, {
+    "apps/api/src/modules/catalog/model.ts":
+      "export interface Product { id: string }\n",
+    "apps/api/src/modules/orders/types.ts":
+      'import type { Product } from "../catalog/model.js"\nexport type Item = Product\n',
+    "apps/api/src/modules/catalog/loader.ts":
+      'void import("../orders/types.js")\n',
+  })
+  assert.deepEqual(
+    violations
+      .filter(({ rule }) => rule.name === "api-modules-independent")
+      .map(({ from }) => from)
+      .sort(),
+    [
+      "apps/api/src/modules/catalog/loader.ts",
+      "apps/api/src/modules/orders/types.ts",
+    ]
+  )
+})
+
+test("rejects API support imports of modules and upward imports of composition", async (t) => {
+  const violations = await checkBoundaries(t, {
+    "apps/api/src/modules/catalog/model.ts": "export const product = 1\n",
+    "apps/api/src/app.ts": "export const app = 1\n",
+    "apps/api/src/bootstrap.ts": "export const start = 1\n",
+    "apps/api/src/index.ts": "export const main = 1\n",
+    "apps/api/src/openapi/document.ts": "export const document = 1\n",
+    "apps/api/src/infrastructure/coupled.ts":
+      'export { product } from "../modules/catalog/model.js"\nexport { start } from "../bootstrap.js"\n',
+    "apps/api/src/config/coupled.ts":
+      'export { product } from "../modules/catalog/model.js"\nexport { main } from "../index.js"\n',
+    "apps/api/src/modules/catalog/coupled.ts":
+      'export { app } from "../../app.js"\nexport { document } from "../../openapi/document.js"\n',
+  })
+  assert.equal(
+    violations.filter(({ rule }) => rule.name === "api-support-no-modules")
+      .length,
+    2
+  )
+  assert.equal(
+    violations.filter(
+      ({ rule }) => rule.name === "api-no-composition-dependencies"
+    ).length,
+    4
+  )
+})
+
+test("allows API composition, local module code and persistence adapters", async (t) => {
+  const violations = await checkBoundaries(t, {
+    "apps/api/src/config/options.ts": "export const options = 1\n",
+    "apps/api/src/infrastructure/helper.ts":
+      'export { options } from "../config/options.js"\n',
+    "apps/api/src/modules/catalog/model.ts":
+      'export type { User } from "../../../../../packages/database/src/index.js"\n',
+    "apps/api/src/modules/catalog/controller.ts":
+      'export type { User } from "./model.js"\nexport { options } from "../../infrastructure/helper.js"\n',
+    "apps/api/src/modules/orders/controller.ts": "export const orders = 1\n",
+    "apps/api/src/app.ts":
+      'export * from "./modules/catalog/controller.js"\nexport * from "./modules/orders/controller.js"\n',
+    "apps/api/src/openapi/generate.ts": 'export * from "../app.js"\n',
+    "apps/api/src/bootstrap.ts": 'export * from "./app.js"\n',
+    "apps/api/src/index.ts": 'export * from "./bootstrap.js"\n',
+  })
+  assert.deepEqual(violations, [])
+})

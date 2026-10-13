@@ -34,6 +34,12 @@ shell boundary; extract a shared mechanism only for a concrete common need.
 Configurations stay with the module that enforces them. No extra repository or
 port layer is needed for the existing auth and sample users flows.
 
+API `modules/<name>` are independent of one another. Infrastructure and
+configuration never import application modules; none of these folders import
+the runtime or OpenAPI composition roots. `app.ts`, `bootstrap.ts` and `openapi/`
+compose their dependencies. Boundary checks cover new module names automatically
+while allowing module-local code, shared infrastructure and persistence adapters.
+
 ## Request and identity flow
 
 Zod validates Nest inputs and serializes responses. Nest errors use a stable
