@@ -1,5 +1,5 @@
 import { readdir, readFile } from "node:fs/promises"
-import { extname, join, relative, resolve } from "node:path"
+import { join, relative, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 
 const root = fileURLToPath(new URL("../", import.meta.url))
@@ -19,18 +19,6 @@ const failures = []
 const rootManifest = JSON.parse(await readFile(resolve(root, "package.json")))
 if (rootManifest.packageManager !== "pnpm@12.4.1") {
   failures.push("packageManager must remain pnpm@12.4.1")
-}
-
-const webFiles = await filesUnder(resolve(root, "apps/web/src"))
-for (const file of webFiles.filter((file) =>
-  [".ts", ".tsx"].includes(extname(file))
-)) {
-  const content = await readFile(file, "utf8")
-  if (
-    /from ["'](?:@workspace\/(?:database|email|core)|.*apps\/api)/.test(content)
-  ) {
-    failures.push(`server import in web: ${relative(root, file)}`)
-  }
 }
 
 for (const composeFile of [
@@ -156,5 +144,5 @@ if (failures.length > 0) {
   console.error(failures.join("\n"))
   process.exitCode = 1
 } else {
-  console.log("Project boundaries, metadata and infrastructure pins checked")
+  console.log("Project metadata and infrastructure pins checked")
 }

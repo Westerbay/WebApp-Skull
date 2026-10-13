@@ -6,5 +6,5 @@ export interface EmailMessage {
 }
 
 export interface EmailSender {
-  send(message: EmailMessage): Promise<void>
+  send: (message: EmailMessage) => Promise<void>
 }

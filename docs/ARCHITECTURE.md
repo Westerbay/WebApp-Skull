@@ -16,6 +16,12 @@ its controllers with a global session guard unless a route is public.
 `EmailSender`. Contracts own boundary schemas; database owns persistence; UI
 owns reusable primitives. Web never imports server modules.
 
+`pnpm boundaries:check` enforces these dependency directions with
+[dependency rules](../packages/config/dependency-cruiser.mjs), including
+type imports, dynamic imports and resolved aliases. Core ports have no external
+dependencies; contracts depend only on their own schemas and Zod; UI primitives
+do not depend on business packages. Shared packages never import applications.
+
 Routes compose navigation, metadata and feature components. Feature hooks own
 interactions; shared clients and query configuration live in web `lib`.
 Configurations stay with the module that enforces them. No extra repository or
