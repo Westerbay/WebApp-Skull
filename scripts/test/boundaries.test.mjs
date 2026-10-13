@@ -178,3 +178,65 @@ test("fails when an unresolved alias would hide a dependency from the graph", as
     violations.some(({ rule }) => rule.name === "unresolved-source-import")
   )
 })
+
+test("rejects cross-feature dependencies without listing feature names", async (t) => {
+  const violations = await checkBoundaries(t, {
+    "apps/web/src/features/catalog/model.ts":
+      "export interface Product { id: string }\n",
+    "apps/web/src/features/checkout/relative.ts":
+      'import type { Product } from "../catalog/model.js"\nexport type Item = Product\n',
+    "apps/web/src/features/catalog/dynamic.ts":
+      'void import("@/features/checkout/relative")\n',
+    "apps/web/src/features/checkout/alias.ts":
+      'export type { Product } from "@/features/catalog/model"\n',
+  })
+  assert.deepEqual(
+    violations
+      .filter(({ rule }) => rule.name === "web-features-independent")
+      .map(({ from }) => from)
+      .sort(),
+    [
+      "apps/web/src/features/catalog/dynamic.ts",
+      "apps/web/src/features/checkout/alias.ts",
+      "apps/web/src/features/checkout/relative.ts",
+    ]
+  )
+})
+
+test("rejects composition dependencies from shared libraries and features", async (t) => {
+  const violations = await checkBoundaries(t, {
+    "apps/web/src/routes/page.ts": "export const page = 1\n",
+    "apps/web/src/components/shell.ts": "export const shell = 1\n",
+    "apps/web/src/features/catalog/model.ts": "export const product = 1\n",
+    "apps/web/src/lib/coupled.ts":
+      'export { product } from "@/features/catalog/model"\nexport { shell } from "@/components/shell"\n',
+    "apps/web/src/features/catalog/coupled.ts":
+      'export { page } from "@/routes/page"\nexport { shell } from "@/components/shell"\n',
+  })
+  assert.equal(
+    violations.filter(({ rule }) => rule.name === "web-lib-no-composition")
+      .length,
+    2
+  )
+  assert.equal(
+    violations.filter(({ rule }) => rule.name === "web-features-no-composition")
+      .length,
+    2
+  )
+})
+
+test("allows page composition, feature-local imports and shared mechanisms", async (t) => {
+  const violations = await checkBoundaries(t, {
+    "apps/web/src/lib/query.ts": "export const query = 1\n",
+    "apps/web/src/features/catalog/model.ts":
+      "export interface Product { id: string }\n",
+    "apps/web/src/features/catalog/view.ts":
+      'export type { Product } from "./model.js"\nexport { query } from "@/lib/query"\n',
+    "apps/web/src/features/checkout/view.ts": "export const checkout = 1\n",
+    "apps/web/src/routes/home.ts":
+      'export * from "@/features/catalog/view"\nexport * from "@/features/checkout/view"\n',
+    "apps/web/src/components/header.ts":
+      'export * from "@/features/catalog/view"\n',
+  })
+  assert.deepEqual(violations, [])
+})

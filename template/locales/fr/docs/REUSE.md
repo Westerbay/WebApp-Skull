@@ -32,8 +32,10 @@ Les styles et tokens communs sont dans `packages/ui/src/styles/globals.css`.
 
 - `apps/web/src/lib/auth/auth-client.ts` : client Better Auth partagé.
 - `apps/web/src/lib/auth/current-user.ts` : requête d'identité, vérification
-  fraîche avant une route protégée et purge de tout cache privé lors d'une
-  connexion ou déconnexion.
+  fraîche avant une route protégée.
+- `apps/web/src/lib/query/private-cache.ts` : annulation puis retrait des
+  requêtes privées lors des transitions d’identité, en conservant les requêtes
+  publiques. Le préfixe commun inclut automatiquement les nouvelles fonctionnalités.
 - `apps/web/src/lib/api/client.ts` : client OpenAPI typé, configuré avec les
   cookies de session.
 - `apps/web/src/lib/query/query-client.ts` : configuration TanStack Query ; les réglages partagés sont dans `query.config.ts`.

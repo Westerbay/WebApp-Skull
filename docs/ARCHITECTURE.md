@@ -24,6 +24,13 @@ do not depend on business packages. Shared packages never import applications.
 
 Routes compose navigation, metadata and feature components. Feature hooks own
 interactions; shared clients and query configuration live in web `lib`.
+The home route composes the auth account summary and the users table; auth does
+not own the dashboard. The application header composes auth session actions.
+Dependency rules keep each `features/<name>` independent of other features and
+of routes/application-shell components. Shared `lib` mechanisms depend on
+neither features nor composition. These rules apply to new feature folders
+without adding their names to configuration. Compose features at the route or
+shell boundary; extract a shared mechanism only for a concrete common need.
 Configurations stay with the module that enforces them. No extra repository or
 port layer is needed for the existing auth and sample users flows.
 

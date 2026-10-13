@@ -5,7 +5,7 @@ import { useState } from "react"
 import { toast } from "sonner"
 import { network_error, reset_complete } from "@workspace/i18n/messages"
 import { authClient } from "@/lib/auth/auth-client"
-import { clearPrivateCache } from "@/lib/auth/current-user"
+import { clearPrivateCache } from "@/lib/query/private-cache"
 import { resetPasswordSchema } from "../schemas/auth-form"
 import { authErrorMessage } from "../auth-error"
 
