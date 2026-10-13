@@ -1,6 +1,6 @@
 export type ShutdownResource = Readonly<{
-  close: () => Promise<unknown>
-  name: "server" | "email" | "database" | "valkey" | "metrics"
+  close: () => void | Promise<unknown>
+  name: string
 }>
 
 export type ShutdownEvent = Readonly<{
@@ -17,16 +17,17 @@ export function createShutdown(
   return () => {
     operation ??= (async () => {
       report({ event: "api.stopping" })
-      let failed = false
+      const failures: Array<unknown> = []
       for (const resource of resources) {
         try {
           await resource.close()
-        } catch {
-          failed = true
+        } catch (error) {
+          failures.push(error)
           report({ event: "api.shutdown_failed", resource: resource.name })
         }
       }
-      if (failed) throw new Error("API_SHUTDOWN_FAILED")
+      if (failures.length > 0)
+        throw new AggregateError(failures, "API_SHUTDOWN_FAILED")
       report({ event: "api.stopped" })
     })()
     return operation

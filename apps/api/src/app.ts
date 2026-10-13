@@ -86,36 +86,48 @@ export async function createApiApp(
   const app = await NestFactory.create(AppModule, {
     bodyParser: false,
     bufferLogs: true,
+    abortOnError: false,
   })
-  app.useLogger(app.get(PinoNestLogger))
-  const expressApp = app.getHttpAdapter().getInstance()
+  try {
+    app.useLogger(app.get(PinoNestLogger))
+    const expressApp = app.getHttpAdapter().getInstance()
 
-  expressApp.use(httpLogging.middleware)
-  if (dependencies.metrics) expressApp.use(dependencies.metrics.middleware)
-  expressApp.use(requestContext)
-  expressApp.use(
-    cors({
-      origin: dependencies.allowedOrigin ?? apiConfig.defaultAllowedOrigin,
-      credentials: true,
-      allowedHeaders: ["Content-Type", "Authorization"],
-      methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    })
-  )
-  expressApp.use(
-    "/api/auth",
-    (
-      request: express.Request,
-      _response: express.Response,
-      next: express.NextFunction
-    ) => {
-      // The socket peer is authoritative until a specific trusted proxy is configured.
-      request.headers["x-auth-client-ip"] =
-        request.socket.remoteAddress ?? "127.0.0.1"
-      next()
-    },
-    dependencies.authHandler
-  )
-  expressApp.use(express.json())
+    expressApp.use(httpLogging.middleware)
+    if (dependencies.metrics) expressApp.use(dependencies.metrics.middleware)
+    expressApp.use(requestContext)
+    expressApp.use(
+      cors({
+        origin: dependencies.allowedOrigin ?? apiConfig.defaultAllowedOrigin,
+        credentials: true,
+        allowedHeaders: ["Content-Type", "Authorization"],
+        methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+      })
+    )
+    expressApp.use(
+      "/api/auth",
+      (
+        request: express.Request,
+        _response: express.Response,
+        next: express.NextFunction
+      ) => {
+        // The socket peer is authoritative until a specific trusted proxy is configured.
+        request.headers["x-auth-client-ip"] =
+          request.socket.remoteAddress ?? "127.0.0.1"
+        next()
+      },
+      dependencies.authHandler
+    )
+    expressApp.use(express.json())
 
-  return app
+    return app
+  } catch (error) {
+    try {
+      await app.close()
+    } catch (cleanupError) {
+      throw new AggregateError([error, cleanupError], "API_HTTP_SETUP_FAILED", {
+        cause: error,
+      })
+    }
+    throw error
+  }
 }

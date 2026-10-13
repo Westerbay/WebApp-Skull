@@ -86,6 +86,14 @@ Pino emits sanitized HTTP logs with request IDs. Readiness checks PostgreSQL
 and enabled Valkey; shutdown drains email and closes resources. Migration and
 seed CLIs reject remote or unverified database targets before connecting.
 
+The process entry point installs shutdown signal handlers after `bootstrap.ts`
+starts the API. Startup validates configuration before acquiring resources and
+uses the same idempotent cleanup on failure as normal shutdown: stop HTTP, drain
+email, close the metrics listener and registry, then Valkey and PostgreSQL.
+Every remaining close is attempted if one fails; startup and cleanup errors
+remain available together when both fail. Nest throws creation errors instead
+of terminating the process before cleanup can run.
+
 The optional observability stack sends sanitized JSON through Alloy to Loki and
 exposes process/HTTP/email metrics on a separate, opt-in private HTTP
 listener for Prometheus. A Blackbox probe checks readiness outside the API process.

@@ -43,3 +43,25 @@ it("closes every resource in order once when shutdown is requested twice", async
     { event: "api.shutdown_failed", resource: "email" },
   ])
 })
+
+it("continues asynchronous cleanup after a synchronous closer throws", async () => {
+  const failure = new Error("metrics cleanup failed")
+  const closeDatabase = vi.fn(() => Promise.resolve())
+  const shutdown = createShutdown(
+    [
+      {
+        name: "metrics-registry",
+        close: () => {
+          throw failure
+        },
+      },
+      { name: "database", close: closeDatabase },
+    ],
+    vi.fn()
+  )
+  await expect(shutdown()).rejects.toMatchObject({
+    message: "API_SHUTDOWN_FAILED",
+    errors: [failure],
+  })
+  expect(closeDatabase).toHaveBeenCalledOnce()
+})
