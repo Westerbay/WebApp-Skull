@@ -16,6 +16,10 @@ The default ports are web 3000, API 3001 and PostgreSQL 5433. `pnpm run setup`
 starts infrastructure and applies guarded migrations; it does not seed.
 `pnpm dev:down` stops services without deleting the database volume.
 
+The standard `compose.yml` stays at the root; optional and test stacks live in
+`infra/compose/`. Infrastructure scripts live in `scripts/infra/`. See
+[TOOLING.md](TOOLING.md) for ownership, script language choices and validation.
+
 ## Languages and public paths
 
 Edit `packages/i18n/messages/<locale>.json` for UI and email copy and

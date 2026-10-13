@@ -2,7 +2,7 @@ import { spawn } from "node:child_process"
 import { mkdir } from "node:fs/promises"
 import { fileURLToPath } from "node:url"
 
-const directory = fileURLToPath(new URL("../output/logs/", import.meta.url))
+const directory = fileURLToPath(new URL("../../output/logs/", import.meta.url))
 await mkdir(directory, { recursive: true })
 
 const child = spawn("pnpm", ["dev"], {
@@ -11,7 +11,7 @@ const child = spawn("pnpm", ["dev"], {
     ...process.env,
     LOG_FORMAT: "json",
     LOG_FILE: fileURLToPath(
-      new URL("../output/logs/api.jsonl", import.meta.url)
+      new URL("../../output/logs/api.jsonl", import.meta.url)
     ),
     METRICS_ENABLED: "true",
     METRICS_HOST: process.env.METRICS_HOST ?? "0.0.0.0",

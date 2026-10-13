@@ -139,7 +139,7 @@ service availability.
 
 In production, provision the dashboards against Loki and Prometheus-compatible
 data sources with UIDs `loki` and `prometheus`. Scrape each API instance privately.
-The Docker collector in `compose.logs-collector.yml` sends opted-in containers'
+The Docker collector in `infra/compose/logs-collector.yml` sends opted-in containers'
 JSON stdout to an externally managed Loki backend. It needs `APP_ENV=staging|production`
 and the full `LOKI_URL`; token-file and tenant settings are optional. Containers
 need `skull.logs=true` and matching `skull.logs.environment` labels. Read-only
@@ -250,5 +250,5 @@ Validate the deployed collector fragment without contacting a remote backend:
 
 ```bash
 APP_ENV=staging LOKI_URL=https://logs.example.invalid/loki/api/v1/push \
-  docker compose --env-file /dev/null -f compose.logs-collector.yml config --quiet
+  docker compose --env-file /dev/null -f infra/compose/logs-collector.yml config --quiet
 ```

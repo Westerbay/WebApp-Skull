@@ -21,13 +21,10 @@ if (rootManifest.packageManager !== "pnpm@12.4.1") {
   failures.push("packageManager must remain pnpm@12.4.1")
 }
 
-for (const composeFile of [
-  "compose.yml",
-  "compose.test.yml",
-  "compose.observability.yml",
-  "compose.logs-collector.yml",
-  "compose.valkey.yml",
-]) {
+const specializedComposeFiles = (await readdir(resolve(root, "infra/compose")))
+  .filter((file) => /\.ya?ml$/.test(file))
+  .map((file) => `infra/compose/${file}`)
+for (const composeFile of ["compose.yml", ...specializedComposeFiles]) {
   const content = await readFile(resolve(root, composeFile), "utf8")
   for (const match of content.matchAll(/^\s*image:\s*(\S+)/gm)) {
     if (!match[1]?.includes(":") || match[1].endsWith(":latest")) {

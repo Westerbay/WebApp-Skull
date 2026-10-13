@@ -1,15 +1,15 @@
 import assert from "node:assert/strict"
 import { createRequire } from "node:module"
 import { readdir, readFile } from "node:fs/promises"
-import { createDatabase } from "../packages/database/dist/index.js"
-import { MemoryEmailSender } from "../packages/email/dist/index.js"
-import { DEFAULT_LOCALE } from "../packages/i18n/src/config.ts"
-import { createApiApp } from "../apps/api/dist/app.js"
-import { createApiLogger } from "../apps/api/dist/infrastructure/logging/logging.js"
-import { createApiMetrics } from "../apps/api/dist/infrastructure/observability/metrics.js"
-import { startMetricsServer } from "../apps/api/dist/infrastructure/observability/server.js"
-import { createValkey } from "../apps/api/dist/infrastructure/valkey/valkey.js"
-import { AuthEmailDispatcher } from "../apps/api/dist/infrastructure/email/auth-email-dispatcher.js"
+import { createDatabase } from "../../packages/database/dist/index.js"
+import { MemoryEmailSender } from "../../packages/email/dist/index.js"
+import { DEFAULT_LOCALE } from "../../packages/i18n/src/config.ts"
+import { createApiApp } from "../../apps/api/dist/app.js"
+import { createApiLogger } from "../../apps/api/dist/infrastructure/logging/logging.js"
+import { createApiMetrics } from "../../apps/api/dist/infrastructure/observability/metrics.js"
+import { startMetricsServer } from "../../apps/api/dist/infrastructure/observability/server.js"
+import { createValkey } from "../../apps/api/dist/infrastructure/valkey/valkey.js"
+import { AuthEmailDispatcher } from "../../apps/api/dist/infrastructure/email/auth-email-dispatcher.js"
 import {
   createLogsTestHarness,
   logsTestConfig,
@@ -17,7 +17,7 @@ import {
 } from "./support/logs-test-harness.mjs"
 
 const require = createRequire(
-  new URL("../apps/api/package.json", import.meta.url)
+  new URL("../../apps/api/package.json", import.meta.url)
 )
 const { Router } = require("express")
 
@@ -283,7 +283,7 @@ try {
     assert.equal(health.status, 200, await health.text())
   }
   const directory = new URL(
-    "../infra/observability/grafana/dashboards/",
+    "../../infra/observability/grafana/dashboards/",
     import.meta.url
   )
   let checked = 0

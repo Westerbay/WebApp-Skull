@@ -13,8 +13,8 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
-      - ./infra/observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      - ./infra/observability/prometheus/rules.yml:/etc/prometheus/rules.yml:ro
+      - ../observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ../observability/prometheus/rules.yml:/etc/prometheus/rules.yml:ro
       - prometheus_data:/prometheus
 
   blackbox:
@@ -24,7 +24,7 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
-      - ./infra/observability/blackbox.yml:/etc/blackbox/config.yml:ro
+      - ../observability/blackbox.yml:/etc/blackbox/config.yml:ro
 
   loki:
     image: grafana/loki:3.7.8
@@ -33,7 +33,7 @@ services:
     ports:
       - "127.0.0.1:${LOKI_PORT:-3100}:3100"
     volumes:
-      - ./infra/observability/loki.yml:/etc/loki/config.yml:ro
+      - ../observability/loki.yml:/etc/loki/config.yml:ro
       - loki_data:/loki
 
   alloy:
@@ -54,10 +54,10 @@ services:
     ports:
       - "127.0.0.1:${ALLOY_PORT:-12345}:12345"
     volumes:
-      - ./infra/observability/config.alloy:/etc/alloy/config.alloy:ro
-      - ./infra/observability/postgres.yml:/etc/alloy/postgres.yml:ro
-      - ./infra/observability/postgres-statements.yml:/etc/alloy/postgres-statements.yml:ro
-      - ./output/logs:/var/log/skull:ro
+      - ../observability/config.alloy:/etc/alloy/config.alloy:ro
+      - ../observability/postgres.yml:/etc/alloy/postgres.yml:ro
+      - ../observability/postgres-statements.yml:/etc/alloy/postgres-statements.yml:ro
+      - ../../output/logs:/var/log/skull:ro
       - alloy_data:/var/lib/alloy
     depends_on:
       - loki
@@ -76,7 +76,7 @@ services:
     ports:
       - "127.0.0.1:${GRAFANA_PORT:-3002}:3000"
     volumes:
-      - ./infra/observability/grafana:/etc/grafana/provisioning:ro
+      - ../observability/grafana:/etc/grafana/provisioning:ro
       - grafana_data:/var/lib/grafana
     depends_on:
       - loki

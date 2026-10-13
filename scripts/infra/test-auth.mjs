@@ -2,7 +2,7 @@ import { spawnSync } from "node:child_process"
 import { randomUUID } from "node:crypto"
 import { fileURLToPath } from "node:url"
 
-const root = fileURLToPath(new URL("../", import.meta.url))
+const root = fileURLToPath(new URL("../../", import.meta.url))
 const suite = process.argv[2]
 if (suite !== "integration" && suite !== "e2e") {
   throw new Error("Usage: test-auth.mjs <integration|e2e>")
@@ -15,7 +15,7 @@ const compose = [
   "-p",
   project,
   "-f",
-  "compose.test.yml",
+  "infra/compose/test.yml",
 ]
 function run(command, args, options = {}) {
   const result = spawnSync(command, args, {

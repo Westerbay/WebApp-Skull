@@ -307,7 +307,7 @@ filesystem local ne fournit pas de haute disponibilité ni de sauvegarde externe
 
 ## Contrat d’intégration staging/prod
 
-`compose.logs-collector.yml` définit uniquement le collecteur Alloy. Il est
+`infra/compose/logs-collector.yml` définit uniquement le collecteur Alloy. Il est
 indépendant du Compose de développement et ne crée ni application, ni DB,
 ni Loki/Grafana. Il n’expose aucun port sur l’hôte. Son nom de projet et son
 volume de positions sont distincts selon `APP_ENV` ; fournir staging ou production.
@@ -361,7 +361,7 @@ Validation locale du fragment, sans démarrage ni fichier d’environnement :
 
 ```bash
 APP_ENV=staging LOKI_URL=https://logs.example.invalid/loki/api/v1/push \
-  docker compose --env-file /dev/null -f compose.logs-collector.yml config --quiet
+  docker compose --env-file /dev/null -f infra/compose/logs-collector.yml config --quiet
 pnpm logs:test:docker
 ```
 
@@ -417,3 +417,8 @@ verrouillés. Aucune suppression forcée. Les dépendances et fichiers
 d’environnement ne sont pas copiés ; configurer chaque checkout séparément.
 `worktree:check` utilise des dépôts temporaires sans lire de fichiers
 d’environnement.
+
+## Infrastructure tooling
+
+Optional and test stacks live in `infra/compose/`; their scripts live in
+`scripts/infra/`. See [TOOLING.md](TOOLING.md) for ownership and validation.
