@@ -12,7 +12,7 @@ export async function createTemplateArchive({ output, profile }) {
     profile,
   })
   const entries = await readArchiveFiles(project)
-  const archive = resolve(directory, `webapp-skull-${profile}.zip`)
+  const archive = resolve(directory, `webapp-template-${profile}.zip`)
   await writeFile(archive, zipSync(entries), { flag: "wx" })
   return archive
 }

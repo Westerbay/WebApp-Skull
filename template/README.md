@@ -1,6 +1,6 @@
 # Template maintenance
 
-This guide belongs to the WebApp-Skull source repository only. Generated projects
+This guide belongs to the WebApp Template source repository only. Generated projects
 keep application code, tests, CI and documentation. They exclude this directory,
 generation scripts and their tests, the distribution workflow, template commands
 and archive-only dependencies.
@@ -85,8 +85,8 @@ git tag v0.1.0
 git push origin v0.1.0
 ```
 
-The example version must be unused. The release contains `webapp-skull-en.zip`,
-`webapp-skull-fr.zip` and `webapp-skull-multilingual.zip`. Download those assets;
+The example version must be unused. The release contains `webapp-template-en.zip`,
+`webapp-template-fr.zip` and `webapp-template-multilingual.zip`. Download those assets;
 GitHub's automatic `Source code` archives contain the maintainer repository.
 
 Only the tag publication job has repository write access. It verifies the remote

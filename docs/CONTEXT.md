@@ -1,6 +1,6 @@
 # Context
 
-WebApp-Skull is a reusable full-stack starting point. It includes a working
+WebApp Template is a reusable full-stack starting point. It includes a working
 identity flow, a sample searchable user table and optional local infrastructure;
 it does not prescribe the next project's business domain.
 

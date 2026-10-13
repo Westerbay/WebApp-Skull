@@ -64,7 +64,7 @@ This preference does not grant that authorization.
 
 ## Reusing this project
 
-If you reuse WebApp-Skull, please mention it and link to
-[its repository](https://github.com/Westerbay/WebApp-Skull) in the resulting
+If you reuse WebApp Template, please mention it and link to
+[its repository](https://github.com/Westerbay/WebApp-Template) in the resulting
 project documentation. Attribution is optional and is not a condition of the
 MIT license.
