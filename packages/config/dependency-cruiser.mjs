@@ -58,6 +58,35 @@ export default {
       to: { path: "^(apps/web/|packages/ui/|@workspace/ui(?:/|$))" },
     },
     {
+      name: "api-modules-independent",
+      severity: "error",
+      comment:
+        "Compose API modules in the application; share generic mechanisms through infrastructure or packages.",
+      from: { path: "^apps/api/src/modules/([^/]+)/" },
+      to: {
+        path: "^apps/api/src/modules/",
+        pathNot: "^apps/api/src/modules/$1/",
+      },
+    },
+    {
+      name: "api-support-no-modules",
+      severity: "error",
+      comment:
+        "Infrastructure and configuration cannot depend on application modules.",
+      from: { path: "^apps/api/src/(?:infrastructure|config)/" },
+      to: { path: "^apps/api/src/modules/" },
+    },
+    {
+      name: "api-no-composition-dependencies",
+      severity: "error",
+      comment:
+        "Modules, infrastructure and configuration cannot import runtime or OpenAPI composition.",
+      from: { path: "^apps/api/src/(?:modules|infrastructure|config)/" },
+      to: {
+        path: "^apps/api/src/(?:app\\.ts$|bootstrap\\.ts$|index\\.ts$|openapi/)",
+      },
+    },
+    {
       name: "packages-no-apps",
       severity: "error",
       comment: "Shared packages cannot depend on application composition.",
