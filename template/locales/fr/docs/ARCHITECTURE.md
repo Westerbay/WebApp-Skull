@@ -259,7 +259,7 @@ Les logs JSON portent `service_name=skull-api` et `environment=APP_ENV`.
 `logging.config.ts` valide format, niveau et miroir local. Staging/production
 émettent uniquement sur stdout en JSON ; le miroir fichier est réservé au dev.
 
-`compose.observability.yml` est indépendant de PostgreSQL et Mailpit.
+`infra/compose/observability.yml` est indépendant de PostgreSQL et Mailpit.
 `pnpm dev:logs` conserve stdout et écrit le JSON API dans
 `output/logs/api.jsonl`. Alloy monte ce répertoire en lecture seule, conserve
 ses positions dans son volume et transmet à Loki. Loki monolithique conserve
@@ -267,7 +267,7 @@ ses données et son état de compaction dans un volume, avec rétention de sept
 jours. Grafana provisionne la datasource et un dashboard de logs/erreurs.
 Seuls service et environnement sont indexés ; requestId reste dans le JSON.
 
-Le fragment `compose.logs-collector.yml` prépare un Alloy autonome par
+Le fragment `infra/compose/logs-collector.yml` prépare un Alloy autonome par
 environnement ; il ne lance ni application, ni Loki/Grafana. Il utilise
 `infra/observability/docker.alloy` pour sélectionner les conteneurs marqués
 `skull.logs=true` et `skull.logs.environment=APP_ENV`. Le label indexé

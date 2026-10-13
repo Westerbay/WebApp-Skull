@@ -15,8 +15,8 @@ export const logsTestConfig = {
 }
 
 export async function createLogsTestHarness() {
-  const root = fileURLToPath(new URL("../../", import.meta.url))
-  const output = fileURLToPath(new URL("../../output/", import.meta.url))
+  const root = fileURLToPath(new URL("../../../", import.meta.url))
+  const output = fileURLToPath(new URL("../../../output/", import.meta.url))
   await mkdir(output, { recursive: true })
   const directory = await mkdtemp(output + "logs-test-")
   const project = "skull-logs-" + randomUUID()
@@ -46,7 +46,7 @@ export async function createLogsTestHarness() {
   const configureMetrics = async (apiPort, metricsPort) => {
     const config = await readFile(
       new URL(
-        "../../infra/observability/prometheus/prometheus.yml",
+        "../../../infra/observability/prometheus/prometheus.yml",
         import.meta.url
       ),
       "utf8"
@@ -105,7 +105,7 @@ export async function createLogsTestHarness() {
         "-p",
         project,
         "-f",
-        "compose.observability.yml",
+        "infra/compose/observability.yml",
         "-f",
         override,
         ...args,
@@ -131,7 +131,7 @@ export async function createLogsTestHarness() {
         "-p",
         project + "-collector",
         "-f",
-        "compose.logs-collector.yml",
+        "infra/compose/logs-collector.yml",
         "-f",
         collectorOverride,
         ...args,

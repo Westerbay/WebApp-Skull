@@ -2,15 +2,15 @@ import { execFileSync } from "node:child_process"
 import { readFile } from "node:fs/promises"
 import { fileURLToPath } from "node:url"
 
-const root = fileURLToPath(new URL("../", import.meta.url))
+const root = fileURLToPath(new URL("../../", import.meta.url))
 const compose = await readFile(
-  new URL("../compose.observability.yml", import.meta.url),
+  new URL("../../infra/compose/observability.yml", import.meta.url),
   "utf8"
 )
 const image = compose.match(/^\s+image: (prom\/prometheus:\S+)$/m)?.[1]
 if (!image) throw new Error("Pinned Prometheus image not found")
 const config = fileURLToPath(
-  new URL("../infra/observability/prometheus/", import.meta.url)
+  new URL("../../infra/observability/prometheus/", import.meta.url)
 )
 for (const args of [
   ["check", "config", "prometheus.yml"],
@@ -50,7 +50,7 @@ execFileSync(
     "-e",
     "OBS_VALKEY_URL=redis://localhost:6379",
     "-v",
-    fileURLToPath(new URL("../infra/observability/", import.meta.url)) +
+    fileURLToPath(new URL("../../infra/observability/", import.meta.url)) +
       ":/etc/alloy:ro",
     alloyImage,
     "validate",

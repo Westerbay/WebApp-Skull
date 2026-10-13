@@ -60,6 +60,8 @@ conteneurs éphémères ; aucun staging/prod n’est déployé.
 - [DESIGN.md](DESIGN.md) : conventions d’interface.
 - [REUSE.md](REUSE.md) : catalogue des éléments partagés.
 - [DEVELOPMENT.md](DEVELOPMENT.md) : environnement et commandes.
+- [OBSERVABILITY.md](OBSERVABILITY.md) : dashboards, métriques, alertes et procédures de diagnostic.
+- [POSTGRESQL-PERFORMANCE.md](POSTGRESQL-PERFORMANCE.md) : activation des statistiques SQL, interprétation et diagnostic ciblé.
 
 ## Limite actuelle
 

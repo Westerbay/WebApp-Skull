@@ -146,19 +146,19 @@ Le champ auth-input associe chaque label et erreur à un identifiant unique. Il 
 
 - `apps/api/src/infrastructure/logging/logging.config.ts` : validation des
   réglages de logging à la frontière ; JSON/stdout imposés hors développement.
-- `compose.logs-collector.yml` : fragment de collecteur Docker pour une destination Loki externe ; aucun déploiement applicatif ou backend d’observabilité.
+- `infra/compose/logs-collector.yml` : fragment de collecteur Docker pour une destination Loki externe ; aucun déploiement applicatif ou backend d’observabilité.
 - `infra/observability` : configurations Alloy fichier/Docker, stockage Loki et
   provisionnement Grafana. Labels stables seulement, aucun identifiant de
   requête/utilisateur indexé.
-- `scripts/test-logs.mjs` : assertions du flux réel Nest vers la datasource
-  Grafana ; `scripts/support/logs-test-harness.mjs` possède les ressources Docker
+- `scripts/infra/test-logs.mjs` : assertions du flux réel Nest vers la datasource
+  Grafana ; `scripts/infra/support/logs-test-harness.mjs` possède les ressources Docker
   isolées, leur nettoyage et les délais de polling.
 
-- `scripts/test-docker-logs.mjs` : test local du fragment de collecte, des labels de service et de la sélection par environnement/opt-in.
+- `scripts/infra/test-docker-logs.mjs` : test local du fragment de collecte, des labels de service et de la sélection par environnement/opt-in.
 
 ## Intégrations d’infrastructure optionnelles
 
-- `compose.valkey.yml` : serveur Valkey local indépendant et éphémère.
+- `infra/compose/valkey.yml` : serveur Valkey local indépendant et éphémère.
 - `apps/api/src/infrastructure/valkey` : activation validée et cycle de vie client.
 - `apps/api/src/infrastructure/rate-limit/valkey-rate-limit-store.ts` : quotas Nest atomiques partagés.
 - `apps/api/test/valkey` : tests avec conteneur possédé, via `pnpm valkey:test`.

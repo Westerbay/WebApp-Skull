@@ -16,7 +16,7 @@ services:
       LOKI_TOKEN_FILE: ${LOKI_TOKEN_FILE:-}
       LOKI_TENANT_ID: ${LOKI_TENANT_ID:-}
     volumes:
-      - ./infra/observability/docker.alloy:/etc/alloy/config.alloy:ro
+      - ../observability/docker.alloy:/etc/alloy/config.alloy:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - alloy_data:/var/lib/alloy
     logging:

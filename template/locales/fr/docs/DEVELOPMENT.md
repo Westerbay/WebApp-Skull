@@ -307,7 +307,7 @@ filesystem local ne fournit pas de haute disponibilité ni de sauvegarde externe
 
 ## Contrat d’intégration staging/prod
 
-`compose.logs-collector.yml` définit uniquement le collecteur Alloy. Il est
+`infra/compose/logs-collector.yml` définit uniquement le collecteur Alloy. Il est
 indépendant du Compose de développement et ne crée ni application, ni DB,
 ni Loki/Grafana. Il n’expose aucun port sur l’hôte. Son nom de projet et son
 volume de positions sont distincts selon `APP_ENV` ; fournir staging ou production.
@@ -361,7 +361,7 @@ Validation locale du fragment, sans démarrage ni fichier d’environnement :
 
 ```bash
 APP_ENV=staging LOKI_URL=https://logs.example.invalid/loki/api/v1/push \
-  docker compose --env-file /dev/null -f compose.logs-collector.yml config --quiet
+  docker compose --env-file /dev/null -f infra/compose/logs-collector.yml config --quiet
 pnpm logs:test:docker
 ```
 
@@ -417,3 +417,15 @@ verrouillés. Aucune suppression forcée. Les dépendances et fichiers
 d’environnement ne sont pas copiés ; configurer chaque checkout séparément.
 `worktree:check` utilise des dépôts temporaires sans lire de fichiers
 d’environnement.
+
+## Organisation des outils d’infrastructure
+
+Le fichier standard `compose.yml` reste à la racine ; les stacks optionnelles
+et de test sont dans `infra/compose/`. Leurs scripts sont dans `scripts/infra/` ;
+utiliser les commandes pnpm de la racine comme points d’entrée. Conserver `.mjs`
+pour les fichiers structurés, l’orchestration des processus et le nettoyage des
+ressources ; Bash convient aux courtes étapes de CI propres au shell.
+`pnpm tooling:test` vérifie le lanceur des stacks optionnelles sans Docker
+(son faux exécutable POSIX est ignoré sous Windows). Les suites d’intégration,
+E2E et d’observabilité nécessitent Docker et nettoient uniquement leurs propres
+ressources temporaires.

@@ -7,11 +7,13 @@ import {
   readdir,
   rm,
   access,
+  cp,
+  mkdir,
   writeFile,
   symlink,
 } from "node:fs/promises"
 import { tmpdir } from "node:os"
-import { basename, join } from "node:path"
+import { basename, dirname, join } from "node:path"
 import { execFileSync } from "node:child_process"
 import { createRequire } from "node:module"
 import { fileURLToPath, pathToFileURL } from "node:url"
@@ -27,7 +29,7 @@ const requireI18n = createRequire(
 )
 const { compile } = await import(requireI18n.resolve("@inlang/paraglide-js"))
 
-for (const { id, locales } of templateProfiles) {
+for (const { id, locales, docsLocale } of templateProfiles) {
   test(`generates the ${id} profile with working translated URLs`, async () => {
     const temporary = await mkdtemp(join(tmpdir(), "skull-template-test-"))
     try {
@@ -41,6 +43,28 @@ for (const { id, locales } of templateProfiles) {
       const archiveBytes = await readFile(archive)
       const entries = unzipSync(archiveBytes)
       const names = Object.keys(entries)
+      const documentNames = (await readdir(join(source, "docs")))
+        .filter((name) => name.endsWith(".md"))
+        .sort()
+      assert.deepEqual(
+        names.filter((name) => /^docs\/[^/]+\.md$/.test(name)).sort(),
+        documentNames.map((name) => `docs/${name}`)
+      )
+      const documentationRoot =
+        docsLocale === "fr" ? join(source, "template/locales/fr") : source
+      for (const name of documentNames) {
+        const expected = (
+          await readFile(join(documentationRoot, "docs", name), "utf8")
+        ).replace(
+          /<!-- template-maintainers:start -->[\s\S]*?<!-- template-maintainers:end -->\n*/g,
+          ""
+        )
+        assert.equal(
+          Buffer.from(entries[`docs/${name}`]).toString("utf8"),
+          expected,
+          `Wrong documentation language for ${id}: ${name}`
+        )
+      }
       for (const required of [
         "README.md",
         "package.json",
@@ -181,6 +205,44 @@ test("refuses an unknown profile before creating output", async () => {
   } finally {
     await rm(temporary, { recursive: true, force: true })
   }
+})
+
+test("rejects a newly added document without a French translation before creating output", async (t) => {
+  const temporary = await mkdtemp(join(tmpdir(), "template-missing-doc-"))
+  t.after(() => rm(temporary, { recursive: true, force: true }))
+  const fixture = join(temporary, "source")
+  for (const file of [
+    "scripts/template-generator.mjs",
+    "scripts/template-files.mjs",
+    "scripts/template-profiles.mjs",
+    "packages/i18n/routing-config.mjs",
+    "packages/i18n/routing.json",
+    "packages/i18n/messages/en.json",
+    "template/locales/fr/messages.json",
+    "template/locales/fr/routes.json",
+    "template/locales/fr/README.md",
+    "template/locales/fr/AGENTS.md",
+  ]) {
+    const target = join(fixture, file)
+    await mkdir(dirname(target), { recursive: true })
+    await cp(join(source, file), target)
+  }
+  await mkdir(join(fixture, "docs"))
+  await writeFile(join(fixture, "docs/NEW.md"), "# New guide\n")
+  await symlink(
+    join(source, "node_modules"),
+    join(fixture, "node_modules"),
+    "dir"
+  )
+  const { generateTemplate: generateFixture } = await import(
+    pathToFileURL(join(fixture, "scripts/template-generator.mjs")).href
+  )
+  const output = join(temporary, "output")
+  await assert.rejects(generateFixture({ output, profile: "fr" }), {
+    code: "ENOENT",
+    path: join(fixture, "template/locales/fr/docs/NEW.md"),
+  })
+  await assert.rejects(access(output), { code: "ENOENT" })
 })
 
 test("CLI accepts pnpm's separator and a French profile", async () => {
