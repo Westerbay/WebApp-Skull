@@ -1,307 +1,148 @@
 # Architecture
 
-## Recherche et composition des formulaires
-
-`usersQuerySchema` étend la pagination avec une recherche facultative, trimée
-et limitée à 100 caractères. PostgreSQL combine le curseur avec ILIKE sur nom
-ou email, paramétré et avec les caractères spéciaux LIKE échappés. Les clés de
-cache incluent le filtre appliqué. Le hook local `useDebouncedValue` nettoie son
-minuteur au changement et au démontage ; la feature possède le délai de 300 ms.
-Changer le filtre remet la navigation à zéro, même avec des pages en cache ;
-une ancienne requête de page ne peut pas avancer une recherche différente.
-Les formulaires auth utilisent AppField pour les champs et AppForm pour le
-bouton de soumission, avec les contextes natifs TanStack Form.
-
-## Mots de passe compromis
-
-Le plugin Have I Been Pwned vérifie le hash à l’inscription, au changement et
-au reset en staging/production. Seuls les cinq premiers caractères du hash
-SHA-1 sont transmis à `api.pwnedpasswords.com`, jamais le mot de passe ni le
-hash complet. Une erreur bloque l’écriture. Development/test et le hashing
-direct des fixtures restent hors ligne. Better Auth 1.7.4 consomme le token de
-reset avant le hash : un refus ou une indisponibilité exige un nouveau lien.
-
-## Dépendances
+## Frontières
 
 ```text
-apps/web ───────────────→ packages/contracts, packages/ui
-apps/web ───────────────→ openapi-fetch + contrat généré
-apps/api ───────────────→ packages/contracts, packages/database
-packages/database ──────→ Drizzle ORM, PostgreSQL
-packages/core ──────────→ aucune technologie applicative
+apps/web → packages/contracts, packages/ui, packages/i18n, types API générés
+apps/api → packages/contracts, packages/database, packages/email
+packages/database → Drizzle ORM, PostgreSQL
+packages/core → ports indépendants des frameworks
 ```
 
-NestJS compose l'API. Express reçoit les requêtes HTTP ; le handler officiel
-Better Auth est monté sous `/api/auth` avant le parseur JSON Nest. Un guard
-global protège les controllers Nest, sauf ceux marqués publics. Les routes de
-santé `/health/live` et `/health/ready` sont publiques.
+NestJS compose l’API ; Express monte Better Auth sous `/api/auth` avant le
+parseur JSON de Nest. Better Auth possède les utilisateurs, comptes et sessions.
+Nest protège ses contrôleurs avec une garde de session globale, sauf pour les
+routes publiques. `packages/core` contient uniquement des ports indépendants
+des technologies, actuellement `EmailSender`. Les contrats possèdent les schémas
+de frontière ; database possède la persistance ; UI possède les primitives
+réutilisables. Le web n’importe jamais de modules serveur.
 
-Un second guard global Nest Throttler limite les controllers par pair réseau.
-Express ne faisant confiance à aucun proxy, l’adresse vient du socket et les
-en-têtes clients tels que `X-Forwarded-For` sont ignorés. Le tracker natif
-normalise aussi les sous-réseaux IPv6. `@RateLimit` remplace le quota sur un
-controller ou une méthode et documente la réponse 429 ; `@SkipRateLimit` exclut
-les sondes de santé. Son stockage est local par défaut ; Valkey optionnel partage les quotas entre instances.
+`pnpm boundaries:check` impose ces directions de dépendance avec les
+[règles de dépendances](../packages/config/dependency-cruiser.mjs), y compris
+pour les imports de types, imports dynamiques et alias résolus. Les ports core
+n’ont aucune dépendance externe ; les contrats dépendent uniquement de leurs
+propres schémas et de Zod ; les primitives UI ne dépendent pas des packages
+métier. Les packages partagés n’importent jamais les applications.
 
-`GET /api/me` utilise `@CurrentUser()` pour lire l'identité attachée par le
-guard. Il expose seulement `id`, `name`, `email` et `emailVerified`. Le pipe
-Zod global valide les DTO d'entrée et l'intercepteur Zod vérifie les réponses.
-Le filtre HTTP transforme les erreurs applicatives dans une enveloppe stable
-avec un identifiant de requête, sans exposer les données invalides. Le handler
-Express Better Auth conserve ses propres réponses.
+Les routes composent navigation, métadonnées et composants de fonctionnalités.
+Les hooks de fonctionnalité possèdent les interactions ; les clients partagés et
+la configuration des requêtes sont dans le `lib` web. La route d’accueil compose
+le résumé de compte auth et le tableau utilisateurs ; auth ne possède pas le
+dashboard. Le header applicatif compose les actions de session auth. Les règles
+de dépendances gardent chaque `features/<name>` indépendant des autres
+fonctionnalités, des routes et des composants de structure applicative. Les
+mécanismes partagés de `lib` ne dépendent ni des fonctionnalités ni de leur
+composition. Ces règles couvrent les nouveaux dossiers sans ajouter leurs noms
+à la configuration. Composer les fonctionnalités dans les routes ou la structure
+applicative ; extraire un mécanisme partagé uniquement pour un besoin commun
+concret. Les configurations restent avec le module qui les applique. Les flux
+auth et utilisateurs existants ne nécessitent aucune couche supplémentaire de
+repository ou de port.
 
-L'OpenAPI est produit depuis les controllers de l'application avec un handler
-auth et un lecteur de session inertes. Cette composition n'importe pas le
-client de base de données et ne contacte aucun service. `openapi-typescript`
-génère ensuite les types consommés par `openapi-fetch` dans le web. Le contrôle
-de dérive compare les fichiers générés à des fichiers temporaires, sans lire
-l'index Git.
+## Flux des requêtes et de l’identité
 
-Better Auth possède les utilisateurs, comptes et sessions. Ces objets ne sont
-pas dupliqués dans un faux domaine. `packages/core` possède le port pur `EmailSender`.
+Zod valide les entrées Nest et sérialise les réponses. Les erreurs Nest utilisent
+une enveloppe stable et un identifiant de requête ; Better Auth conserve ses
+propres réponses. OpenAPI est généré depuis les contrôleurs Nest avec des
+providers inertes et produit les types du client web sans connexion à une base
+ni à SMTP. Les deux clients API envoient les cookies de session. Le web lit
+l’URL de l’API via `lib/api/config.ts`.
 
-## Placement du code
+L’adaptateur HTTP Better Auth dérive les modèles de route de télémétrie depuis
+les métadonnées des endpoints configurés, avec le moteur de routage Better Auth.
+Il enregistre uniquement le modèle reconnu sur la requête ; les logs et métriques
+partagent ce modèle. Les routes Nest utilisent automatiquement les métadonnées
+Express. Aucun de ces chemins ne nécessite une liste parallèle d’endpoints.
 
-- Controller, guard et composition HTTP : `apps/api/src`.
-- Code propre à une fonctionnalité web : `apps/web/src/features/<feature>`.
-- Client et configuration transversaux : `apps/web/src/lib`.
-- Schémas échangés aux frontières : `packages/contracts`.
-- Persistance Drizzle : `packages/database`.
-- Primitive visuelle partagée : `packages/ui`.
+L’entrée dans une route protégée vérifie `/api/me` avec des données fraîches.
+Les transitions auth annulent et retirent les requêtes privées en préservant
+les publiques. La réponse de l’utilisateur courant expose uniquement ID, nom,
+email et statut de vérification. Les cibles de redirection internes sont
+validées avant la navigation.
 
-Les fichiers de règles de validation portent le suffixe `.constraints.ts` ;
-les réglages techniques gardent `.config.ts` ou leur module `config.ts`. Les
-bornes du mot de passe sont possédées par le contrat auth partagé et appliquées
-explicitement par Better Auth et le formulaire. Les durées des jetons auth
-appartiennent au même contrat : Better Auth les convertit en secondes et
-`packages/email` les utilise pour annoncer leur expiration.
+Better Auth vérifie les nouveaux mots de passe avec Have I Been Pwned en staging
+et production ; développement et tests restent hors ligne. Un échec du service
+refuse l’enregistrement du mot de passe. Une vérification refusée ou échouée lors
+d’une réinitialisation consomme son lien : l’utilisateur doit en demander un
+autre. Better Auth possède ses limitations de débit dans PostgreSQL. Les quotas
+Nest par défaut sont locaux au processus et utilisent le pair de la socket ;
+les sondes sont exemptées. Valkey peut partager les quotas Nest entre réplicas.
+Un échec de contrôle partagé activé renvoie 503 au lieu de revenir silencieusement
+à des compteurs locaux.
 
-Les constantes restent auprès de leur propriétaire : contraintes de formulaire
-dans la feature web, réglages PostgreSQL dans `packages/database`, configuration
-OpenAPI dans l'API, valeurs par défaut HTTP et readiness dans
-`apps/api/src/config/api.config.ts`, cache web dans
-`apps/web/src/lib/query/query.config.ts`. `packages/config` ne partage à l'exécution que l'identité
-publique du produit ; `packages/contracts` décrit les données échangées, pas les
-réglages d'infrastructure. Le nom du cookie documenté appartient à l'intégration
-Better Auth et ne constitue pas un réglage public du projet.
+## Utilisateurs d’exemple et pagination
 
-Les imports serveur utilisent NodeNext et des extensions `.js` explicites dans
-le TypeScript. Le web utilise le mode de résolution Bundler.
-L'identité publique est un fichier JSON importé avec l'attribut `type: json`.
-TypeScript infère sa structure via `resolveJsonModule`. Les types des données
-validées sont déduits de leurs schémas Zod avec `z.infer` ; les valeurs de
-formulaire utilisent `z.input`. Les props et ports sans validation gardent des
-interfaces explicites. Les configurations techniques restent
-dans leurs modules TypeScript et les valeurs de déploiement à la frontière env.
+`/api/users` exige une session vérifiée. Son schéma de requête borne la taille
+de page, le curseur et la recherche facultative sur nom ou email. Drizzle utilise
+un ordre d’ID unique, le prédicat de curseur correspondant et `limit + 1` lignes.
+Le constructeur de page partagé renvoie `{ items, nextCursor }`. La recherche
+utilise une correspondance paramétrée insensible à la casse et traite les
+caractères joker littéralement.
 
-Le web lit l'URL publique uniquement depuis `apps/web/src/lib/api/config.ts`.
-Le client OpenAPI envoie les cookies avec chaque requête. L'accueil désactive
-son chargement SSR et redirige vers la connexion lorsque `/api/me` répond 401
-ou 403. L'entrée sur cette route force une nouvelle vérification de `/api/me`,
-même si l'identité en cache est encore fraîche. Toute transition d'identité
-annule puis retire les queries préfixées `private` (identité incluse), afin
-qu’aucune donnée privée d’un utilisateur précédent ne reste visible. Les queries
-publiques conservent leurs données et leurs requêtes en cours.
+Le hook web enveloppe `useInfiniteQuery` ; les clés de requête incluent la taille
+de page et la recherche appliquée. La fonctionnalité d’exemple possède le délai
+de recherche, la navigation en cache, la nouvelle tentative et le rendu du tableau.
+Un changement de recherche réinitialise la navigation. Ce contrat de curseur
+n’implique ni nombre total ni accès aléatoire aux pages.
 
-## Pagination des utilisateurs
+## Localisation et email
 
-`GET /api/users` passe par les guards globaux de session vérifiée et de quota.
-Tous les comptes admissibles peuvent lire les noms, emails et statuts de
-vérification de la liste d’exemple ; les comptes, sessions et hashes sont exclus.
-Le DTO valide `cursor` (identifiant non vide, 256 caractères maximum) et `limit`
-(entier entre 1 et 100, 20 par défaut) via les contrats partagés.
+Paraglide compile les catalogues actifs et chemins publics localisés depuis
+`packages/i18n`. Les identifiants de code et routes internes restent anglais.
+Un projet monolingue n’a pas de préfixe de langue ; un projet multilingue préfixe
+chaque route publique. TanStack Router réécrit les URL, tandis que le middleware
+serveur isole l’état de langue SSR. Les chemins API restent inchangés.
 
-La requête Drizzle sélectionne les quatre champs publics, trie par `user.id`
-unique croissant et applique `id > cursor`, avec `limit + 1` lignes. Le helper
-serveur retire la ligne de contrôle et renvoie `{ items, nextCursor }`, avec
-`null` en fin de liste. Le curseur est l’identifiant de la dernière ligne visible ;
-il n’exige pas que cette ligne existe encore. La pagination ne fige pas un
-snapshot : des insertions avant le curseur nécessitent un rechargement.
-Le lecteur est injecté dans la composition API ; la génération OpenAPI injecte
-un lecteur inerte sans connexion DB. Le token d’injection et le type du lecteur
-restent dans `users.types.ts`, sans import runtime de l’adaptateur Drizzle.
+Les liens utilisent les chemins internes ; les callbacks auth dérivent leur URL
+publique de la langue courante. L’API accepte la langue d’un callback uniquement
+depuis son origine web configurée et revient sinon à la langue par défaut.
+Les emails produisent du HTML et du texte localisés. Le développement utilise
+Mailpit ; la production exige une configuration SMTP explicite, et le SMTP de
+staging utilise une liste exacte de destinataires autorisés.
 
-Les bornes et la valeur par défaut appartiennent à
-`packages/contracts/src/pagination.constraints.ts`. La taille d’affichage est
-choisie dans `features/users/users.config.ts` et passée à la requête ainsi
-qu’à TanStack Table ; elle reprend par défaut la valeur du contrat. Les réglages
-Faker sont possédés par `seeds/auth/fixtures.config.ts`.
+## Exploitation et intégrations optionnelles
 
-Le hook transverse configure `initialPageParam` et `getNextPageParam` pour
-`useInfiniteQuery` et conserve les options TanStack Query. La feature utilisateurs
-possède la clé privée incluant la taille de page, la requête OpenAPI et son signal
-d’annulation. TanStack Table affiche une seule page en pagination manuelle ;
-Le hook `useUsersTable` possède la navigation, les handlers et le modèle de table ;
-les composants séparent composition, rendu des lignes, navigation et feedback.
-Suivant charge si nécessaire et Précédent utilise le cache. Réessayer après une
-erreur de page suivante charge cette page et y navigue après succès. Les changements
-d’identité purgent ces pages avec les autres queries privées.
+Pino émet des logs HTTP assainis avec identifiants de requête. La readiness
+vérifie PostgreSQL et Valkey s’il est activé ; l’arrêt attend la fin des envois
+email et ferme les ressources. Les CLI de migration et de données de test
+refusent les bases distantes ou non vérifiées avant de se connecter.
 
-## Santé
+Le point d’entrée du processus installe les gestionnaires de signaux d’arrêt
+après le démarrage de l’API par `bootstrap.ts`. Le démarrage valide la
+configuration avant d’acquérir des ressources et utilise le même nettoyage
+idempotent en cas d’échec que lors d’un arrêt normal : arrêter HTTP, terminer
+les envois email, fermer le serveur et le registre de métriques, puis Valkey et
+PostgreSQL. Chaque fermeture restante est tentée si une autre échoue ; les
+erreurs de démarrage et de nettoyage restent disponibles ensemble si les deux
+échouent. Nest lève les erreurs de création au lieu de terminer le processus
+avant que le nettoyage puisse s’exécuter.
 
-La liveness indique seulement que le processus répond. La readiness exécute
-`select 1` sur PostgreSQL et un ping sur Valkey activé. Elle retourne 503 si
-une sonde échoue ou dépasse deux secondes. Elle ne sonde pas le transport email et ne divulgue aucun détail de
-connexion.
+La stack d’observabilité optionnelle transmet le JSON assaini via Alloy à Loki
+et expose les métriques du processus, HTTP et email sur un serveur HTTP privé
+séparé, activé explicitement pour Prometheus. Une sonde Blackbox vérifie la
+readiness hors du processus API. Grafana provisionne quatre dashboards ;
+Prometheus évalue des règles d’alerte initiales. Alloy intègre les exportateurs
+amont PostgreSQL et Redis/Valkey. La collecte des dépendances est en lecture
+seule et indépendante des processus API ; ses échecs n’affectent pas les
+requêtes. Les identités de service, d’environnement et d’instance sont indexées ;
+les identifiants de requête et d’utilisateur ne deviennent jamais des labels
+de métriques ou d’index.
 
-## Journaux et arrêt
+La collecte de charge SQL est activée par défaut dans la stack d’observabilité.
+Un exportateur PostgreSQL séparé exécute des requêtes d’agrégation bornées avec
+`pg_stat_statements(false)`, limitées à sa base et à son rôle configurés. Le
+texte SQL et les identifiants de requête restent hors de la télémétrie. La
+plateforme installe et précharge l’extension ; les migrations applicatives ne
+le font pas. La collecte d’infrastructure ne nécessite aucun observateur
+applicatif ni port de provider.
 
-Un middleware Pino placé avant CORS et Better Auth crée l’identifiant de requête.
-Il le renvoie dans `x-request-id`, le lie aux logs Nest et le transmet au
-dispatcher email. Le log HTTP contient méthode, chemin sans query, statut et
-durée. Les headers, bodies, cookies, tokens, emails, IP, URLs d’action et messages
-fournisseur n’en font pas partie ; la redaction Pino forme une seconde barrière.
-Le développement utilise `pino-pretty`, tandis que staging et production restent
-en JSON.
+Un collecteur Docker séparé transmet les logs des conteneurs API de staging ou
+de production explicitement sélectionnés vers un Loki géré en externe. La
+plateforme possède le stockage déployé, l’accès, les sondes et l’acheminement
+des notifications. Voir [OBSERVABILITY.md](OBSERVABILITY.md) pour l’exploitation.
 
-À SIGINT ou SIGTERM, le serveur cesse d’accepter des requêtes, le dispatcher
-attend les emails suivis au plus 15 secondes, puis la connexion PostgreSQL est
-fermée.
-
-## Migrations et fixtures
-
-Les commandes d’écriture vérifient `APP_ENV`, le protocole, l’hôte loopback et
-la concordance de la cible avec `POSTGRES_DB`, `POSTGRES_USER`,
-`POSTGRES_PASSWORD` et `POSTGRES_PORT` avant de charger le client PostgreSQL.
-Leurs valeurs par défaut restent celles de `.env.example`. Les tests exigent
-les identifiants dédiés et un identifiant d’environnement
-éphémère possédé ; le seed exige le mode fixture `enabled`. Aucun migrateur ou
-seed ne s’exécute au démarrage de l’API.
-
-Le scénario auth contient deux comptes de référence et 60 profils français Faker
-avec une graine fixe, des IDs réservés et des emails uniques `example.test`. Le hachage passe par
-l’API publique `better-auth/crypto`. Le registre ordonné prépare tous les
-scénarios sélectionnés avant la première mutation, puis les exécute dans l’ordre
-déclaré ; le nettoyage utilise l’ordre inverse. Une relance reconnaît les IDs
-utilisateur et compte réservés ainsi que la signature Better Auth complète. Elle
-remplace ensuite les comptes et leurs hashes dans une seule transaction pour
-restaurer leurs valeurs. Une collision interrompt toute la sélection avant
-mutation. Le scénario auth reste indépendant de Drizzle ; l’adaptateur
-`seeds/auth/store.ts` possède les requêtes et transactions,
-et le CLI ne fait que composer ces dépendances après la garde de cible.
-Le nettoyage optionnel supprime seulement ces 62 comptes reconnus, leurs dépendances
-auth et les jetons de réinitialisation dont la valeur référence leur identifiant,
-dans une transaction. Il reste explicite.
-
-## Authentification et emails
-
-`createAuth` est une factory sans singleton : le bootstrap injecte la base,
-la configuration et le dispatcher email. Le handler reçoit une IP issue du
-socket, écrasant l’en-tête interne `x-auth-client-ip` fourni par le client.
-Aucun proxy n’est implicitement approuvé ; configurer une chaîne de confiance
-précise avant de mettre l’API derrière un reverse proxy. Les clients derrière
-un proxy partagent actuellement son quota réseau.
-
-Better Auth gère les tokens, mots de passe, sessions et rate limits persistés.
-La migration incrémentale `0001` ajoute `rate_limit` à la baseline publiée.
-Ce quota reste distinct de celui de Nest : `/api/auth/*` est monté directement
-dans Express avant les guards, tandis que les controllers `/api/*` utilisent le
-quota Nest et l’enveloppe d’erreur HTTP commune.
-Les callbacks confient les emails au dispatcher sans attendre SMTP. Chaque
-promesse est suivie, son erreur traitée sans contenu fournisseur, et l’arrêt
-attend les envois au plus 15 secondes. Le transport est borné à 10 secondes.
-Un crash peut perdre un envoi, sans retry automatique.
-
-`packages/core` possède `EmailSender` et `EmailMessage` ; `packages/email`
-implémente le rendu React Email et SMTP ; l’API compose les adaptateurs selon
-`APP_ENV`. Le web n’importe aucun de ces modules serveur.
-
-## Tests des applications
-
-Tous les tests restent sous le dossier `test` de leur application ou package.
-Les tests rapides suivent l’arborescence des responsabilités sous `test/unit`,
-séparément du code de production. Pour l’API, les tests PostgreSQL/Mailpit et
-navigateur vivent sous `test/integration` et `test/e2e`, avec des configurations
-Vitest distinctes qui ne sélectionnent que leur suffixe. Le harness commun sous
-`test/support` refuse toute base qui n’appartient pas au projet Compose éphémère
-courant. La suite d’intégration auth conserve dans un seul fichier les étapes
-qui partagent explicitement une identité ; les futures suites indépendantes
-doivent posséder leurs propres données.
-
-## Frontend et localisation
-
-Les routes déclarent navigation, métadonnées et composition. Les formulaires
-sont dans `features/auth/components`, leur orchestration TanStack Form dans
-`features/auth/hooks`, et leurs schémas dans `features/auth/schemas`.
-La route d’accueil compose le résumé du compte auth et le tableau utilisateurs ;
-l’authentification ne possède pas le dashboard. Le header compose le composant
-d’actions de session auth. Les règles de dépendances gardent chaque
-`features/<name>` indépendant des autres fonctionnalités, des routes et des
-composants de structure applicative. Les mécanismes partagés de `lib` ne dépendent
-ni des fonctionnalités ni de leur composition. Ces règles couvrent les nouveaux
-dossiers sans ajouter leurs noms à la configuration. Composer les fonctionnalités
-dans les routes ou la structure applicative ; extraire un mécanisme partagé
-uniquement pour un besoin commun concret.
-
-`packages/i18n/messages/<locale>.json` contient les catalogues Paraglide sélectionnés pour les écrans et emails.
-Le compiler génère fonctions, déclarations et URL localisées ; la stratégie `url` sélectionne la langue et le middleware isole les requêtes SSR. `packages/i18n/src/config.ts` expose la locale
-par défaut et les locales supportées depuis ce runtime généré. Le mapping des chemins est dans `packages/i18n/routing.json`.
-L’identité publique reste JSON dans `packages/config`, les contraintes sont dans
-leurs modules TypeScript.
-
-`packages/i18n/routing-config.mjs` vérifie la couverture des langues et les
-doublons de chemins. Le compilateur utilise cette configuration ;
-le traitement et l’ordre des patterns restent ceux de Paraglide. La route de
-repli arrive en dernier, la query et le fragment sont conservés. Le périmètre
-couvre les chemins des pages, sans domaine de contenus traduits.
-
-Dans le profil français, les URL `/connexion`, `/inscription`, `/verification-email`,
-`/adresse-confirmee`, `/mot-de-passe-oublie` et `/nouveau-mot-de-passe` sont privées
-vis-à-vis de l’indexation. Les routes internes restent anglaises ; la réécriture Paraglide traduit les URL publiques sans dupliquer les pages. Les chemins absolus, encodés ambigus et antislashs ne peuvent
-pas servir de retour. Aucun sitemap ou canonical artificiel n’est généré.
-
-Le store rate limit utilise `customStorage.consume` de Better Auth sur la même
-base PostgreSQL. L’upsert applique le plafond et l’incrément sous le même verrou
-SQL : l’adaptateur Drizzle 1.7.4 utilise un sous-select d’identifiants dont le
-prédicat de compteur n’est pas réévalué après attente du verrou. Le test de
-requêtes parallèles protège ce correctif. Better Auth conserve les règles, la
-normalisation IP et la réponse 429 ; les entrées expirées sont purgées.
-
-La robustesse est calculée localement par zxcvbn-ts dans la feature auth web, avec les dictionnaires commun, anglais et français. Aucun mot de passe n’est envoyé à un service d’évaluation. Le score reste indicatif et ne participe pas à la validation.
-
-## Collecte des journaux
-
-`nestjs-pino` reste l’intégration Nest existante : le middleware Express couvre
-également Better Auth et le module Nest ajoute le contexte, sans second log HTTP.
-Les logs JSON portent `service_name=skull-api` et `environment=APP_ENV`.
-`logging.config.ts` valide format, niveau et miroir local. Staging/production
-émettent uniquement sur stdout en JSON ; le miroir fichier est réservé au dev.
-
-`infra/compose/observability.yml` est indépendant de PostgreSQL et Mailpit.
-`pnpm dev:logs` conserve stdout et écrit le JSON API dans
-`output/logs/api.jsonl`. Alloy monte ce répertoire en lecture seule, conserve
-ses positions dans son volume et transmet à Loki. Loki monolithique conserve
-ses données et son état de compaction dans un volume, avec rétention de sept
-jours. Grafana provisionne la datasource et un dashboard de logs/erreurs.
-Seuls service et environnement sont indexés ; requestId reste dans le JSON.
-
-Le fragment `infra/compose/logs-collector.yml` prépare un Alloy autonome par
-environnement ; il ne lance ni application, ni Loki/Grafana. Il utilise
-`infra/observability/docker.alloy` pour sélectionner les conteneurs marqués
-`skull.logs=true` et `skull.logs.environment=APP_ENV`. Le label indexé
-`environment` vient du collecteur ; `service_name` vient du JSON applicatif,
-avec le service Compose comme fallback. Un renommage du service Compose ne
-change donc pas les requêtes Grafana de l’API. `LOKI_URL` désigne la destination
-externe ; un token fichier et un tenant sont optionnels. Les positions du
-collecteur persistent dans un volume propre au projet/environnement. L’accès au socket Docker donne des
-privilèges élevés même avec un montage en lecture seule ; il exige un collecteur
-et un hôte de confiance. Aucun socket n’est monté par le Compose local.
-
-## Valkey optionnel
-
-L’API possède `infrastructure/valkey` et l’adaptateur Nest.
-`VALKEY_ENABLED=true` et `VALKEY_URL` activent la connexion ioredis. Sans
-activation, aucune connexion n’est créée. Les commandes et connexions sont
-bornées à deux secondes ; `rediss:` active TLS. Lua compte atomiquement une
-fenêtre glissante et applique la durée de blocage, avec l’heure du serveur.
-Les clés expirent, partagent un hash tag de cluster et utilisent un namespace
-par application/environnement. Les identifiants des pairs sont hachés.
-Une panne retourne 503 sans repli local. La readiness vérifie PostgreSQL et
-Valkey activé ; la liveness reste indépendante. L’arrêt ferme le client.
-Better Auth conserve ses sessions et quotas dans PostgreSQL.
-
-Compose fournit un serveur local éphémère, sans éviction des clés : une pression
-mémoire ne doit pas supprimer silencieusement les quotas. Un redémarrage remet
-les compteurs à zéro. Le service sans authentification écoute seulement sur
-loopback ; accès, TLS, secrets, capacité et disponibilité déployés appartiennent
-à la plateforme. Aucun moteur générique de plugins n’est ajouté.
+Valkey est activé explicitement et contient uniquement les compteurs de fenêtre
+glissante Nest. Il ne stocke ni sessions ni données applicatives. Son service
+Compose local est éphémère et limité à la boucle locale ; l’accès et la
+disponibilité en environnement déployé relèvent de la plateforme. Voir
+[DEVELOPMENT.md](DEVELOPMENT.md) pour l’installation et les commandes de validation.

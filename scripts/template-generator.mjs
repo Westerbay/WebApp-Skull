@@ -55,35 +55,47 @@ export async function generateTemplate({ output, profile = "en" }) {
 }
 
 async function prepareTemplate({ locales, docsLocale }) {
+  const settings = await readJson("packages/i18n/project.inlang/settings.json")
   const baseRouting = await readJson("packages/i18n/routing.json")
-  const baseMessages = await readJson("packages/i18n/messages/en.json")
-  const messages = new Map([["en", baseMessages]])
-  const routes = new Map([
-    [
-      "en",
-      Object.fromEntries(baseRouting.routes.map(({ path }) => [path, path])),
-    ],
-  ])
-  if (locales.includes("fr")) {
-    const frenchMessages = await readJson("template/locales/fr/messages.json")
-    const frenchRoutes = await readJson("template/locales/fr/routes.json")
-    if (!sameKeys(baseMessages, frenchMessages))
-      throw new Error("French message keys differ from English")
-    if (!sameKeys(routes.get("en"), frenchRoutes))
-      throw new Error("French route keys differ from English")
-    messages.set("fr", frenchMessages)
-    routes.set("fr", frenchRoutes)
+  const internalRoutes = Object.fromEntries(
+    baseRouting.routes.map(({ path }) => [path, path])
+  )
+  const packs = new Map()
+  for (const locale of new Set([settings.baseLocale, ...locales, docsLocale])) {
+    const directory = resolve(source, "template/locales", locale)
+    const metadata = await readJson(resolve(directory, "pack.json"))
+    const messages = await readJson(resolve(directory, metadata.messages))
+    let routes = internalRoutes
+    if (metadata.routes !== undefined) {
+      routes = await readJson(resolve(directory, metadata.routes))
+    }
+    packs.set(locale, {
+      messages,
+      routes,
+      documentation: resolve(directory, metadata.documentation),
+    })
+  }
+  const baseMessages = packs.get(settings.baseLocale).messages
+  for (const locale of locales) {
+    const pack = packs.get(locale)
+    if (!sameKeys(baseMessages, pack.messages))
+      throw new Error(`Message keys differ from source locale: ${locale}`)
+    if (!sameKeys(internalRoutes, pack.routes))
+      throw new Error(`Route keys differ from internal routes: ${locale}`)
   }
   const routing = {
     prefixLocales: locales.length > 1,
     routes: baseRouting.routes.map(({ path }) => ({
       path,
-      localized: locales.map((locale) => [locale, routes.get(locale)[path]]),
+      localized: locales.map((locale) => [
+        locale,
+        packs.get(locale).routes[path],
+      ]),
     })),
   }
   buildUrlPatterns(routing, locales)
   const documentation = new Map()
-  const docsRoot = docsLocale === "fr" ? "template/locales/fr" : "."
+  const docsRoot = packs.get(docsLocale).documentation
   const documents = [
     "README.md",
     "AGENTS.md",
@@ -100,13 +112,14 @@ async function prepareTemplate({ locales, docsLocale }) {
         ""
       )
     )
-  const settings = await readJson("packages/i18n/project.inlang/settings.json")
   const manifest = await readJson("package.json")
   delete manifest.devDependencies.fflate
   for (const name of Object.keys(manifest.scripts))
     if (name.startsWith("template:")) delete manifest.scripts[name]
   return {
-    messages: new Map(locales.map((locale) => [locale, messages.get(locale)])),
+    messages: new Map(
+      locales.map((locale) => [locale, packs.get(locale).messages])
+    ),
     documentation,
     routing,
     manifest,

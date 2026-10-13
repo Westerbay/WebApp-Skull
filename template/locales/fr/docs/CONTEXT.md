@@ -1,82 +1,47 @@
 # Contexte
 
-## Recherche utilisateurs et formulaires
+WebApp Template est une base full-stack réutilisable. Elle fournit un parcours
+d’identité fonctionnel, un exemple de tableau utilisateurs avec recherche et
+une infrastructure locale optionnelle ; elle ne prescrit pas le domaine métier
+du prochain projet.
 
-Des commandes interactives créent et suppriment les worktrees Git dans
-`.worktree/`, ignoré à la racine du dépôt principal.
+Le web utilise TanStack Start, Query, Form et Table. NestJS compose l’API,
+Better Auth gère l’identité et PostgreSQL assure la persistance. Les contrats
+Zod partagés, la localisation Paraglide et les primitives UI ont leurs packages
+séparés. Voir [ARCHITECTURE.md](ARCHITECTURE.md) pour les frontières et
+[REUSE.md](REUSE.md) pour les points d’extension partagés.
 
-Le tableau recherche les noms et emails côté serveur après 300 ms sans saisie.
-Les formulaires auth partagent les contextes natifs TanStack Form. Le lint web
-active les règles spécialisées Query et Router.
-
-## Mots de passe compromis
-
-Have I Been Pwned refuse les nouveaux mots de passe compromis en staging et
-production. Development/test restent hors ligne ; une erreur du service bloque
-l’enregistrement.
-
-## État actuel
-
-L’application propose inscription, vérification d’adresse, connexion explicite,
-récupération de mot de passe et déconnexion. Les champs de mot de passe peuvent être affichés ; leur création dispose d’une jauge locale indicative. Better Auth possède les endpoints
-`/api/auth/*` ; NestJS protège `GET /api/me`. PostgreSQL stocke l’authentification
-et les compteurs de limitation Better Auth. Les controllers Nest possèdent leur
-propre quota en mémoire par processus ; les sondes de santé en sont exclues.
-
-Le profil français utilise le catalogue français Paraglide et des URL françaises sans préfixe. Le profil multilingue préfixe toutes les langues sélectionnées. Le code et les routes internes restent anglais. Les emails sont capturés par
-Mailpit en développement ; aucun fournisseur réel n’est présupposé.
-
-Les migrations et fixtures passent par une garde de cible locale alignée sur la
-configuration Compose. Deux comptes auth de référence et 60 profils Faker aux IDs réservés peuvent être recréés
-de façon déterministe et atomique. L’API journalise les
-requêtes avec Pino, expose une readiness PostgreSQL bornée et ferme ses
-ressources à l’arrêt. La CI rejoue contrôles rapides, intégration et E2E dans
-des environnements distincts et recherche les secrets dans tout l’historique Git.
-
-L’accueil connecté démontre la pagination par curseur avec une liste des utilisateurs
-dans une TanStack Table et les actions Précédent/Suivant. Les contrats, la construction
-des pages serveur et le hook `useInfiniteQuery` sont réutilisables. Le domaine métier
-au-delà de cet exemple reste à définir. Les contraintes partagées, la taille
-d’affichage et les réglages Faker ont leurs modules propriétaires ; le tableau
-sépare son orchestration de ses composants de rendu.
-Les types des contrats validés et des formulaires sont déduits des schémas Zod.
-
-Le projet est distribué sous [licence MIT](../LICENSE), avec Mathis Dubuisson
-comme titulaire du copyright. La citation du dépôt lors d’une réutilisation
-comme base est encouragée, mais reste facultative.
-
-La stack locale optionnelle Alloy → Loki → Grafana collecte les logs JSON API,
-avec labels de service/environnement et rétention de sept jours. Elle possède
-son propre Compose et ses volumes. Un test isolé exerce le flux HTTP jusqu’à
-Grafana sans base ni fichier d’environnement. Un fragment Compose de collecte
-Docker prépare staging/prod avec sélection explicite par environnement, labels
-stables et connexion Loki paramétrable. Son flux est testé localement dans des
-conteneurs éphémères ; aucun staging/prod n’est déployé.
+Le template permet l’inscription, la vérification d’adresse, la connexion,
+la réinitialisation du mot de passe et la déconnexion. Le dashboard illustre
+la pagination par curseur et la recherche. Les emails de développement sont
+capturés localement. Valkey peut partager les quotas Nest entre réplicas ; une
+stack Grafana optionnelle fournit logs, métriques, dashboards, sondes de readiness
+et règles d’alerte initiales. Les statistiques de charge SQL PostgreSQL sont
+activées par défaut dans la stack d’observabilité. Alloy intègre les exportateurs
+de dépendances : leur supervision est indépendante des processus API. Ni Valkey
+ni la stack d’observabilité ne sont nécessaires à l’application de base.
 
 ## Carte documentaire
 
-- [PRODUCT.md](PRODUCT.md) : capacités et règles utilisateur.
-- [ARCHITECTURE.md](ARCHITECTURE.md) : frontières et flux techniques.
+- [PRODUCT.md](PRODUCT.md) : capacités et règles durables.
+- [ARCHITECTURE.md](ARCHITECTURE.md) : frontières des modules et flux.
 - [DESIGN.md](DESIGN.md) : conventions d’interface.
-- [REUSE.md](REUSE.md) : catalogue des éléments partagés.
-- [DEVELOPMENT.md](DEVELOPMENT.md) : environnement et commandes.
+- [REUSE.md](REUSE.md) : points d’extension réutilisables.
+- [DEVELOPMENT.md](DEVELOPMENT.md) : installation, commandes et procédures.
 - [OBSERVABILITY.md](OBSERVABILITY.md) : dashboards, métriques, alertes et procédures de diagnostic.
 - [POSTGRESQL-PERFORMANCE.md](POSTGRESQL-PERFORMANCE.md) : activation des statistiques SQL, interprétation et diagnostic ciblé.
 
-## Limite actuelle
+## Limites actuelles
 
-Le suivi des envois email est local au processus, sans file durable ni garantie
-de livraison après un crash. Aucun environnement de staging ou fournisseur SMTP
-réel n’est exercé par la CI. Sans Valkey, le rate limit Nest reste local à chaque instance.
+Le domaine métier au-delà de l’exemple reste à définir. L’envoi email ne dispose
+ni d’une file durable ni d’une garantie de livraison après un crash. Sans Valkey,
+les quotas Nest sont locaux au processus. La localisation couvre les messages
+d’interface et d’email ainsi que les chemins publics, pas des contenus traduits
+persistés. L’hébergement de l’observabilité en production, l’acheminement des
+notifications et les sondes publiques indépendantes relèvent de la plateforme ;
+les traces ne sont pas fournies. Le collecteur de logs Docker destiné aux
+environnements déployés est vérifié localement, pas contre un backend de staging
+ou de production.
 
-Le routage et le SSR utilisent Paraglide à la frontière du routeur, sans
-duplication des pages. Le périmètre couvre les chemins des pages et les messages,
-sans domaine de contenus traduits.
-
-## Intégrations optionnelles
-
-Observabilité et Valkey sont activés explicitement, avec des fichiers Compose
-séparés. Valkey partage les quotas Nest entre instances ; sans activation, ils
-restent locaux. Aucun cache de données applicatives ou de sessions n’est ajouté.
-Valkey activé est requis au démarrage et pour la readiness ; une panne entraîne
-un 503 sur les contrôles de quota, sans repli en mémoire.
+Le projet utilise la [licence MIT](../LICENSE), copyright Mathis Dubuisson.
+La mention du projet lors de sa réutilisation est encouragée, mais facultative.
