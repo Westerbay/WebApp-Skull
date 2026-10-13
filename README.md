@@ -1,4 +1,4 @@
-# WebApp Skull
+# WebApp Template
 
 A reusable TypeScript web application with email/password authentication,
 cursor pagination, guarded local development tools and a provisioned observability
@@ -124,6 +124,6 @@ Both clients use session cookies. Read [docs/CONTEXT.md](docs/CONTEXT.md) and
 
 ## License
 
-WebApp-Skull uses the [MIT license](LICENSE). When reusing this project, please
-mention it and link to [its repository](https://github.com/Westerbay/WebApp-Skull).
+WebApp Template uses the [MIT license](LICENSE). When reusing this project, please
+mention it and link to [its repository](https://github.com/Westerbay/WebApp-Template).
 Attribution is optional and is not an extra license condition.

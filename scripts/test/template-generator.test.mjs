@@ -11,7 +11,7 @@ import {
   symlink,
 } from "node:fs/promises"
 import { tmpdir } from "node:os"
-import { join } from "node:path"
+import { basename, join } from "node:path"
 import { execFileSync } from "node:child_process"
 import { createRequire } from "node:module"
 import { fileURLToPath, pathToFileURL } from "node:url"
@@ -37,6 +37,7 @@ for (const { id, locales } of templateProfiles) {
         output: directory,
         profile: id,
       })
+      assert.equal(basename(archive), `webapp-template-${id}.zip`)
       const archiveBytes = await readFile(archive)
       const entries = unzipSync(archiveBytes)
       const names = Object.keys(entries)
@@ -132,12 +133,12 @@ for (const { id, locales } of templateProfiles) {
         const content = Buffer.from(entries[name]).toString("utf8")
         assert.doesNotMatch(
           content,
-          /template:|scripts\/template-|template\/locales|template-maintainers:|webapp-skull-.*\.zip|v0\.1\.0/,
+          /template:|scripts\/template-|template\/locales|template-maintainers:|webapp-template-.*\.zip|v0\.1\.0/,
           `Maintainer instructions in ${name}`
         )
       }
       assert.ok(readme.includes("packages/i18n"))
-      assert.ok(readme.includes("https://github.com/Westerbay/WebApp-Skull"))
+      assert.ok(readme.includes("https://github.com/Westerbay/WebApp-Template"))
       assert.equal(
         await readFile(join(output, ".github/workflows/ci.yml"), "utf8"),
         await readFile(join(source, ".github/workflows/ci.yml"), "utf8")

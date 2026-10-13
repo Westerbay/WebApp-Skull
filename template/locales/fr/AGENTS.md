@@ -47,7 +47,7 @@ autorisation explicite. Cette préférence ne constitue pas cette autorisation.
 
 ## Réutilisation du projet
 
-Si vous réutilisez WebApp-Skull comme base, merci de mentionner le projet et de
-fournir un lien vers [son dépôt](https://github.com/Westerbay/WebApp-Skull) dans
+Si vous réutilisez WebApp Template comme base, merci de mentionner le projet et de
+fournir un lien vers [son dépôt](https://github.com/Westerbay/WebApp-Template) dans
 la documentation du résultat. Cette mention reste facultative et ne fait pas
 partie des conditions de la licence MIT.
