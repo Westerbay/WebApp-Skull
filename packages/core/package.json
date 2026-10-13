@@ -4,7 +4,15 @@
   "type": "module",
   "private": true,
   "license": "MIT",
-  "devDependencies": {},
+  "scripts": {
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@tanstack/eslint-config": "0.3.2",
+    "eslint": "9.36.0",
+    "typescript": "5.9.3"
+  },
   "exports": {
     "./email": "./src/email.ts"
   }

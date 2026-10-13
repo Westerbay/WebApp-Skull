@@ -38,6 +38,8 @@ pnpm test
 pnpm build
 pnpm docs:check
 pnpm project:check
+pnpm boundaries:check
+pnpm boundaries:test
 pnpm test:integration
 pnpm test:e2e
 ```
@@ -46,7 +48,14 @@ Fast checks need no database. Integration and E2E use owned temporary
 infrastructure and require Docker; install their browser with
 `pnpm --filter @workspace/api exec playwright install chromium`.
 `docs:check` validates documentation links; `project:check` checks project
-boundaries and configuration. After changing Nest controllers or DTOs, run
+boundaries and configuration. Its `boundaries:check` stage uses dependency-cruiser
+to resolve imports against workspace exports and web TypeScript aliases. Build
+workspace packages first so generated exports are available; `pnpm check` does
+this through typecheck. The tooling-only `scripts/tsconfig.boundaries.json`
+inherits web aliases and supplies the resolver's required base URL. Unresolved
+source imports fail the check, except Vite CSS URL assets. Run `boundaries:test`
+to exercise rejected and allowed dependencies in isolated fixtures.
+After changing Nest controllers or DTOs, run
 `pnpm api:generate` and include the generated API schema and web client types.
 `pnpm api:check` verifies drift without a database or SMTP connection.
 

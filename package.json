@@ -22,7 +22,9 @@
     "lint": "turbo lint",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "project:check": "node scripts/project-check.mjs",
+    "project:check": "pnpm boundaries:check && pnpm boundaries:test && node scripts/project-check.mjs",
+    "boundaries:check": "depcruise --config packages/config/dependency-cruiser.mjs apps packages",
+    "boundaries:test": "node --test scripts/test/boundaries.test.mjs",
     "setup": "node scripts/setup.mjs",
     "test": "turbo test",
     "typecheck": "turbo typecheck",
@@ -43,6 +45,7 @@
     "worktree:check": "node --test scripts/test/worktree.test.mjs"
   },
   "devDependencies": {
+    "dependency-cruiser": "18.6.0",
     "fflate": "0.8.3",
     "prettier": "3.8.3",
     "prettier-plugin-tailwindcss": "^0.8.0",
