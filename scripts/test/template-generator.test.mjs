@@ -13,7 +13,7 @@ import {
   symlink,
 } from "node:fs/promises"
 import { tmpdir } from "node:os"
-import { basename, dirname, join } from "node:path"
+import { basename, dirname, join, resolve } from "node:path"
 import { execFileSync } from "node:child_process"
 import { createRequire } from "node:module"
 import { fileURLToPath, pathToFileURL } from "node:url"
@@ -50,8 +50,9 @@ for (const { id, locales, docsLocale } of templateProfiles) {
         names.filter((name) => /^docs\/[^/]+\.md$/.test(name)).sort(),
         documentNames.map((name) => `docs/${name}`)
       )
-      const documentationRoot =
-        docsLocale === "fr" ? join(source, "template/locales/fr") : source
+      const packDirectory = join(source, "template/locales", docsLocale)
+      const pack = await readJson(join(packDirectory, "pack.json"))
+      const documentationRoot = resolve(packDirectory, pack.documentation)
       for (const name of documentNames) {
         const expected = (
           await readFile(join(documentationRoot, "docs", name), "utf8")
@@ -218,6 +219,9 @@ test("rejects a newly added document without a French translation before creatin
     "packages/i18n/routing-config.mjs",
     "packages/i18n/routing.json",
     "packages/i18n/messages/en.json",
+    "template/locales/en/pack.json",
+    "template/locales/fr/pack.json",
+    "packages/i18n/project.inlang/settings.json",
     "template/locales/fr/messages.json",
     "template/locales/fr/routes.json",
     "template/locales/fr/README.md",
@@ -269,6 +273,120 @@ test("CLI accepts pnpm's separator and a French profile", async () => {
     await rm(temporary, { recursive: true, force: true })
   }
 })
+
+async function createLocaleFixture(t) {
+  const directory = await mkdtemp(join(tmpdir(), "template-locale-pack-"))
+  t.after(() => rm(directory, { recursive: true, force: true }))
+  const fixture = join(directory, "source")
+  for (const file of [
+    "scripts/template-generator.mjs",
+    "scripts/template-files.mjs",
+    "packages/i18n/routing-config.mjs",
+    "packages/i18n/routing.json",
+    "packages/i18n/messages/en.json",
+    "packages/i18n/project.inlang/settings.json",
+    "template/locales/en/pack.json",
+  ]) {
+    const target = join(fixture, file)
+    await mkdir(dirname(target), { recursive: true })
+    await cp(join(source, file), target)
+  }
+  const files = {
+    ".gitignore": "node_modules\n",
+    "package.json": JSON.stringify({
+      name: "locale-fixture",
+      private: true,
+      devDependencies: { fflate: "0.8.3" },
+      scripts: { "template:create": "unused", check: "unused" },
+    }),
+    "docs/GUIDE.md": "# Source guide\n",
+    "scripts/template-profiles.mjs":
+      'export const templateProfiles = [{ id: "synthetic", locales: ["en", "xx"], docsLocale: "xx" }]\n',
+    "template/locales/xx/pack.json": JSON.stringify({
+      messages: "catalog.json",
+      routes: "paths.json",
+      documentation: "manual",
+    }),
+    "template/locales/xx/manual/README.md": "# Synthetic project\n",
+    "template/locales/xx/manual/AGENTS.md": "# Synthetic instructions\n",
+    "template/locales/xx/manual/docs/GUIDE.md": "# Translated guide\n",
+  }
+  const messages = await readJson(
+    join(fixture, "packages/i18n/messages/en.json")
+  )
+  messages.sign_in_title = "Synthetic sign in"
+  files["template/locales/xx/catalog.json"] = JSON.stringify(messages)
+  const routing = await readJson(join(fixture, "packages/i18n/routing.json"))
+  const paths = Object.fromEntries(
+    routing.routes.map(({ path }) => [path, path])
+  )
+  paths["/sign-in"] = "/synthetic-login"
+  files["template/locales/xx/paths.json"] = JSON.stringify(paths)
+  for (const [file, content] of Object.entries(files)) {
+    const target = join(fixture, file)
+    await mkdir(dirname(target), { recursive: true })
+    await writeFile(target, content)
+  }
+  await symlink(
+    join(source, "node_modules"),
+    join(fixture, "node_modules"),
+    "dir"
+  )
+  execFileSync("git", ["init", "--quiet", fixture])
+  const { generateTemplate: generateFixture } = await import(
+    pathToFileURL(join(fixture, "scripts/template-generator.mjs")).href
+  )
+  return { fixture, output: join(directory, "output"), generateFixture }
+}
+
+test("generates an additional locale from its pack without changing generator code", async (t) => {
+  const { output, generateFixture } = await createLocaleFixture(t)
+  await generateFixture({ output, profile: "synthetic" })
+  assert.deepEqual(
+    (await readdir(join(output, "packages/i18n/messages"))).sort(),
+    ["en.json", "xx.json"]
+  )
+  const messages = await readJson(
+    join(output, "packages/i18n/messages/xx.json")
+  )
+  assert.equal(messages.sign_in_title, "Synthetic sign in")
+  const routing = await readJson(join(output, "packages/i18n/routing.json"))
+  assert.deepEqual(
+    routing.routes.find(({ path }) => path === "/sign-in").localized,
+    [
+      ["en", "/sign-in"],
+      ["xx", "/synthetic-login"],
+    ]
+  )
+  const settings = await readJson(
+    join(output, "packages/i18n/project.inlang/settings.json")
+  )
+  assert.deepEqual(settings.locales, ["en", "xx"])
+  assert.equal(settings.baseLocale, "en")
+  assert.equal(
+    await readFile(join(output, "docs/GUIDE.md"), "utf8"),
+    "# Translated guide\n"
+  )
+  assert.equal(
+    await readFile(join(output, "README.md"), "utf8"),
+    "# Synthetic project\n"
+  )
+  await assert.rejects(access(join(output, "template")), { code: "ENOENT" })
+})
+
+for (const [file, message] of [
+  ["catalog.json", "Message keys differ from source locale: xx"],
+  ["paths.json", "Route keys differ from internal routes: xx"],
+]) {
+  test(`rejects incomplete locale ${file} before creating output`, async (t) => {
+    const { fixture, output, generateFixture } = await createLocaleFixture(t)
+    await writeFile(join(fixture, "template/locales/xx", file), "{}")
+    await assert.rejects(generateFixture({ output, profile: "synthetic" }), {
+      message,
+    })
+    await assert.rejects(access(output), { code: "ENOENT" })
+  })
+}
 
 async function verifyRouting(output, settings, routing) {
   const outdir = join(output, "routing-test-runtime")

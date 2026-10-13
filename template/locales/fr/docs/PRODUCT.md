@@ -1,59 +1,49 @@
 # Produit
 
-## Recherche utilisateurs
-
-La recherche trouve une partie du nom ou de l’email sans tenir compte de la
-casse, sur toute la liste. Après 300 ms sans saisie, le filtre s’applique et
-revient à la première page. Effacer le champ rétablit la liste complète.
-La saisie est limitée à 100 caractères ; les caractères SQL `%` et `_` restent
-littéraux.
-
-## Mots de passe compromis
-
-En staging/production, les nouveaux mots de passe sont vérifiés avec Have I
-Been Pwned. Les mots de passe compromis sont refusés ; une erreur du service
-laisse le mot de passe inchangé. La connexion existante n’est pas vérifiée.
-Après un refus ou une erreur pendant le reset, demander un nouveau lien.
-
 ## Capacités
 
-Créer un compte avec nom, email et mot de passe ; confirmer l’adresse avec le
-lien reçu ; se connecter et consulter son espace ; se déconnecter ; demander
-un nouveau lien de vérification ou un changement de mot de passe.
+Créer un compte avec nom, email et mot de passe ; vérifier l’adresse via un
+lien email ; se connecter et consulter le dashboard du compte ; se déconnecter ;
+demander un nouveau lien de vérification ou réinitialiser un mot de passe.
 
-L’accueil connecté présente un tableau d’exemple des utilisateurs (nom, email et
-statut de vérification), par pages de 20. Suivant charge une page supplémentaire ;
-Précédent revient à une page déjà chargée.
+Le dashboard affiche un exemple de tableau utilisateurs avec noms, emails et
+statuts de vérification par pages de 20. Suivant charge une nouvelle page ;
+Précédent revient aux données en cache. La recherche trouve une partie du nom
+ou de l’email sans tenir compte de la casse. Une pause de 300 ms dans la saisie
+applique le filtre et revient à la première page ; vider la recherche restaure
+la liste sans filtre. La recherche est limitée à 100 caractères ; les caractères
+joker SQL sont traités littéralement. Les mots de passe peuvent être affichés
+ou masqués. L’inscription et la réinitialisation affichent une jauge de robustesse
+indicative qui ne modifie pas les règles d’acceptation.
 
 ## Règles
 
-- L’adresse doit être vérifiée avant la connexion et l’accès aux routes privées.
+Les nouveaux mots de passe sont vérifiés avec Have I Been Pwned en staging et
+production. Les mots de passe compromis sont refusés ; les mots de passe de
+connexion existants ne sont pas vérifiés. Après un refus ou un échec de la
+vérification lors d’une réinitialisation, demander un nouveau lien.
+
+- La vérification est obligatoire avant la connexion et l’accès aux routes privées.
 - L’inscription et la vérification ne connectent pas automatiquement.
-- Le mot de passe contient entre 8 et 128 caractères, sans transformation.
-- Le lien de vérification est valable 24 heures ; le reset, une heure.
-- Un reset réussi révoque les sessions et exige une nouvelle connexion.
-- La session dure 7 jours et peut être renouvelée après un jour.
-- Les demandes d’email ne révèlent pas si un compte existe. Une demande reçue
-  ne garantit pas que le message a été livré ; le renvoi reste disponible.
-- Better Auth limite les tentatives sensibles à 5 par minute par adresse réseau
-  et endpoint ; son plafond général est de 100 par minute.
-- Les controllers Nest acceptent 120 requêtes par minute et pair réseau par
-  endpoint ; `/api/me` en accepte 30. Les sondes de santé restent disponibles.
-- Tout compte connecté avec une adresse vérifiée peut consulter cette liste
-  d’exemple, y compris les emails. Aucun rôle administrateur n’est défini.
-- L’interface, les emails et les chemins publics sont français. Le code et les
-  routes internes restent anglais. Les callbacks auth conservent la langue ;
-  les endpoints API ne sont pas traduits.
+- Les mots de passe contiennent 8 à 128 caractères et ne sont pas transformés.
+- Les liens de vérification expirent après 24 heures ; ceux de réinitialisation après une heure.
+- Une réinitialisation réussie révoque les sessions et nécessite une nouvelle connexion.
+- Les sessions durent sept jours et peuvent être renouvelées après un jour.
+- Les demandes d’email ne révèlent pas si un compte existe. Leur acceptation ne garantit pas la livraison ; un nouveau lien peut être demandé.
+- Better Auth autorise cinq requêtes sensibles par minute, adresse réseau et endpoint, avec une limite générale de 100.
+- Nest autorise 120 requêtes par minute, pair réseau et endpoint ; `/api/me` en autorise 30. Les sondes de santé restent disponibles.
+- Tout utilisateur connecté avec une adresse vérifiée peut lire la liste d’exemple, emails compris. Aucun rôle administrateur n’existe.
+- L’anglais est la langue source par défaut. Les projets français ont des écrans, emails, documents et chemins publics français, tout en conservant les identifiants de code anglais.
+- Les projets multilingues sélectionnent la langue depuis l’URL publique. Les liens d’action auth conservent cette langue ; les endpoints API ne sont pas traduits.
 
 ## Limites
 
-Aucun domaine métier supplémentaire, rôles, OAuth, MFA, stockage de fichiers,
-file de jobs durable ou fournisseur email imposé.
-
-Le mot de passe peut être affiché ou masqué dans chaque champ. Une jauge indicative accompagne sa création à l’inscription et au reset ; elle ne change pas les critères d’acceptation.
+Aucun domaine métier supplémentaire, rôle, OAuth, MFA, stockage de fichiers,
+traitement durable en arrière-plan ou fournisseur email externe obligatoire
+n’est défini.
 
 ## Quotas partagés optionnels
 
-Valkey partage les quotas Nest existants entre instances API. Sans activation,
-ils restent locaux au processus. Une panne du contrôle partagé retourne 503.
-Better Auth conserve ses quotas PostgreSQL ; les sondes de santé restent exemptes.
+Valkey peut partager les quotas Nest existants entre instances API. Sans lui,
+les quotas restent locaux au processus. Un échec de contrôle partagé renvoie 503. Les limites Better Auth restent dans PostgreSQL ; les sondes de santé
+restent exemptées.

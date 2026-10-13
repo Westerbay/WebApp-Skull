@@ -1,92 +1,40 @@
 # Design
 
-## Recherche utilisateurs
+Utiliser les tokens Tailwind et primitives partagés de `packages/ui`. Y placer
+les modèles UX réutilisables et garder les compositions propres à une
+fonctionnalité avec celle-ci. Privilégier les éléments natifs ayant le bon sens
+sémantique. Chaque contrôle doit avoir un label associé, un focus visible et
+des retours utiles pour le chargement, les états vides et les erreurs.
+Préserver la navigation clavier, le lien d’évitement et l’utilisabilité sur
+écran étroit. Les écrans produit ne doivent pas exposer le vocabulaire d’infrastructure.
 
-Le champ de recherche possède un label et reste modifiable pendant les appels.
-Un statut traduit annonce l’attente des 300 ms. Pagination et retry restent
-désactivés tant que le filtre appliqué diffère de la saisie. Les erreurs, le
-chargement et les résultats vides conservent leurs retours accessibles.
+## Formulaires et retours
 
-## Mots de passe compromis
+Associer labels, aides et erreurs de validation à des identifiants de champ
+uniques. Placer les erreurs de champ à côté du champ et celles de soumission
+dans le formulaire ; éviter de répéter la même erreur dans un toast. Conserver
+les valeurs saisies pendant la soumission et désactiver les actions en double.
+Ne pas promettre la livraison d’un email lorsqu’une demande a seulement été acceptée.
 
-Les erreurs de mot de passe compromis demandent de choisir un autre mot de
-passe. Au reset, un refus ou une erreur serveur indique également de demander
-un nouveau lien de réinitialisation.
+Les formulaires auth utilisent une colonne lisible et des contrôles d’au moins
+44 px de haut. La visibilité du mot de passe doit fonctionner au clavier.
+L’indication de robustesse est indicative et ne doit pas modifier l’acceptation
+du mot de passe. Garder les tokens de mot de passe hors des métadonnées et URL.
+Les pages auth restent noindex et no-referrer.
 
-L'interface utilise les tokens Tailwind définis dans
-`packages/ui/src/styles/globals.css` et les primitives de `packages/ui`.
+## Localisation
 
-- Conserver les labels associés aux champs et les erreurs accessibles.
-- Montrer explicitement les états de chargement des actions asynchrones.
-- Maintenir le parcours au clavier et le lien d'évitement vers le contenu.
-- Garder les pages utilisables sur écran étroit avant d'ajouter des variantes.
-- Ne pas exposer de vocabulaire d'infrastructure dans les écrans produit.
-- Rediriger une identité sans session admissible vers la connexion avant de
-  rendre le contenu de l'accueil.
-- Afficher une erreur de déconnexion sans retirer prématurément l'identité ;
-  après succès, vider les données privées avant la navigation.
+Chaque texte visible, y compris les erreurs de fournisseurs traduites et les
+messages de statut, appartient au catalogue actif. Utiliser des pluriels adaptés
+à la langue. Localiser ensemble les chemins publics, la langue HTML, les
+métadonnées et les liens d’action email. Préserver la langue courante dans les
+liens ; l’URL publique est la source de vérité du SSR.
 
-Les nouveaux motifs réellement partagés rejoignent `packages/ui`. Un composant
-propre à une fonctionnalité reste près de cette fonctionnalité.
+## Vues de données
 
-## Authentification
-
-Les écrans reprennent une colonne lisible, des champs de 44 px minimum, des
-labels explicites et les tokens existants. Chaque instance de champ utilise
-un identifiant unique pour associer label, aide et erreurs, même si plusieurs
-formulaires utilisent le même nom de champ. Les erreurs de validation restent
-près des champs, les erreurs de soumission dans le formulaire. La demande
-email reçue reste visible dans son écran et ne promet pas de livraison.
-
-Une instance Sonner à la racine annonce la déconnexion et le succès du reset.
-Une même erreur ne doit pas apparaître à la fois dans un toast et dans le
-formulaire. Désactiver les actions pendant l’envoi sans perdre les valeurs.
-
-Tout texte utilisateur appartient au catalogue français, y compris les erreurs
-provider mappées par code. Utiliser les pluriels Paraglide, jamais un suffixe
-assemblé dans un composant. Chaque route possède titre, description et noindex.
-Les pages avec tokens utilisent `no-referrer` et n’incluent jamais leurs
-paramètres dans les métadonnées.
-
-Les formulaires restent désactivés jusqu’à l’hydratation React et déclarent
-`method="post"` en défense : aucune soumission HTML précoce ne doit placer un
-mot de passe dans l’URL. Le header observe le store Better Auth pour suivre
-les transitions de session indépendamment de la purge du cache privé.
-
-Les champs de mot de passe disposent d’un bouton œil accessible au clavier. L’aide affiche seulement le minimum requis ; le maximum apparaît en erreur après dépassement. À l’inscription et au reset, une jauge avec libellé accessible indique la robustesse sans bloquer la soumission.
-
-Privilégier les balises HTML natives correspondant au contenu et aux actions.
-La jauge de robustesse utilise un élément `meter` natif ; ses segments visuels
-sont décoratifs et masqués aux technologies d’assistance. Les `div` restent
-adaptées aux conteneurs de mise en page sans signification propre.
-
-## Tableau des utilisateurs
-
-Le dashboard conserve le message d’accueil et affiche une table HTML native
-pilotée par TanStack Table. Les colonnes ont des en-têtes et la table une légende.
-Sur mobile, seul le conteneur du tableau défile horizontalement ; il est accessible
-au clavier. La navigation Précédent/Suivant annonce la page courante et désactive
-les actions indisponibles ou pendant une requête. Une erreur laisse les lignes
-déjà chargées visibles et propose Réessayer ; le chargement et la liste vide ont
-un libellé explicite. Les textes restent dans le catalogue français.
-
-La feature sépare l’orchestration dans un hook, les colonnes dans leur module
-et les composants de rendu, de navigation et de feedback. Les handlers sont
-nommés avant le JSX et passés directement aux propriétés d’événement. Les
-fonctions de rendu des cellules sont également définies hors de la configuration
-des colonnes. Le typage utilise les génériques et annotations sans assertion.
-
-## Lisibilité du code d’interface
-
-Les valeurs de formulaire utilisent `z.input` depuis leurs schémas Zod.
-Les props utilisent des interfaces explicites ou les types natifs des
-bibliothèques. Éviter les types dérivés avec `ComponentProps`,
-`Pick`, `Partial`, `Omit` et `ReturnType`. Les callbacks déclarés dans
-un composant ou un hook utilisent `const handleAction = () => {}`.
-
-Réserver les ternaires aux choix simples de valeurs ; utiliser des `if` pour
-construire des objets, tableaux ou éléments JSX et pour choisir une opération.
-Les variables CSS du toaster sont définies dans la feuille de styles commune.
-Utiliser les éléments HTML adaptés : une jauge avec sa légende forme un
-`figure` avec `figcaption`, un conteneur nommé de tableau forme une `section`.
-Les conteneurs purement visuels peuvent rester des `div`.
+Utiliser un tableau sémantique avec en-têtes et légende. Sur écran étroit,
+rendre sa région nommée défilable et accessible au clavier. Annoncer l’état de
+pagination, désactiver les actions indisponibles ou en cours et conserver les
+lignes chargées pendant une nouvelle tentative après erreur. La recherche reste
+modifiable pendant une requête ; indiquer lorsque le filtre saisi n’est pas
+encore appliqué.

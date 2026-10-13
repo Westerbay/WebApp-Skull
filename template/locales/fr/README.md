@@ -1,30 +1,16 @@
 # WebApp Template
 
-Application web TypeScript avec authentification par email et mot de passe.
+Application web TypeScript réutilisable avec authentification email/mot de passe,
+pagination par curseur, outils locaux protégés et stack d’observabilité
+provisionnée pour les logs, métriques, dashboards et alertes.
 
 ## Technologies
 
-| Technologie                           | Rôle                                          |
-| ------------------------------------- | --------------------------------------------- |
-| Node.js 24 et pnpm                    | Runtime et gestion des dépendances            |
-| Turborepo                             | Orchestration du monorepo                     |
-| NestJS 11 et Express                  | API HTTP et composition serveur               |
-| TanStack Start, Router, Query et Form | Application React                             |
-| Tailwind CSS et shadcn/ui             | Styles et primitives d'interface              |
-| Better Auth                           | Inscription, connexion et sessions par cookie |
-| Zod                                   | Validation des données aux frontières         |
-| OpenAPI, openapi-typescript et fetch  | Contrat HTTP et client web typé               |
-| Drizzle ORM et PostgreSQL 17          | Persistance et migrations                     |
-| Vitest                                | Tests unitaires et HTTP                       |
-| React Email et Nodemailer             | Emails HTML/texte et transport SMTP           |
-| Mailpit                               | Capture email locale                          |
-| Paraglide JS                          | Catalogues sélectionnés typés                 |
-| Sonner                                | Notifications accessibles                     |
-| Playwright                            | Parcours navigateur                           |
-| Docker Compose                        | Services locaux                               |
-| Pino et nestjs-pino                   | Logs HTTP structurés et nettoyés              |
-| GitHub Actions                        | Vérification Node 24 isolée                   |
-| Gitleaks                              | Détection de secrets dans l’historique Git    |
+Node.js 24, pnpm 12, Turborepo, NestJS 11/Express, TanStack Start/Router/Query/Form,
+Tailwind/shadcn, Better Auth, Zod, OpenAPI/openapi-typescript/openapi-fetch,
+Drizzle/PostgreSQL 17, Vitest, React Email/Nodemailer, Mailpit, Paraglide,
+Sonner, Playwright, Docker Compose, Pino, Grafana, Prometheus, Loki, Alloy,
+Blackbox Exporter, GitHub Actions et Gitleaks.
 
 ## Démarrage
 
@@ -37,78 +23,107 @@ pnpm run setup
 pnpm dev
 ```
 
-| Service    | Adresse                           |
-| ---------- | --------------------------------- |
-| Web        | http://localhost:3000             |
-| API        | http://localhost:3001             |
-| Santé API  | http://localhost:3001/health/live |
-| Swagger    | http://localhost:3001/docs        |
-| Mailpit    | http://localhost:8025             |
-| PostgreSQL | localhost:5433                    |
+Web : `http://localhost:3000` ; API : `http://localhost:3001` ; Swagger : `/docs`
+sur l’API ; santé : `/health/live` ; Mailpit : `http://localhost:8025` ;
+PostgreSQL : port 5433. L’installation démarre l’infrastructure et applique les
+migrations protégées sans créer de données de test.
+
+## Observabilité
+
+Le template inclut quatre dashboards Grafana alimentés par les métriques
+Prometheus et les logs API structurés dans Loki. Le provisionnement des
+dashboards, les collecteurs et les règles d’alerte initiales sont dans
+`infra/observability` et versionnés avec l’application.
+
+| Dashboard           | Contenu                                                                                                        |
+| ------------------- | -------------------------------------------------------------------------------------------------------------- |
+| API overview        | Trafic, erreurs, percentiles de latence, readiness et versions déployées.                                      |
+| API routes and logs | Résultats par route, routes lentes ou en échec, erreurs structurées et corrélation par identifiant de requête. |
+| API infrastructure  | Ressources Node.js, connexions et charge SQL PostgreSQL, ressources Valkey et état de la supervision.          |
+| API auth and email  | Résultats HTTP d’authentification, blocages par quota et résultats/durée du transport email.                   |
+
+Après l’installation normale du projet, démarrer la stack d’observabilité locale
+et l’application :
+
+```bash
+pnpm logs:up
+pnpm dev:logs
+```
+
+Ouvrir [Grafana](http://localhost:3002/d/skull-api-overview). Les statistiques SQL
+PostgreSQL sont activées par défaut dans la stack d’observabilité ; le Compose
+standard de développement précharge `pg_stat_statements` et l’installe dans
+les nouvelles bases. Les volumes existants nécessitent l’installation explicite
+décrite dans le [guide des performances PostgreSQL](docs/POSTGRESQL-PERFORMANCE.md).
+
+Essayer les dashboards sans installer le projet avec `pnpm logs:preview`.
+Cette commande crée des services isolés et du trafic d’exemple, puis retire ses
+propres ressources avec Ctrl+C. `pnpm logs:check` valide les règles d’alerte ;
+`pnpm logs:test` exerce métriques, logs, sondes et requêtes des dashboards contre
+des services isolés sans `.env` local.
+
+La stack locale est optionnelle. Les environnements déployés nécessitent un
+accès, un stockage, une installation d’extension et un acheminement des
+notifications gérés par la plateforme. Voir le
+[guide d’observabilité](docs/OBSERVABILITY.md) pour les définitions des métriques,
+la confidentialité, l’intégration en production et les procédures de diagnostic,
+et le [guide de développement](docs/DEVELOPMENT.md) pour les commandes.
+
+## Langues
+
+Les catalogues actifs sont dans `packages/i18n/messages` ; les langues supportées
+et celle par défaut sont configurées dans `packages/i18n/project.inlang/settings.json`.
+Les chemins publics sont dans `packages/i18n/routing.json`. Les projets
+monolingues omettent les préfixes ; les projets multilingues préfixent chaque
+langue. Les identifiants de code et routes internes restent anglais.
 
 ## Commandes
 
 ```bash
-pnpm dev             # démarre l'API et le web
-pnpm check           # format, lint, types, tests et builds
-pnpm test            # tests rapides Vitest
-pnpm test:integration # auth réelle dans PostgreSQL/Mailpit isolés
-pnpm test:e2e        # parcours mobile dans des services isolés neufs
-pnpm docs:check      # présence des documents et validité des liens locaux
-pnpm project:check   # frontières, métadonnées et versions d’infrastructure
-pnpm api:generate    # régénère OpenAPI et les types du client web
-pnpm api:check       # détecte une dérive des contrats générés
-pnpm db:generate     # génère une migration depuis le schéma
-pnpm db:migrate      # applique les migrations à la cible configurée
-pnpm db:seed -- --scenario auth # restaure les deux comptes de référence et 60 profils déterministes
-pnpm db:seed -- --scenario auth --clean # supprime seulement ces fixtures
-pnpm db:seed -- --all # exécute tous les scénarios dans l’ordre du registre
-pnpm db:studio       # ouvre Drizzle Studio
-pnpm dev:infra       # démarre PostgreSQL et Mailpit
-pnpm dev:down        # arrête les services sans supprimer leurs données
+pnpm check                    # format, lint, types, tests unitaires, contrats, docs, builds
+pnpm test:integration         # auth/API réelles avec services éphémères dédiés
+pnpm test:e2e                 # parcours mobile auth et pagination
+pnpm docs:check
+pnpm project:check
+pnpm api:generate
+pnpm api:check
+pnpm db:generate
+pnpm db:migrate
+pnpm db:seed -- --scenario auth
+pnpm db:seed -- --scenario auth --clean
+pnpm db:seed -- --all
+pnpm db:studio
+pnpm dev:infra
+pnpm dev:down
 ```
 
-`pnpm run setup` démarre PostgreSQL et applique les migrations seulement après
-validation de la cible locale. Il ne crée aucune donnée applicative. Le seed
-auth est séparé, explicite et réservé aux cibles de développement ou de test
-vérifiées. Les emails locaux sont consultables dans Mailpit.
+Les données de test sont créées explicitement, nécessitent le mode fixture et
+restaurent deux comptes de référence ainsi que 60 profils déterministes.
+Les emails locaux sont capturés par Mailpit.
 
 ## Structure
 
 ```text
 apps/api             API NestJS et intégrations serveur
 apps/web             application TanStack Start
-packages/contracts   schémas et contrats partagés
-packages/core        règles métier et ports lorsqu'un domaine les exige
+packages/contracts   schémas et interfaces partagés
+packages/core        règles métier et ports purs lorsque nécessaires
 packages/database    schémas, migrations et client Drizzle
-packages/email       modèles et transport email serveur
-packages/i18n        catalogue sélectionné et fonctions Paraglide
+packages/email       modèles email et transport serveur
+packages/i18n        catalogues sélectionnés et runtime Paraglide généré
 packages/ui          primitives et styles partagés
-docs                 contexte durable du projet
+infra                initialisation PostgreSQL et configuration d’observabilité
+docs                 documentation actuelle du projet
 ```
 
-Better Auth expose ses routes sous `/api/auth`. Les controllers Nest exposent
-leur contrat dans `apps/api/openapi.json` ; le web le consomme avec
-`openapi-fetch`. Les deux clients utilisent les cookies de session avec
-`credentials: "include"`. La base initiale contient seulement les tables
-nécessaires à l'authentification.
-
-Lire [docs/CONTEXT.md](docs/CONTEXT.md) pour l'état actuel et
-[docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) pour les conventions locales.
+Better Auth possède `/api/auth` ; le client web typé consomme l’OpenAPI Nest.
+Les deux clients utilisent les cookies de session. Lire
+[docs/CONTEXT.md](docs/CONTEXT.md) et [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)
+avant de modifier le projet.
 
 ## Licence
 
-WebApp Template est distribué sous [licence MIT](LICENSE).
-
-Si vous réutilisez WebApp Template comme base, merci de mentionner le projet et de
-fournir un lien vers [son dépôt](https://github.com/Westerbay/WebApp-Template) dans
-la documentation du résultat. Cette mention est facultative et ne constitue
-pas une condition supplémentaire de la licence MIT.
-
-## Observabilité locale
-
-La stack optionnelle Alloy/Loki/Grafana se lance avec `pnpm logs:up` ;
-`pnpm dev:logs` lui fournit les logs JSON API. Grafana est disponible sur
-[localhost:3002](http://localhost:3002). `pnpm logs:test` vérifie le flux complet
-dans des conteneurs isolés, sans base ni `.env`. Voir les procédures et les
-limites de déploiement dans [DEVELOPMENT.md](docs/DEVELOPMENT.md).
+WebApp Template utilise la [licence MIT](LICENSE). Lors de sa réutilisation,
+merci de le mentionner et de fournir un lien vers
+[son dépôt](https://github.com/Westerbay/WebApp-Template). Cette mention est
+facultative et ne constitue pas une condition supplémentaire de la licence.
