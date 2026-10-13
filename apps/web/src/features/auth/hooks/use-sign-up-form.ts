@@ -5,7 +5,7 @@ import { useRouter } from "@tanstack/react-router"
 import { useState } from "react"
 import { network_error } from "@workspace/i18n/messages"
 import { authClient } from "@/lib/auth/auth-client"
-import { clearPrivateCache } from "@/lib/auth/current-user"
+import { clearPrivateCache } from "@/lib/query/private-cache"
 import { signUpSchema } from "../schemas/auth-form"
 import { authErrorMessage } from "../auth-error"
 

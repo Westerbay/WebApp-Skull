@@ -21,6 +21,37 @@ export default {
       },
     },
     {
+      name: "web-lib-no-composition",
+      severity: "error",
+      comment:
+        "Shared web mechanisms cannot depend on features or page composition.",
+      from: { path: "^apps/web/src/lib/" },
+      to: {
+        path: "^apps/web/src/(?:features/|components/|routes/|router\\.tsx$|server\\.ts$)",
+      },
+    },
+    {
+      name: "web-features-no-composition",
+      severity: "error",
+      comment:
+        "Features are composed by routes and the application shell, never the reverse.",
+      from: { path: "^apps/web/src/features/" },
+      to: {
+        path: "^apps/web/src/(?:components/|routes/|router\\.tsx$|server\\.ts$)",
+      },
+    },
+    {
+      name: "web-features-independent",
+      severity: "error",
+      comment:
+        "Compose different features in routes or the application shell; share generic mechanisms through lib.",
+      from: { path: "^apps/web/src/features/([^/]+)/" },
+      to: {
+        path: "^apps/web/src/features/",
+        pathNot: "^apps/web/src/features/$1/",
+      },
+    },
+    {
       name: "api-no-web",
       severity: "error",
       from: { path: "^apps/api/src/" },

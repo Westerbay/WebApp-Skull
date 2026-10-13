@@ -3,7 +3,7 @@ import { useState } from "react"
 import { toast } from "sonner"
 import { network_error, signed_out } from "@workspace/i18n/messages"
 import { authClient } from "@/lib/auth/auth-client"
-import { clearPrivateCache } from "@/lib/auth/current-user"
+import { clearPrivateCache } from "@/lib/query/private-cache"
 import { authErrorMessage } from "../auth-error"
 
 export function useSignOut() {

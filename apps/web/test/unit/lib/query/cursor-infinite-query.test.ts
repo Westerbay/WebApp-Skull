@@ -1,7 +1,7 @@
 import { InfiniteQueryObserver, QueryClient } from "@tanstack/react-query"
 import { expect, it, vi } from "vitest"
 import { cursorInfiniteQueryOptions } from "@/lib/query/use-cursor-infinite-query"
-import { clearPrivateCache } from "@/lib/auth/current-user"
+import { clearPrivateCache } from "@/lib/query/private-cache"
 
 it("follows cursors, stops at null and clears cached pages on identity transition", async () => {
   const client = new QueryClient()

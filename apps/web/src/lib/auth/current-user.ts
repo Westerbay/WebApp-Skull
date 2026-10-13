@@ -36,8 +36,3 @@ export function loadCurrentUserForProtectedRoute(queryClient: QueryClient) {
     staleTime: 0,
   })
 }
-
-export async function clearPrivateCache(queryClient: QueryClient) {
-  await queryClient.cancelQueries({ queryKey: privateQueryKeyPrefix })
-  queryClient.removeQueries({ queryKey: privateQueryKeyPrefix })
-}

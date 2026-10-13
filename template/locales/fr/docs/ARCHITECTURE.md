@@ -223,7 +223,15 @@ doivent posséder leurs propres données.
 Les routes déclarent navigation, métadonnées et composition. Les formulaires
 sont dans `features/auth/components`, leur orchestration TanStack Form dans
 `features/auth/hooks`, et leurs schémas dans `features/auth/schemas`.
-Le header et l’accueil sont des composants indépendants des routes.
+La route d’accueil compose le résumé du compte auth et le tableau utilisateurs ;
+l’authentification ne possède pas le dashboard. Le header compose le composant
+d’actions de session auth. Les règles de dépendances gardent chaque
+`features/<name>` indépendant des autres fonctionnalités, des routes et des
+composants de structure applicative. Les mécanismes partagés de `lib` ne dépendent
+ni des fonctionnalités ni de leur composition. Ces règles couvrent les nouveaux
+dossiers sans ajouter leurs noms à la configuration. Composer les fonctionnalités
+dans les routes ou la structure applicative ; extraire un mécanisme partagé
+uniquement pour un besoin commun concret.
 
 `packages/i18n/messages/<locale>.json` contient les catalogues Paraglide sélectionnés pour les écrans et emails.
 Le compiler génère fonctions, déclarations et URL localisées ; la stratégie `url` sélectionne la langue et le middleware isole les requêtes SSR. `packages/i18n/src/config.ts` expose la locale

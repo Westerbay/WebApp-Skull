@@ -1,5 +1,6 @@
 import { createFileRoute, redirect } from "@tanstack/react-router"
-import { AccountHome } from "@/features/auth/components/account-home"
+import { AccountSummary } from "@/features/auth/components/account-summary"
+import { UsersTable } from "@/features/users/components/users-table"
 import { home_title, home_description } from "@workspace/i18n/messages"
 import { privateHead } from "@/lib/seo/private-head"
 import {
@@ -31,5 +32,10 @@ export const Route = createFileRoute("/")({
 function HomePage() {
   const { currentUser } = Route.useRouteContext()
 
-  return <AccountHome user={currentUser} />
+  return (
+    <section className="mx-auto flex max-w-5xl flex-col gap-4 px-5 py-10">
+      <AccountSummary user={currentUser} />
+      <UsersTable key={currentUser.id} />
+    </section>
+  )
 }
