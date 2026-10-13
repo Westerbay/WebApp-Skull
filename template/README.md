@@ -62,7 +62,14 @@ access is required when the cache is incomplete; supply-chain checks remain
 enabled. Generation fails if the lockfile cannot be refreshed.
 
 Application documentation is shared with the output (French documents replace
-English ones for the French profile). A `<!-- template-maintainers:start -->` /
+English ones for the French profile). The generator discovers every Markdown
+document directly under `docs/`; each must have a French counterpart under
+`template/locales/fr/docs/`. A missing translation fails preparation before
+creating output, instead of silently keeping the English document. Keep
+commands, code examples, configuration keys and alert identifiers unchanged
+when translating. Generated-profile tests verify the complete document inventory
+and its selected language, and run the link checker on the result.
+A `<!-- template-maintainers:start -->` /
 `<!-- template-maintainers:end -->` block marks the source README's maintenance
 link; the generator omits this block. Keep distribution procedures in this guide,
 not in application documentation.

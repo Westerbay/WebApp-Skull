@@ -1,6 +1,6 @@
 import { format } from "prettier"
 import { execFileSync } from "node:child_process"
-import { mkdir, readFile, writeFile } from "node:fs/promises"
+import { mkdir, readdir, readFile, writeFile } from "node:fs/promises"
 import { resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 import { buildUrlPatterns } from "../packages/i18n/routing-config.mjs"
@@ -8,16 +8,6 @@ import { templateProfiles } from "./template-profiles.mjs"
 import { copyTemplateFiles, listTemplateFiles } from "./template-files.mjs"
 
 const source = fileURLToPath(new URL("../", import.meta.url))
-const documents = [
-  "README.md",
-  "AGENTS.md",
-  "docs/CONTEXT.md",
-  "docs/PRODUCT.md",
-  "docs/ARCHITECTURE.md",
-  "docs/DESIGN.md",
-  "docs/REUSE.md",
-  "docs/DEVELOPMENT.md",
-]
 
 export async function generateTemplate({ output, profile = "en" }) {
   if (!output) throw new Error("An explicit output directory is required")
@@ -94,6 +84,14 @@ async function prepareTemplate({ locales, docsLocale }) {
   buildUrlPatterns(routing, locales)
   const documentation = new Map()
   const docsRoot = docsLocale === "fr" ? "template/locales/fr" : "."
+  const documents = [
+    "README.md",
+    "AGENTS.md",
+    ...(await readdir(resolve(source, "docs")))
+      .filter((file) => file.endsWith(".md"))
+      .sort()
+      .map((file) => `docs/${file}`),
+  ]
   for (const document of documents)
     documentation.set(
       document,

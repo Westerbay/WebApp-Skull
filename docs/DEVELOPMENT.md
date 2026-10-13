@@ -17,8 +17,12 @@ starts infrastructure and applies guarded migrations; it does not seed.
 `pnpm dev:down` stops services without deleting the database volume.
 
 The standard `compose.yml` stays at the root; optional and test stacks live in
-`infra/compose/`. Infrastructure scripts live in `scripts/infra/`. See
-[TOOLING.md](TOOLING.md) for ownership, script language choices and validation.
+`infra/compose/`. Infrastructure scripts live in `scripts/infra/`; use the root
+pnpm commands as their entry points. Keep `.mjs` for structured files, subprocess
+orchestration and resource cleanup; Bash suits short shell-specific CI steps.
+`pnpm tooling:test` checks the optional stack launcher without Docker (its POSIX
+executable stub is skipped on Windows). Integration, E2E and observability
+suites require Docker and clean only their own temporary resources.
 
 ## Languages and public paths
 

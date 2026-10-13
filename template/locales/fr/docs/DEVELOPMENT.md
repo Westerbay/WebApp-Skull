@@ -418,7 +418,14 @@ d’environnement ne sont pas copiés ; configurer chaque checkout séparément.
 `worktree:check` utilise des dépôts temporaires sans lire de fichiers
 d’environnement.
 
-## Infrastructure tooling
+## Organisation des outils d’infrastructure
 
-Optional and test stacks live in `infra/compose/`; their scripts live in
-`scripts/infra/`. See [TOOLING.md](TOOLING.md) for ownership and validation.
+Le fichier standard `compose.yml` reste à la racine ; les stacks optionnelles
+et de test sont dans `infra/compose/`. Leurs scripts sont dans `scripts/infra/` ;
+utiliser les commandes pnpm de la racine comme points d’entrée. Conserver `.mjs`
+pour les fichiers structurés, l’orchestration des processus et le nettoyage des
+ressources ; Bash convient aux courtes étapes de CI propres au shell.
+`pnpm tooling:test` vérifie le lanceur des stacks optionnelles sans Docker
+(son faux exécutable POSIX est ignoré sous Windows). Les suites d’intégration,
+E2E et d’observabilité nécessitent Docker et nettoient uniquement leurs propres
+ressources temporaires.

@@ -1,4 +1,4 @@
-import { access, readFile } from "node:fs/promises"
+import { access, readdir, readFile } from "node:fs/promises"
 import { dirname, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 
@@ -6,14 +6,10 @@ const root = fileURLToPath(new URL("../", import.meta.url))
 const documents = [
   "README.md",
   "AGENTS.md",
-  "docs/CONTEXT.md",
-  "docs/PRODUCT.md",
-  "docs/ARCHITECTURE.md",
-  "docs/DESIGN.md",
-  "docs/REUSE.md",
-  "docs/DEVELOPMENT.md",
-  "docs/POSTGRESQL-PERFORMANCE.md",
-  "docs/TOOLING.md",
+  ...(await readdir(resolve(root, "docs")))
+    .filter((file) => file.endsWith(".md"))
+    .sort()
+    .map((file) => `docs/${file}`),
 ]
 
 const failures = []
