@@ -59,13 +59,13 @@ for (const file of activeFiles) {
 }
 
 const routes = [
-  "email-verified.tsx",
-  "sign-in.tsx",
+  "(auth)/email-verified.tsx",
+  "(auth)/sign-in.tsx",
   "index.tsx",
-  "sign-up.tsx",
-  "forgot-password.tsx",
-  "reset-password.tsx",
-  "verify-email.tsx",
+  "(auth)/sign-up.tsx",
+  "(auth)/forgot-password.tsx",
+  "(auth)/reset-password.tsx",
+  "(auth)/verify-email.tsx",
 ]
 for (const route of routes) {
   const content = await readFile(

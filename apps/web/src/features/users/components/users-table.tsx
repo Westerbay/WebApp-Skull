@@ -41,18 +41,20 @@ export function UsersTable() {
           {users_title()}
         </h2>
         <p className="text-sm text-muted-foreground">{users_description()}</p>
-        <Field>
-          <FieldLabel htmlFor={searchId}>{users_search_label()}</FieldLabel>
-          <Input
-            id={searchId}
-            type="search"
-            value={search}
-            onChange={handleSearchChange}
-            placeholder={users_search_placeholder()}
-            maxLength={usersSearchConstraints.maxLength}
-            className="min-h-11"
-          />
-        </Field>
+        <search aria-labelledby={titleId}>
+          <Field>
+            <FieldLabel htmlFor={searchId}>{users_search_label()}</FieldLabel>
+            <Input
+              id={searchId}
+              type="search"
+              value={search}
+              onChange={handleSearchChange}
+              placeholder={users_search_placeholder()}
+              maxLength={usersSearchConstraints.maxLength}
+              className="min-h-11"
+            />
+          </Field>
+        </search>
         {searchPending && (
           <p role="status" className="text-sm text-muted-foreground">
             {users_search_pending()}
@@ -74,7 +76,6 @@ export function UsersTable() {
             pending={query.isFetching}
           />
           <UsersTablePagination
-            titleId={titleId}
             pageNumber={pageNumber}
             canGoPrevious={canGoPrevious}
             canGoNext={canGoNext}

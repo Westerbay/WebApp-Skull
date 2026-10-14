@@ -3,12 +3,12 @@ import type { CurrentUser } from "@workspace/contracts/identity"
 
 export function AccountSummary({ user }: { user: CurrentUser }) {
   return (
-    <>
+    <header className="space-y-4">
       <h1 className="text-3xl font-semibold tracking-tight">
         {welcome({ name: user.name })}
       </h1>
       <p className="text-muted-foreground">{home_description()}</p>
       <p className="text-sm">{user.email}</p>
-    </>
+    </header>
   )
 }

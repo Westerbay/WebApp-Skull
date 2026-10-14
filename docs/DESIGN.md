@@ -20,6 +20,17 @@ Password visibility must work by keyboard. Strength feedback is advisory and
 must not change password acceptance. Keep password tokens out of metadata and
 URLs. Auth pages remain noindex and no-referrer.
 
+## Public page metadata
+
+The current dashboard and auth flows use `privateHead` and remain noindex and
+no-referrer. When adding a public page intended for discovery or sharing, give it
+an explicit public metadata policy instead of reusing `privateHead`. Render its
+localized title, description, canonical URL and Open Graph metadata in server
+HTML. Include `og:title`, `og:type`, `og:image` and `og:url`, plus description,
+site name and locale where applicable. Use absolute URLs for canonical and social
+images, and exclude tokens, private data and transient query parameters. Override
+the root's private indexing policy explicitly for indexable public pages.
+
 ## Localization
 
 Every visible string, including mapped provider errors and status messages,

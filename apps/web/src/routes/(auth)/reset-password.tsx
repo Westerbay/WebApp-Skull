@@ -11,7 +11,7 @@ import { ResetPasswordForm } from "@/features/auth/components/reset-password-for
 import { privateHead } from "@/lib/seo/private-head"
 import { tokenSearchSchema } from "@/features/auth/schemas/search"
 
-export const Route = createFileRoute("/reset-password")({
+export const Route = createFileRoute("/(auth)/reset-password")({
   validateSearch: tokenSearchSchema,
   head: () => privateHead(reset_title(), reset_description()),
   component: Page,

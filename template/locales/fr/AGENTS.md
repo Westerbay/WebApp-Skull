@@ -21,6 +21,19 @@ entrées externes à leur frontière. Ne jamais lire, modifier ou versionner un
 vrai fichier `.env`. Ne jamais migrer, réinitialiser ou alimenter une base
 distante ou non vérifiée.
 
+## Sémantique web
+
+Lors de l’écriture d’une interface web, choisir les éléments HTML selon leur sens
+avant leur style. Préserver les repères de page pertinents et une hiérarchie de
+titres cohérente. Utiliser des boutons pour les actions, des liens pour la
+navigation, des labels associés aux champs et des listes et tableaux natifs pour
+les contenus structurés. Préférer la sémantique HTML native aux recréations ARIA.
+Réserver `div` et `span` aux regroupements sans sens particulier ; ne pas les
+remplacer mécaniquement par `section` ou `article`. Vérifier le DOM rendu par les
+composants UI partagés, le comportement clavier et les noms accessibles, pas
+seulement le JSX. Suivre `docs/DESIGN.md` pour les conventions d’interface et
+d’accessibilité.
+
 ## Validation à l’exécution
 
 Pour valider un objet inconnu, préférer un schéma Zod à une chaîne de contrôles

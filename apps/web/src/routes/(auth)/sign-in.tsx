@@ -11,7 +11,7 @@ import { SignInForm } from "@/features/auth/components/sign-in-form"
 import { privateHead } from "@/lib/seo/private-head"
 import { signInSearchSchema } from "@/features/auth/schemas/search"
 
-export const Route = createFileRoute("/sign-in")({
+export const Route = createFileRoute("/(auth)/sign-in")({
   validateSearch: signInSearchSchema,
   head: () => privateHead(sign_in_title(), auth_description()),
   component: Page,

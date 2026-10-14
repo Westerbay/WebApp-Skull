@@ -22,6 +22,11 @@ type imports, dynamic imports and resolved aliases. Core ports have no external
 dependencies; contracts depend only on their own schemas and Zod; UI primitives
 do not depend on business packages. Shared packages never import applications.
 
+Auth route files live in `apps/web/src/routes/(auth)`. Parenthesized route groups
+organize files without adding URL segments or layouts; internal and localized
+paths remain unchanged. Add a pathless protected layout only when multiple
+protected routes need a shared session check or shell.
+
 Routes compose navigation, metadata and feature components. Feature hooks own
 interactions; shared clients and query configuration live in web `lib`.
 The home route composes the auth account summary and the users table; auth does
