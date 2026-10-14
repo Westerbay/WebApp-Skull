@@ -8,7 +8,7 @@ import { AuthPanel } from "@/features/auth/components/auth-panel"
 import { SignUpForm } from "@/features/auth/components/sign-up-form"
 import { privateHead } from "@/lib/seo/private-head"
 
-export const Route = createFileRoute("/sign-up")({
+export const Route = createFileRoute("/(auth)/sign-up")({
   head: () => privateHead(sign_up_title(), sign_up_description()),
   component: Page,
 })

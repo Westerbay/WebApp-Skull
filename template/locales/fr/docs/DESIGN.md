@@ -22,6 +22,19 @@ L’indication de robustesse est indicative et ne doit pas modifier l’acceptat
 du mot de passe. Garder les tokens de mot de passe hors des métadonnées et URL.
 Les pages auth restent noindex et no-referrer.
 
+## Métadonnées des pages publiques
+
+Le dashboard et les flux auth actuels utilisent `privateHead` et restent noindex
+et no-referrer. Lors de l’ajout d’une page publique destinée à la découverte ou
+au partage, définir une politique explicite de métadonnées publiques plutôt que
+réutiliser `privateHead`. Rendre dans le HTML serveur son titre localisé, sa
+description, son URL canonique et ses métadonnées Open Graph. Inclure `og:title`,
+`og:type`, `og:image` et `og:url`, ainsi que description, nom du site et locale si
+pertinents. Utiliser des URL absolues pour la canonique et les images de partage,
+et exclure tokens, données privées et paramètres de requête transitoires.
+Remplacer explicitement la politique d’indexation privée de la racine pour les
+pages publiques indexables.
+
 ## Localisation
 
 Chaque texte visible, y compris les erreurs de fournisseurs traduites et les

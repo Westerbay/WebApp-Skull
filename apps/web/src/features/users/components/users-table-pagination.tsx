@@ -4,10 +4,10 @@ import {
   users_previous,
   users_next,
   users_page,
+  users_pagination_label,
 } from "@workspace/i18n/messages"
 
 type UsersTablePaginationProps = {
-  titleId: string
   pageNumber: number
   canGoPrevious: boolean
   canGoNext: boolean
@@ -17,7 +17,6 @@ type UsersTablePaginationProps = {
 }
 
 export function UsersTablePagination({
-  titleId,
   pageNumber,
   canGoPrevious,
   canGoNext,
@@ -34,7 +33,7 @@ export function UsersTablePagination({
       >
         {users_page({ page: pageNumber })}
       </p>
-      <nav aria-labelledby={titleId} className="flex gap-2">
+      <nav aria-label={users_pagination_label()} className="flex gap-2">
         <Button
           variant="outline"
           disabled={!canGoPrevious}

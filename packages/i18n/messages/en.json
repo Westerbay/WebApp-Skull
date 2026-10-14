@@ -83,6 +83,7 @@
   "users_next": "Next",
   "users_loading": "Loading users…",
   "users_status": "Verified address",
+  "users_pagination_label": "User table pagination",
   "users_page": "Page {page}",
   "users_verified": "Yes",
   "users_title": "Users",

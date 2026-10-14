@@ -27,6 +27,11 @@ function publicUrl(path: string) {
 }
 
 async function checkUsersPagination(page: Page) {
+  await browserExpect(
+    page.getByRole("navigation", {
+      name: messages.users_pagination_label({}, { locale: testLocale }),
+    })
+  ).toBeVisible()
   const pageSize = usersTableConfig.pageSize
   const totalUsers = AUTH_FIXTURES.length + 1
   const lastPage = Math.ceil(totalUsers / pageSize)
@@ -172,9 +177,13 @@ async function checkUsersPagination(page: Page) {
 }
 
 async function checkUsersSearch(page: Page) {
-  const search = page.getByRole("searchbox", {
-    name: messages.users_search_label({}, { locale: testLocale }),
-  })
+  const search = page
+    .getByRole("search", {
+      name: messages.users_title({}, { locale: testLocale }),
+    })
+    .getByRole("searchbox", {
+      name: messages.users_search_label({}, { locale: testLocale }),
+    })
   const table = page.getByRole("table", {
     name: messages.users_title({}, { locale: testLocale }),
   })
@@ -294,6 +303,11 @@ it("completes localized signup, verification, reset and logout in a mobile brows
       "content",
       "noindex, nofollow"
     )
+    await browserExpect(
+      page.getByRole("region", {
+        name: messages.sign_up_title({}, { locale: testLocale }),
+      })
+    ).toBeVisible()
     await page.screenshot({
       path: "../../output/playwright/auth-inscription-mobile.png",
       fullPage: true,

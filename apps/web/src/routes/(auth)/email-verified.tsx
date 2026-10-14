@@ -10,7 +10,7 @@ import { AuthPanel } from "@/features/auth/components/auth-panel"
 import { tokenSearchSchema } from "@/features/auth/schemas/search"
 import { privateHead } from "@/lib/seo/private-head"
 
-export const Route = createFileRoute("/email-verified")({
+export const Route = createFileRoute("/(auth)/email-verified")({
   validateSearch: tokenSearchSchema,
   head: () =>
     privateHead(verification_complete(), verification_complete_description()),

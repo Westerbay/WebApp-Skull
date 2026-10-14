@@ -22,6 +22,17 @@ Do not add layers, repositories or ports without a concrete need. Validate
 external inputs at their boundary. Never read, modify or commit a real `.env`
 file. Never migrate, reset or seed a remote or unverified database.
 
+## Web semantics
+
+When writing web UI, choose HTML elements by meaning before styling. Preserve
+appropriate landmarks and a coherent heading hierarchy. Use buttons for actions,
+links for navigation, associated labels for form controls, and native lists and
+tables for structured content. Prefer native HTML semantics over ARIA recreations.
+Reserve `div` and `span` for groups without semantic meaning; do not replace them
+mechanically with `section` or `article`. Check the rendered DOM of shared UI
+components, keyboard behavior and accessible names, not only the JSX. Follow
+`docs/DESIGN.md` for interface and accessibility conventions.
+
 ## Runtime validation
 
 When validating an unknown object, prefer a Zod schema over a chain of

@@ -24,6 +24,12 @@ n’ont aucune dépendance externe ; les contrats dépendent uniquement de leurs
 propres schémas et de Zod ; les primitives UI ne dépendent pas des packages
 métier. Les packages partagés n’importent jamais les applications.
 
+Les fichiers de routes auth sont dans `apps/web/src/routes/(auth)`. Les groupes
+entre parenthèses organisent les fichiers sans ajouter de segment d’URL ni de
+layout ; les chemins internes et localisés restent inchangés. Ajouter un layout
+protégé sans chemin seulement lorsque plusieurs routes protégées nécessitent une
+vérification de session ou une structure commune.
+
 Les routes composent navigation, métadonnées et composants de fonctionnalités.
 Les hooks de fonctionnalité possèdent les interactions ; les clients partagés et
 la configuration des requêtes sont dans le `lib` web. La route d’accueil compose

@@ -83,6 +83,7 @@
   "users_next": "Suivant",
   "users_loading": "Chargement des utilisateurs…",
   "users_status": "Adresse vérifiée",
+  "users_pagination_label": "Pagination du tableau des utilisateurs",
   "users_page": "Page {page}",
   "users_verified": "Oui",
   "users_title": "Utilisateurs",
