@@ -224,7 +224,7 @@ async function checkUsersSearch(page: Page) {
       })
     ).toBeDisabled()
     await page.screenshot({
-      path: "../../output/playwright/users-search-mobile.png",
+      path: `../../output/playwright/${testLocale}/users-search-mobile.png`,
       fullPage: true,
     })
     await search.fill("no-user-matches-this-search")
@@ -267,6 +267,7 @@ it("completes localized signup, verification, reset and logout in a mobile brows
       stdio: "ignore",
     }
   )
+  let page: Page | undefined
   try {
     let ready = false
     for (let attempt = 0; attempt < 100; attempt++) {
@@ -281,7 +282,7 @@ it("completes localized signup, verification, reset and logout in a mobile brows
       await delay(200)
     }
     expect(ready).toBe(true)
-    const page = await browser.newPage({
+    page = await browser.newPage({
       viewport: { width: 390, height: 844 },
     })
     const browserErrors: Array<string> = []
@@ -309,7 +310,7 @@ it("completes localized signup, verification, reset and logout in a mobile brows
       })
     ).toBeVisible()
     await page.screenshot({
-      path: "../../output/playwright/auth-inscription-mobile.png",
+      path: `../../output/playwright/${testLocale}/auth-inscription-mobile.png`,
       fullPage: true,
     })
     await page
@@ -382,7 +383,7 @@ it("completes localized signup, verification, reset and logout in a mobile brows
     await checkUsersPagination(page)
     await checkUsersSearch(page)
     await page.screenshot({
-      path: "../../output/playwright/auth-home-mobile.png",
+      path: `../../output/playwright/${testLocale}/auth-home-mobile.png`,
       fullPage: true,
     })
     await page.route("**/api/auth/sign-out", (route) =>
@@ -418,7 +419,7 @@ it("completes localized signup, verification, reset and logout in a mobile brows
         (url.search === "" || url.searchParams.get("redirect") === "/")
     )
     await page.screenshot({
-      path: "../../output/playwright/auth-connexion-mobile.png",
+      path: `../../output/playwright/${testLocale}/auth-connexion-mobile.png`,
       fullPage: true,
     })
     await page
@@ -495,6 +496,21 @@ it("completes localized signup, verification, reset and logout in a mobile brows
         () => document.documentElement.scrollWidth <= window.innerWidth
       )
     ).toBe(true)
+  } catch (error) {
+    if (page) {
+      try {
+        await page.screenshot({
+          path: `../../output/playwright/${testLocale}/auth-failure.png`,
+          fullPage: true,
+        })
+      } catch (screenshotError) {
+        throw new AggregateError(
+          [error, screenshotError],
+          "E2E failed and its failure screenshot could not be saved"
+        )
+      }
+    }
+    throw error
   } finally {
     await browser.close()
     web.kill("SIGTERM")

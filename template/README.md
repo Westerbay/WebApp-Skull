@@ -92,15 +92,25 @@ not in application documentation.
 
 ## Distribution validation
 
-The template workflow checks the generator and all three profiles. It creates
-source ZIPs, extracts them, then runs `pnpm check`, integration and E2E in each
-active language against the extracted projects. The ZIPs themselves are uploaded,
-without an outer archive. Application CI is copied unchanged.
+The `Template validation` workflow runs on PRs and manual requests. Both it and
+the tag-only `Template release` workflow call `template-validation.yml`, which
+checks the generator and all three profiles. It creates source ZIPs, extracts
+them, then runs `pnpm check`, integration and E2E in each active language against
+the extracted projects. The ZIPs themselves are uploaded, without an outer archive.
+All template workflows are excluded from generated projects; application CI is
+copied unchanged.
+
+New commits cancel obsolete PR validations. Release runs are serialized per tag
+and never cancel an active publication. Dependency caches cover both the source
+and extracted-project lockfiles. Failed profile runs retain available E2E
+screenshots and JUnit results for seven days, with diagnostics separated by
+profile and language.
 
 ## Publishing template releases
 
 PRs and `Run workflow` perform validation and provide downloadable artifacts.
-Only pushing a `v*` tag publishes a release, after all three profiles succeed.
+Only pushing a `v*` tag starts `Template release`, which publishes after all three
+profiles succeed. Publication is absent from PR runs rather than shown as skipped.
 Choose a new version on the intended commit, normally the merged `main`:
 
 ```bash

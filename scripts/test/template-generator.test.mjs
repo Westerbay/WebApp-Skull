@@ -87,7 +87,7 @@ for (const { id, locales, docsLocale } of templateProfiles) {
           !name.startsWith("template/") &&
             !name.startsWith("scripts/template-") &&
             !name.startsWith("scripts/test/template-") &&
-            name !== ".github/workflows/templates.yml",
+            !name.startsWith(".github/workflows/template"),
           `Maintainer-only ZIP entry: ${name}`
         )
         assert.ok(
@@ -173,6 +173,9 @@ for (const { id, locales, docsLocale } of templateProfiles) {
         ".env",
         ".git",
         "scripts/template-create.mjs",
+        ".github/workflows/templates.yml",
+        ".github/workflows/template-validation.yml",
+        ".github/workflows/template-release.yml",
       ])
         await assert.rejects(access(join(output, excluded)))
       execFileSync(process.execPath, ["scripts/docs-check.mjs"], {

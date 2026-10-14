@@ -8,7 +8,7 @@ const excluded = [
   ".codex/",
   "scripts/template-",
   "scripts/test/template-",
-  ".github/workflows/templates.yml",
+  ".github/workflows/template",
   "packages/i18n/messages/",
 ]
 
