@@ -55,6 +55,12 @@ pnpm test:integration
 pnpm test:e2e
 ```
 
+Les E2E écrivent les captures mobiles et résultats JUnit dans
+`output/playwright/<locale>/`. Un échec navigateur enregistre aussi
+`auth-failure.png` lorsque la page est disponible. Les exécutions E2E échouées
+sur la CI téléversent les diagnostics disponibles sous `e2e-diagnostics`, conservés
+sept jours ; les télécharger depuis les artefacts de l’exécution du workflow.
+
 Les contrôles rapides ne nécessitent aucune base. L’intégration et les E2E
 utilisent leurs propres infrastructures temporaires et nécessitent Docker ;
 installer leur navigateur avec

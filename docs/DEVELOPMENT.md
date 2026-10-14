@@ -52,6 +52,11 @@ pnpm test:integration
 pnpm test:e2e
 ```
 
+E2E writes mobile screenshots and JUnit results under `output/playwright/<locale>/`.
+A browser failure also saves `auth-failure.png` when the page is available. Failed
+CI E2E runs upload available diagnostics as `e2e-diagnostics`, retained for seven
+days; download them from the workflow run's artifacts.
+
 Fast checks need no database. Integration and E2E use owned temporary
 infrastructure and require Docker; install their browser with
 `pnpm --filter @workspace/api exec playwright install chromium`.
