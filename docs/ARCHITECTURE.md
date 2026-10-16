@@ -27,8 +27,14 @@ organize files without adding URL segments or layouts; internal and localized
 paths remain unchanged. Add a pathless protected layout only when multiple
 protected routes need a shared session check or shell.
 
-Routes compose navigation, metadata and feature components. Feature hooks own
-interactions; shared clients and query configuration live in web `lib`.
+Routes compose navigation, metadata and feature components. Each feature owns
+its server state: `queries/` contains query keys, reads and reusable query options;
+`mutations/` contains writes and their cache effects. `hooks/` owns forms,
+navigation and screen interactions, consuming those options with TanStack Query.
+Create these folders only when needed. Shared clients and generic cache mechanisms
+live in web `lib`; domain queries remain with their feature. Better Auth returns
+provider errors as results, so auth consumers check `result.error`; only successful
+identity writes clear private queries, before navigation.
 The home route composes the auth account summary and the users table; auth does
 not own the dashboard. The application header composes auth session actions.
 Dependency rules keep each `features/<name>` independent of other features and

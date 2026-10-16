@@ -15,9 +15,9 @@ de test propres à une fonctionnalité avec celle-ci.
 
 - `packages/ui/src/components` et `src/styles/globals.css` fournissent les primitives UI et tokens réutilisables. Garder les compositions propres à une fonctionnalité avec celle-ci.
 - `apps/web/src/lib/query/use-cursor-infinite-query.ts` gère les paramètres de curseur en préservant les options natives de TanStack Query. Inclure filtres et taille de page dans la clé du consommateur, et transmettre le signal d’annulation.
-- `apps/web/src/lib/auth/current-user.ts` fournit la requête d’identité et sa vérification fraîche avant une route protégée.
+- `apps/web/src/features/auth/queries/current-user.queries.ts` fournit la requête d’identité et sa vérification fraîche avant une route protégée.
 - `apps/web/src/lib/query/private-cache.ts` annule et retire les requêtes privées lors des transitions d’identité, en conservant les publiques. Construire les clés privées avec `lib/query/query-keys.ts` pour inclure automatiquement les nouvelles fonctionnalités.
-- `apps/web/src/features/auth/form-context.ts` et `hooks/use-auth-form.ts` composent les contextes TanStack Form partagés. Réutiliser `AuthInput` et `AuthSubmitButton` pour les formulaires auth correspondants ; garder leurs actions dans les hooks de fonctionnalité.
+- `apps/web/src/features/auth/form-context.ts` et `hooks/use-auth-form.ts` composent les contextes TanStack Form partagés. Réutiliser `AuthInput` et `AuthSubmitButton` pour les formulaires auth correspondants ; garder la navigation et les retours de formulaire dans les hooks de fonctionnalité. Les options d’écriture dans `features/auth/mutations/auth.mutations.ts` préservent les résultats fournisseur et nettoient le cache privé après une écriture d’identité réussie.
 - `apps/web/src/lib/api/client.ts` est le client HTTP typé utilisant les cookies. Utiliser `lib/auth/redirect.ts` pour valider les redirections internes.
 
 ## Fonctions serveur

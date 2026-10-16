@@ -31,8 +31,15 @@ protégé sans chemin seulement lorsque plusieurs routes protégées nécessiten
 vérification de session ou une structure commune.
 
 Les routes composent navigation, métadonnées et composants de fonctionnalités.
-Les hooks de fonctionnalité possèdent les interactions ; les clients partagés et
-la configuration des requêtes sont dans le `lib` web. La route d’accueil compose
+Chaque fonctionnalité possède son état serveur : `queries/` contient les clés,
+lectures et options de requête réutilisables ; `mutations/` contient les écritures
+et leurs effets sur le cache. `hooks/` possède les formulaires, la navigation et
+les interactions d’écran, en consommant ces options avec TanStack Query.
+Créer ces dossiers uniquement au besoin. Les clients et mécanismes génériques de
+cache restent dans le `lib` web ; les requêtes métier restent dans leur fonctionnalité.
+Better Auth renvoie les erreurs fournisseur dans ses résultats : les consommateurs
+auth vérifient `result.error`. Seules les écritures d’identité réussies nettoient
+le cache privé, avant la navigation. La route d’accueil compose
 le résumé de compte auth et le tableau utilisateurs ; auth ne possède pas le
 dashboard. Le header applicatif compose les actions de session auth. Les règles
 de dépendances gardent chaque `features/<name>` indépendant des autres

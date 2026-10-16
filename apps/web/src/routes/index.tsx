@@ -6,7 +6,7 @@ import { privateHead } from "@/lib/seo/private-head"
 import {
   AuthenticationRequiredError,
   loadCurrentUserForProtectedRoute,
-} from "@/lib/auth/current-user"
+} from "@/features/auth/queries/current-user.queries"
 
 export const Route = createFileRoute("/")({
   ssr: false,
