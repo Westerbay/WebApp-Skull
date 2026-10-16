@@ -48,7 +48,7 @@ it("measures HTTP outcomes once and bounds route labels without private data", a
     }
     const result = await metrics.registry.getMetricsAsJSON()
     const requests = result.find(
-      (metric) => metric.name === "skull_http_requests_total"
+      (metric) => metric.name === "webapp_template_http_requests_total"
     )
     expect(requests?.values).toEqual(
       expect.arrayContaining([
@@ -83,7 +83,9 @@ it("measures HTTP outcomes once and bounds route labels without private data", a
     expect(logs).not.toContain("private-")
     expect(logs).toContain('"path":"/api/auth/reset-password/:token"')
     const body = await metrics.registry.metrics()
-    expect(body).toContain("skull_http_request_duration_seconds_bucket")
+    expect(body).toContain(
+      "webapp_template_http_request_duration_seconds_bucket"
+    )
     expect(body).toContain("process_resident_memory_bytes")
     expect(body).toContain('version="test-release"')
   } finally {
@@ -137,7 +139,7 @@ it("observes a new Nest controller without registering telemetry routes", async 
         .expect(200)
     const result = await metrics.registry.getMetricsAsJSON()
     const requests = result.find(
-      (metric) => metric.name === "skull_http_requests_total"
+      (metric) => metric.name === "webapp_template_http_requests_total"
     )
     expect(requests?.values).toEqual(
       expect.arrayContaining([

@@ -1,5 +1,5 @@
 # Do not enable the per-query collector: SQL text and query IDs stay private.
-skull_postgres_statements:
+webapp_template_postgres_statements:
   query: |
     SELECT count(*)::double precision AS tracked,
       coalesce(sum(calls), 0)::double precision AS calls_total,

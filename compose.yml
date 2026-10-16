@@ -1,4 +1,4 @@
-name: webapp-skull
+name: webapp-template
 
 services:
   postgres:

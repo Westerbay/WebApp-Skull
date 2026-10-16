@@ -25,7 +25,7 @@ docker compose exec postgres \
 
 Start the API with `pnpm dev:logs` and the collector with `pnpm logs:up`.
 The collector's local DSN defaults match `.env.example`; export `OBS_POSTGRES_DSN`
-when using another database or role. To opt out, remove the `skull-postgres-statements`
+when using another database or role. To opt out, remove the `webapp-template-postgres-statements`
 scrape job from the Prometheus configuration. No statistics reset or volume removal
 is needed.
 

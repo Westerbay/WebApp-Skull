@@ -8,7 +8,7 @@ import { join, resolve } from "node:path"
 const script = resolve(import.meta.dirname, "../worktree.mjs")
 
 function fixture(t) {
-  const root = mkdtempSync(join(tmpdir(), "skull-worktree-test-"))
+  const root = mkdtempSync(join(tmpdir(), "webapp-template-worktree-test-"))
   t.after(() => rmSync(root, { recursive: true, force: true }))
   const git = (...args) => {
     const result = spawnSync("git", args, { cwd: root, encoding: "utf8" })

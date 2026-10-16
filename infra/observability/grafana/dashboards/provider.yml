@@ -1,6 +1,6 @@
 apiVersion: 1
 providers:
-  - name: Skull
+  - name: WebApp Template
     type: file
     disableDeletion: true
     editable: false

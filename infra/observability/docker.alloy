@@ -5,7 +5,7 @@ discovery.docker "applications" {
   refresh_interval = "5s"
   filter {
     name = "label"
-    values = ["skull.logs=true", "skull.logs.environment=" + sys.env("APP_ENV")]
+    values = ["webapp-template.logs=true", "webapp-template.logs.environment=" + sys.env("APP_ENV")]
   }
 }
 

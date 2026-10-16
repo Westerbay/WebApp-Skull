@@ -8,7 +8,7 @@ import {
 const developmentTarget = {
   APP_ENV: "development",
   DATABASE_URL:
-    "postgresql://webapp_skull:webapp_skull_dev@127.0.0.1:5433/webapp_skull",
+    "postgresql://webapp_template:webapp_template_dev@127.0.0.1:5433/webapp_template",
 }
 
 describe("database target verification", () => {
@@ -20,22 +20,22 @@ describe("database target verification", () => {
     {
       ...developmentTarget,
       DATABASE_URL:
-        "postgresql://user:secret@database.example.com/webapp_skull",
+        "postgresql://user:secret@database.example.com/webapp_template",
     },
     {
       ...developmentTarget,
       DATABASE_URL:
-        "postgresql://webapp_skull:local-only@127.0.0.1:5433/another_database",
+        "postgresql://webapp_template:local-only@127.0.0.1:5433/another_database",
     },
     {
       ...developmentTarget,
       DATABASE_URL:
-        "postgresql://webapp_skull:wrong@127.0.0.1:5433/webapp_skull",
+        "postgresql://webapp_template:wrong@127.0.0.1:5433/webapp_template",
     },
     {
       ...developmentTarget,
       DATABASE_URL:
-        "postgresql://webapp_skull:webapp_skull_dev@127.0.0.1:5432/webapp_skull",
+        "postgresql://webapp_template:webapp_template_dev@127.0.0.1:5432/webapp_template",
     },
   ])("refuses a migration target before a connection is opened", (source) => {
     expect(() => verifyDatabaseTarget(source, "migrate")).toThrow(
@@ -45,7 +45,7 @@ describe("database target verification", () => {
 
   it("accepts the expected loopback development database for migrations", () => {
     expect(verifyDatabaseTarget(developmentTarget, "migrate")).toMatchObject({
-      databaseName: "webapp_skull",
+      databaseName: "webapp_template",
       environment: "development",
     })
   })
@@ -81,24 +81,24 @@ describe("database target verification", () => {
         { ...developmentTarget, DATABASE_FIXTURE_MODE: "enabled" },
         "seed"
       )
-    ).toMatchObject({ databaseName: "webapp_skull" })
+    ).toMatchObject({ databaseName: "webapp_template" })
   })
 
   it("requires an owned test run for the isolated test database", () => {
     const target = {
       APP_ENV: "test",
       DATABASE_URL:
-        "postgresql://skull_auth_test:isolated-fixture-only@127.0.0.1:49152/skull_auth_test",
+        "postgresql://webapp_template_auth_test:isolated-fixture-only@127.0.0.1:49152/webapp_template_auth_test",
       DATABASE_FIXTURE_MODE: "enabled",
     }
 
     expect(() => verifyDatabaseTarget(target, "seed")).toThrow("owned test")
     expect(
       verifyDatabaseTarget(
-        { ...target, DATABASE_TEST_OWNED: "skull-code004-test-1234" },
+        { ...target, DATABASE_TEST_OWNED: "webapp-template-code004-test-1234" },
         "seed"
       )
-    ).toMatchObject({ databaseName: "skull_auth_test" })
+    ).toMatchObject({ databaseName: "webapp_template_auth_test" })
   })
 
   it("refuses an unsafe target before opening a database connection", async () => {
@@ -109,7 +109,7 @@ describe("database target verification", () => {
         {
           ...developmentTarget,
           DATABASE_URL:
-            "postgresql://user:secret@database.example.com/webapp_skull",
+            "postgresql://user:secret@database.example.com/webapp_template",
         },
         "migrate",
         openConnection

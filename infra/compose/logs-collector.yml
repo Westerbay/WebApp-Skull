@@ -1,5 +1,5 @@
 # Integration fragment only: the destination Loki/Grafana is managed separately.
-name: skull-log-collector-${APP_ENV:?Set APP_ENV to staging or production}
+name: webapp-template-log-collector-${APP_ENV:?Set APP_ENV to staging or production}
 
 services:
   alloy:

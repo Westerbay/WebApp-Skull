@@ -1,7 +1,7 @@
 {
-  "uid": "skull-api-auth-email",
-  "title": "Skull API auth and email",
-  "description": "Operational signals for Skull API. No data means unknown. See docs/OBSERVABILITY.md for scope, thresholds and runbooks.",
+  "uid": "webapp-template-api-auth-email",
+  "title": "WebApp Template API auth and email",
+  "description": "Operational signals for WebApp Template API. No data means unknown. See docs/OBSERVABILITY.md for scope, thresholds and runbooks.",
   "schemaVersion": 41,
   "version": 2,
   "refresh": "15s",
@@ -10,7 +10,7 @@
     "to": "now"
   },
   "timezone": "browser",
-  "tags": ["skull", "observability"],
+  "tags": ["webapp-template", "observability"],
   "editable": false,
   "annotations": {
     "list": [
@@ -36,21 +36,21 @@
     {
       "title": "API overview",
       "type": "link",
-      "url": "/d/skull-api-overview",
+      "url": "/d/webapp-template-api-overview",
       "includeVars": true,
       "keepTime": true
     },
     {
       "title": "API routes and logs",
       "type": "link",
-      "url": "/d/skull-api-logs",
+      "url": "/d/webapp-template-api-logs",
       "includeVars": true,
       "keepTime": true
     },
     {
       "title": "API infrastructure",
       "type": "link",
-      "url": "/d/skull-api-infrastructure",
+      "url": "/d/webapp-template-api-infrastructure",
       "includeVars": true,
       "keepTime": true
     }
@@ -65,7 +65,7 @@
           "type": "prometheus",
           "uid": "prometheus"
         },
-        "query": "label_values(skull_build_info, environment)",
+        "query": "label_values(webapp_template_build_info, environment)",
         "refresh": 1,
         "multi": false,
         "includeAll": false,
@@ -78,10 +78,10 @@
         "name": "service",
         "label": "Service",
         "type": "custom",
-        "query": "skull-api",
+        "query": "webapp-template-api",
         "current": {
-          "text": "skull-api",
-          "value": "skull-api"
+          "text": "webapp-template-api",
+          "value": "webapp-template-api"
         }
       },
       {
@@ -92,7 +92,7 @@
           "type": "prometheus",
           "uid": "prometheus"
         },
-        "query": "label_values(skull_build_info{service_name=~\"$service\",environment=~\"$environment\"}, instance_id)",
+        "query": "label_values(webapp_template_build_info{service_name=~\"$service\",environment=~\"$environment\"}, instance_id)",
         "refresh": 1,
         "multi": true,
         "includeAll": true,
@@ -139,7 +139,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum by (route, status) (rate(skull_http_requests_total{environment=~\"$environment\",service_name=~\"$service\",instance_id=~\"$instance_id\",route!~\"/health/.*\",route=~\"$route\",method=~\"$method\",route=~\"/api/auth/.*\"}[$__rate_interval]))",
+          "expr": "sum by (route, status) (rate(webapp_template_http_requests_total{environment=~\"$environment\",service_name=~\"$service\",instance_id=~\"$instance_id\",route!~\"/health/.*\",route=~\"$route\",method=~\"$method\",route=~\"/api/auth/.*\"}[$__rate_interval]))",
           "legendFormat": "{{route}} HTTP {{status}}",
           "queryType": "range"
         }
@@ -195,7 +195,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum by (route) (rate(skull_http_requests_total{environment=~\"$environment\",service_name=~\"$service\",instance_id=~\"$instance_id\",route!~\"/health/.*\",route=~\"$route\",method=~\"$method\",route=~\"/api/auth/.*\",status=\"429\"}[$__rate_interval]))",
+          "expr": "sum by (route) (rate(webapp_template_http_requests_total{environment=~\"$environment\",service_name=~\"$service\",instance_id=~\"$instance_id\",route!~\"/health/.*\",route=~\"$route\",method=~\"$method\",route=~\"/api/auth/.*\",status=\"429\"}[$__rate_interval]))",
           "legendFormat": "{{route}}",
           "queryType": "range"
         }
@@ -251,7 +251,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum by (kind, event) (rate(skull_email_events_total{environment=~\"$environment\",service_name=~\"$service\",instance_id=~\"$instance_id\"}[$__rate_interval]))",
+          "expr": "sum by (kind, event) (rate(webapp_template_email_events_total{environment=~\"$environment\",service_name=~\"$service\",instance_id=~\"$instance_id\"}[$__rate_interval]))",
           "legendFormat": "{{kind}} {{event}}",
           "queryType": "range"
         }
@@ -307,7 +307,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "histogram_quantile(.95, sum by (le, kind, outcome) (rate(skull_email_dispatch_duration_seconds_bucket{environment=~\"$environment\",service_name=~\"$service\",instance_id=~\"$instance_id\"}[$__rate_interval])))",
+          "expr": "histogram_quantile(.95, sum by (le, kind, outcome) (rate(webapp_template_email_dispatch_duration_seconds_bucket{environment=~\"$environment\",service_name=~\"$service\",instance_id=~\"$instance_id\"}[$__rate_interval])))",
           "legendFormat": "{{kind}} {{outcome}}",
           "queryType": "range"
         }

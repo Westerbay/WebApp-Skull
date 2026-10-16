@@ -1,7 +1,7 @@
 {
-  "uid": "skull-api-logs",
-  "title": "Skull API routes and logs",
-  "description": "Operational signals for Skull API. No data means unknown. See docs/OBSERVABILITY.md for scope, thresholds and runbooks.",
+  "uid": "webapp-template-api-logs",
+  "title": "WebApp Template API routes and logs",
+  "description": "Operational signals for WebApp Template API. No data means unknown. See docs/OBSERVABILITY.md for scope, thresholds and runbooks.",
   "schemaVersion": 41,
   "version": 2,
   "refresh": "15s",
@@ -10,7 +10,7 @@
     "to": "now"
   },
   "timezone": "browser",
-  "tags": ["skull", "observability"],
+  "tags": ["webapp-template", "observability"],
   "editable": false,
   "annotations": {
     "list": [
@@ -36,21 +36,21 @@
     {
       "title": "API overview",
       "type": "link",
-      "url": "/d/skull-api-overview",
+      "url": "/d/webapp-template-api-overview",
       "includeVars": true,
       "keepTime": true
     },
     {
       "title": "API infrastructure",
       "type": "link",
-      "url": "/d/skull-api-infrastructure",
+      "url": "/d/webapp-template-api-infrastructure",
       "includeVars": true,
       "keepTime": true
     },
     {
       "title": "API auth and email",
       "type": "link",
-      "url": "/d/skull-api-auth-email",
+      "url": "/d/webapp-template-api-auth-email",
       "includeVars": true,
       "keepTime": true
     }
@@ -65,7 +65,7 @@
           "type": "loki",
           "uid": "loki"
         },
-        "query": "label_values({service_name=\"skull-api\"}, environment)",
+        "query": "label_values({service_name=\"webapp-template-api\"}, environment)",
         "refresh": 1,
         "multi": false,
         "includeAll": false,
@@ -78,10 +78,10 @@
         "name": "service",
         "label": "Service",
         "type": "custom",
-        "query": "skull-api",
+        "query": "webapp-template-api",
         "current": {
-          "text": "skull-api",
-          "value": "skull-api"
+          "text": "webapp-template-api",
+          "value": "webapp-template-api"
         }
       },
       {
@@ -299,7 +299,7 @@
                 "value": [
                   {
                     "title": "Inspect route logs",
-                    "url": "/d/skull-api-logs?${__url_time_range}&var-environment=${environment}&var-service=${service}&var-route=${__value.raw}"
+                    "url": "/d/webapp-template-api-logs?${__url_time_range}&var-environment=${environment}&var-service=${service}&var-route=${__value.raw}"
                   }
                 ]
               }
@@ -396,7 +396,7 @@
                 "value": [
                   {
                     "title": "Inspect route logs",
-                    "url": "/d/skull-api-logs?${__url_time_range}&var-environment=${environment}&var-service=${service}&var-route=${__value.raw}"
+                    "url": "/d/webapp-template-api-logs?${__url_time_range}&var-environment=${environment}&var-service=${service}&var-route=${__value.raw}"
                   }
                 ]
               }
@@ -493,7 +493,7 @@
                 "value": [
                   {
                     "title": "Inspect route logs",
-                    "url": "/d/skull-api-logs?${__url_time_range}&var-environment=${environment}&var-service=${service}&var-route=${__value.raw}"
+                    "url": "/d/webapp-template-api-logs?${__url_time_range}&var-environment=${environment}&var-service=${service}&var-route=${__value.raw}"
                   }
                 ]
               }

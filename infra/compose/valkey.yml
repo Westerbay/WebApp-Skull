@@ -1,4 +1,4 @@
-name: skull-valkey
+name: webapp-template-valkey
 
 services:
   valkey:

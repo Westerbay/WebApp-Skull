@@ -19,7 +19,7 @@ export async function createLogsTestHarness() {
   const output = fileURLToPath(new URL("../../../output/", import.meta.url))
   await mkdir(output, { recursive: true })
   const directory = await mkdtemp(output + "logs-test-")
-  const project = "skull-logs-" + randomUUID()
+  const project = "webapp-template-logs-" + randomUUID()
   const override = directory + "/compose.yml"
   await writeFile(
     override,
@@ -35,11 +35,11 @@ export async function createLogsTestHarness() {
         - "127.0.0.1::${logsTestConfig.prometheusPort}"
     alloy:
       environment:
-        OBS_POSTGRES_DSN: "postgresql://skull_auth_test:isolated-fixture-only@postgres:5432/skull_auth_test?sslmode=disable&connect_timeout=2&statement_timeout=1500&default_transaction_read_only=on"
+        OBS_POSTGRES_DSN: "postgresql://webapp_template_auth_test:isolated-fixture-only@postgres:5432/webapp_template_auth_test?sslmode=disable&connect_timeout=2&statement_timeout=1500&default_transaction_read_only=on"
         OBS_VALKEY_URL: redis://valkey:6379
       ports: !override ["127.0.0.1::12345"]
       volumes:
-        - ${directory}:/var/log/skull:ro
+        - ${directory}:/var/log/webapp-template:ro
   `
   )
 
@@ -77,13 +77,13 @@ export async function createLogsTestHarness() {
       volumes:
         - ${root}infra/postgres/query-statistics.sql:/docker-entrypoint-initdb.d/query-statistics.sql:ro
       environment:
-        POSTGRES_DB: skull_auth_test
-        POSTGRES_USER: skull_auth_test
+        POSTGRES_DB: webapp_template_auth_test
+        POSTGRES_USER: webapp_template_auth_test
         POSTGRES_PASSWORD: isolated-fixture-only
       ports: ["127.0.0.1::5432"]
       tmpfs: [/var/lib/postgresql/data]
       healthcheck:
-        test: ["CMD-SHELL", "pg_isready -U skull_auth_test -d skull_auth_test"]
+        test: ["CMD-SHELL", "pg_isready -U webapp_template_auth_test -d webapp_template_auth_test"]
         interval: 1s
         timeout: 3s
         retries: 40
@@ -169,7 +169,7 @@ export async function createLogsTestHarness() {
     await writeFile(
       file,
       JSON.stringify({
-        service_name: "skull-api",
+        service_name: "webapp-template-api",
         environment,
         level: 30,
         time: Date.now(),
@@ -187,9 +187,9 @@ export async function createLogsTestHarness() {
         "--name",
         name,
         "--label",
-        "skull.logs=" + String(enabled),
+        "webapp-template.logs=" + String(enabled),
         "--label",
-        "skull.logs.environment=" + environment,
+        "webapp-template.logs.environment=" + environment,
         "--label",
         "com.docker.compose.service=renamed-api",
         "-v",
@@ -235,9 +235,9 @@ export async function createLogsTestHarness() {
         "postgres",
         "psql",
         "-U",
-        "skull_auth_test",
+        "webapp_template_auth_test",
         "-d",
-        "skull_auth_test",
+        "webapp_template_auth_test",
         "-v",
         "ON_ERROR_STOP=1",
         "-c",

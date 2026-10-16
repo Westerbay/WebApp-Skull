@@ -83,7 +83,7 @@ it("discovers plugin routes and core routes without exposing parameters in metri
     await http.get("/api/auth/unknown/private-token").expect(404)
     const result = await metrics.registry.getMetricsAsJSON()
     const requests = result.find(
-      (metric) => metric.name === "skull_http_requests_total"
+      (metric) => metric.name === "webapp_template_http_requests_total"
     )
     expect(requests?.values).toEqual(
       expect.arrayContaining([

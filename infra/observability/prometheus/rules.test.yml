@@ -7,9 +7,9 @@ tests:
   - name: sustained API failures fire after the traffic and duration gates
     interval: 1m
     input_series:
-      - series: 'skull_http_requests_total{service_name="skull-api",environment="test",route="/api/me",status="200"}'
+      - series: 'webapp_template_http_requests_total{service_name="webapp-template-api",environment="test",route="/api/me",status="200"}'
         values: "0+54x15"
-      - series: 'skull_http_requests_total{service_name="skull-api",environment="test",route="/api/me",status="500"}'
+      - series: 'webapp_template_http_requests_total{service_name="webapp-template-api",environment="test",route="/api/me",status="500"}'
         values: "0+6x15"
     alert_rule_test:
       - eval_time: 4m
@@ -19,18 +19,18 @@ tests:
         alertname: ApiHighServerErrorRate
         exp_alerts:
           - exp_labels:
-              service_name: skull-api
+              service_name: webapp-template-api
               environment: test
               severity: critical
             exp_annotations:
               summary: More than 5% of API requests fail with 5xx
               description: Requires at least 30 requests per five minutes. Inspect failing routes and recent deployments.
-              dashboard_url: http://localhost:3002/d/skull-api-logs
+              dashboard_url: http://localhost:3002/d/webapp-template-api-logs
               runbook: docs/OBSERVABILITY.md#apihighservererrorrate
   - name: an isolated error at low traffic does not page
     interval: 1m
     input_series:
-      - series: 'skull_http_requests_total{service_name="skull-api",environment="test",route="/api/me",status="500"}'
+      - series: 'webapp_template_http_requests_total{service_name="webapp-template-api",environment="test",route="/api/me",status="500"}'
         values: "0+1x15"
     alert_rule_test:
       - eval_time: 10m
@@ -39,26 +39,26 @@ tests:
   - name: health probes do not dilute application failures
     interval: 1m
     input_series:
-      - series: 'skull_http_requests_total{service_name="skull-api",environment="test",route="/health/ready",status="200"}'
+      - series: 'webapp_template_http_requests_total{service_name="webapp-template-api",environment="test",route="/health/ready",status="200"}'
         values: "0+6000x15"
-      - series: 'skull_http_requests_total{service_name="skull-api",environment="test",route="/api/me",status="500"}'
+      - series: 'webapp_template_http_requests_total{service_name="webapp-template-api",environment="test",route="/api/me",status="500"}'
         values: "0+60x15"
     promql_expr_test:
-      - expr: skull:http_server_errors:rate5m / skull:http_requests:rate5m
+      - expr: webapp_template:http_server_errors:rate5m / webapp_template:http_requests:rate5m
         eval_time: 10m
         exp_samples:
-          - labels: '{service_name="skull-api",environment="test"}'
+          - labels: '{service_name="webapp-template-api",environment="test"}'
             value: 1
   - name: no traffic gives no error ratio and disabled or unlimited Valkey does not alert
     interval: 1m
     input_series:
-      - series: 'skull_http_requests_total{service_name="skull-api",environment="test",route="/api/me",status="200"}'
+      - series: 'webapp_template_http_requests_total{service_name="webapp-template-api",environment="test",route="/api/me",status="200"}'
         values: "0+0x15"
-      - series: 'skull_dependency_enabled{service_name="skull-api",environment="test",dependency="valkey"}'
+      - series: 'webapp_template_dependency_enabled{service_name="webapp-template-api",environment="test",dependency="valkey"}'
         values: "0+0x15"
-      - series: 'redis_memory_used_bytes{service_name="skull-api",environment="test"}'
+      - series: 'redis_memory_used_bytes{service_name="webapp-template-api",environment="test"}'
         values: "1000+0x15"
-      - series: 'redis_memory_max_bytes{service_name="skull-api",environment="test"}'
+      - series: 'redis_memory_max_bytes{service_name="webapp-template-api",environment="test"}'
         values: "0+0x15"
     alert_rule_test:
       - eval_time: 15m
@@ -73,31 +73,31 @@ tests:
   - name: missing metrics are surfaced even when HTTP counters disappear
     interval: 1m
     input_series:
-      - series: 'up{job="skull-api",service_name="skull-api",environment="test",instance="api:9464"}'
+      - series: 'up{job="webapp-template-api",service_name="webapp-template-api",environment="test",instance="api:9464"}'
         values: "0+0x5"
     alert_rule_test:
       - eval_time: 4m
         alertname: ApiMetricsMissing
         exp_alerts:
           - exp_labels:
-              job: skull-api
-              service_name: skull-api
+              job: webapp-template-api
+              service_name: webapp-template-api
               environment: test
               instance: api:9464
               severity: warning
             exp_annotations:
               summary: API metrics cannot be scraped
               description: Missing metrics are unknown health, not zero errors. Check the private listener and scrape target.
-              dashboard_url: http://localhost:3002/d/skull-api-infrastructure
+              dashboard_url: http://localhost:3002/d/webapp-template-api-infrastructure
               runbook: docs/OBSERVABILITY.md#apimetricsmissing
   - name: SQL statistics query failures alert while basic database monitoring stays healthy
     interval: 1m
     input_series:
-      - series: 'up{job="skull-postgres-statements",service_name="skull-api",environment="test",instance="alloy:12345"}'
+      - series: 'up{job="webapp-template-postgres-statements",service_name="webapp-template-api",environment="test",instance="alloy:12345"}'
         values: "1+0x4"
-      - series: 'pg_up{job="skull-postgres-statements",service_name="skull-api",environment="test",instance="alloy:12345"}'
+      - series: 'pg_up{job="webapp-template-postgres-statements",service_name="webapp-template-api",environment="test",instance="alloy:12345"}'
         values: "1+0x4"
-      - series: 'pg_exporter_last_scrape_error{job="skull-postgres-statements",service_name="skull-api",environment="test",instance="alloy:12345"}'
+      - series: 'pg_exporter_last_scrape_error{job="webapp-template-postgres-statements",service_name="webapp-template-api",environment="test",instance="alloy:12345"}'
         values: "1+0x4"
     alert_rule_test:
       - eval_time: 1m
@@ -107,24 +107,24 @@ tests:
         alertname: PostgresQueryStatisticsUnavailable
         exp_alerts:
           - exp_labels:
-              job: skull-postgres-statements
-              service_name: skull-api
+              job: webapp-template-postgres-statements
+              service_name: webapp-template-api
               environment: test
               instance: alloy:12345
               severity: warning
             exp_annotations:
               summary: Optional PostgreSQL query statistics cannot be collected
               description: Check extension installation, preload, read permissions and observation timeout. API readiness is independent of these statistics.
-              dashboard_url: http://localhost:3002/d/skull-api-infrastructure
+              dashboard_url: http://localhost:3002/d/webapp-template-api-infrastructure
               runbook: docs/OBSERVABILITY.md#postgresquerystatisticsunavailable
   - name: configured exporter scrape failure is unknown rather than healthy
     interval: 1m
     input_series:
-      - series: 'up{job="skull-postgres-statements",service_name="skull-api",environment="test",instance="alloy:12345"}'
+      - series: 'up{job="webapp-template-postgres-statements",service_name="webapp-template-api",environment="test",instance="alloy:12345"}'
         values: "0+0x4"
     promql_expr_test:
       - expr: ALERTS{alertname="PostgresQueryStatisticsUnavailable",alertstate="firing"}
         eval_time: 3m
         exp_samples:
-          - labels: 'ALERTS{alertname="PostgresQueryStatisticsUnavailable",alertstate="firing",job="skull-postgres-statements",service_name="skull-api",environment="test",instance="alloy:12345",severity="warning"}'
+          - labels: 'ALERTS{alertname="PostgresQueryStatisticsUnavailable",alertstate="firing",job="webapp-template-postgres-statements",service_name="webapp-template-api",environment="test",instance="alloy:12345",severity="warning"}'
             value: 1

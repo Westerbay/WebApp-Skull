@@ -2,15 +2,19 @@ services:
   postgres:
     image: postgres:17.6-alpine
     environment:
-      POSTGRES_DB: skull_auth_test
-      POSTGRES_USER: skull_auth_test
+      POSTGRES_DB: webapp_template_auth_test
+      POSTGRES_USER: webapp_template_auth_test
       POSTGRES_PASSWORD: isolated-fixture-only
     ports:
       - "127.0.0.1::5432"
     tmpfs:
       - /var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U skull_auth_test -d skull_auth_test"]
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U webapp_template_auth_test -d webapp_template_auth_test",
+        ]
       interval: 1s
       timeout: 3s
       retries: 40

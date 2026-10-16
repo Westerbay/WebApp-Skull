@@ -6,7 +6,7 @@ const valkeyConfigSchema = z.object({
   VALKEY_NAMESPACE: z
     .string()
     .regex(/^[a-zA-Z0-9_-]{1,64}$/)
-    .default("skull"),
+    .default("webapp-template"),
 })
 
 export const valkeyTimeoutMs = 2000

@@ -40,15 +40,15 @@ export function verifyDatabaseTarget(
 
   const databaseName = decodeURIComponent(target.pathname.slice(1))
   const developmentTarget = {
-    databaseName: source.POSTGRES_DB ?? "webapp_skull",
-    username: source.POSTGRES_USER ?? "webapp_skull",
-    password: source.POSTGRES_PASSWORD ?? "webapp_skull_dev",
+    databaseName: source.POSTGRES_DB ?? "webapp_template",
+    username: source.POSTGRES_USER ?? "webapp_template",
+    password: source.POSTGRES_PASSWORD ?? "webapp_template_dev",
     port: source.POSTGRES_PORT ?? "5433",
   }
   const expectedName =
     environment === "development"
       ? developmentTarget.databaseName
-      : "skull_auth_test"
+      : "webapp_template_auth_test"
   if (databaseName !== expectedName) {
     refusal(`expected database ${expectedName}`)
   }
@@ -56,7 +56,10 @@ export function verifyDatabaseTarget(
   const expectedCredentials =
     environment === "development"
       ? developmentTarget
-      : { username: "skull_auth_test", password: "isolated-fixture-only" }
+      : {
+          username: "webapp_template_auth_test",
+          password: "isolated-fixture-only",
+        }
   if (
     decodeURIComponent(target.username) !== expectedCredentials.username ||
     decodeURIComponent(target.password) !== expectedCredentials.password
@@ -69,7 +72,7 @@ export function verifyDatabaseTarget(
 
   if (
     environment === "test" &&
-    !source.DATABASE_TEST_OWNED?.startsWith("skull-code004-test-")
+    !source.DATABASE_TEST_OWNED?.startsWith("webapp-template-code004-test-")
   ) {
     refusal("an owned test run is required")
   }
