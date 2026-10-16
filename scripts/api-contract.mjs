@@ -47,7 +47,7 @@ async function generate(specPath, typesPath) {
 if (mode === "generate") {
   await generate(committedSpec, committedTypes)
 } else if (mode === "check") {
-  const directory = await mkdtemp(join(tmpdir(), "webapp-skull-api-"))
+  const directory = await mkdtemp(join(tmpdir(), "webapp-template-api-"))
   const generatedSpec = join(directory, "openapi.json")
   const generatedTypes = join(directory, "schema.d.ts")
 

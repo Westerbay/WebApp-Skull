@@ -8,7 +8,7 @@ import { createValkey } from "../../src/infrastructure/valkey/valkey.js"
 import { ValkeyRateLimitStore } from "../../src/infrastructure/rate-limit/valkey-rate-limit-store.js"
 import type { ValkeyConnection } from "../../src/infrastructure/valkey/valkey.js"
 
-const container = `skull-valkey-test-${randomUUID()}`
+const container = `webapp-template-valkey-test-${randomUUID()}`
 const clients: Array<ValkeyConnection> = []
 let owned = false
 let url: string

@@ -13,7 +13,7 @@ pnpm logs:up
 pnpm dev:logs
 ```
 
-Ouvrir [Grafana](http://localhost:3002/d/skull-api-overview). Les quatre
+Ouvrir [Grafana](http://localhost:3002/d/webapp-template-api-overview). Les quatre
 dashboards sont provisionnés depuis `infra/observability/grafana/dashboards`
 et modifiés dans Git. Ils sont reliés entre eux et partagent les filtres
 d’environnement, de service et d’instance. Le dashboard des routes ajoute
@@ -171,7 +171,7 @@ chaque instance API de manière privée. Le collecteur Docker dans
 conteneurs explicitement sélectionnés à un backend Loki géré séparément.
 Il nécessite `APP_ENV=staging|production` et l’URL complète `LOKI_URL` ; les
 réglages de fichier de token et de tenant sont facultatifs. Les conteneurs
-doivent porter `skull.logs=true` et un label `skull.logs.environment`
+doivent porter `webapp-template.logs=true` et un label `webapp-template.logs.environment`
 correspondant. Même en lecture seule, l’accès au socket Docker donne de larges
 privilèges sur l’hôte et exige une plateforme de confiance.
 

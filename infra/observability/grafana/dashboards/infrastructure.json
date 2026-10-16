@@ -1,7 +1,7 @@
 {
-  "uid": "skull-api-infrastructure",
-  "title": "Skull API infrastructure",
-  "description": "Operational signals for Skull API. No data means unknown. See docs/OBSERVABILITY.md for scope, thresholds and runbooks.",
+  "uid": "webapp-template-api-infrastructure",
+  "title": "WebApp Template API infrastructure",
+  "description": "Operational signals for WebApp Template API. No data means unknown. See docs/OBSERVABILITY.md for scope, thresholds and runbooks.",
   "schemaVersion": 41,
   "version": 3,
   "refresh": "15s",
@@ -10,7 +10,7 @@
     "to": "now"
   },
   "timezone": "browser",
-  "tags": ["skull", "observability"],
+  "tags": ["webapp-template", "observability"],
   "editable": false,
   "annotations": {
     "list": [
@@ -36,21 +36,21 @@
     {
       "title": "API overview",
       "type": "link",
-      "url": "/d/skull-api-overview",
+      "url": "/d/webapp-template-api-overview",
       "includeVars": true,
       "keepTime": true
     },
     {
       "title": "API routes and logs",
       "type": "link",
-      "url": "/d/skull-api-logs",
+      "url": "/d/webapp-template-api-logs",
       "includeVars": true,
       "keepTime": true
     },
     {
       "title": "API auth and email",
       "type": "link",
-      "url": "/d/skull-api-auth-email",
+      "url": "/d/webapp-template-api-auth-email",
       "includeVars": true,
       "keepTime": true
     }
@@ -65,7 +65,7 @@
           "type": "prometheus",
           "uid": "prometheus"
         },
-        "query": "label_values(skull_build_info, environment)",
+        "query": "label_values(webapp_template_build_info, environment)",
         "refresh": 1,
         "multi": false,
         "includeAll": false,
@@ -78,10 +78,10 @@
         "name": "service",
         "label": "Service",
         "type": "custom",
-        "query": "skull-api",
+        "query": "webapp-template-api",
         "current": {
-          "text": "skull-api",
-          "value": "skull-api"
+          "text": "webapp-template-api",
+          "value": "webapp-template-api"
         }
       },
       {
@@ -92,7 +92,7 @@
           "type": "prometheus",
           "uid": "prometheus"
         },
-        "query": "label_values(skull_build_info{service_name=~\"$service\",environment=~\"$environment\"}, instance_id)",
+        "query": "label_values(webapp_template_build_info{service_name=~\"$service\",environment=~\"$environment\"}, instance_id)",
         "refresh": 1,
         "multi": true,
         "includeAll": true,
@@ -475,7 +475,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "skull_dependency_enabled{environment=~\"$environment\",service_name=~\"$service\",instance_id=~\"$instance_id\"}",
+          "expr": "webapp_template_dependency_enabled{environment=~\"$environment\",service_name=~\"$service\",instance_id=~\"$instance_id\"}",
           "legendFormat": "Dependency configuration",
           "queryType": "range",
           "instant": true,
@@ -545,7 +545,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "skull_dependency_up{environment=~\"$environment\",service_name=~\"$service\"}",
+          "expr": "webapp_template_dependency_up{environment=~\"$environment\",service_name=~\"$service\"}",
           "legendFormat": "Dependency observations",
           "queryType": "range",
           "instant": true,
@@ -615,7 +615,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "skull_dependency_observation_duration_seconds{environment=~\"$environment\",service_name=~\"$service\"}",
+          "expr": "webapp_template_dependency_observation_duration_seconds{environment=~\"$environment\",service_name=~\"$service\"}",
           "legendFormat": "{{dependency}} {{instance}}",
           "queryType": "range"
         }
@@ -671,7 +671,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "skull_postgres_connections_value{environment=~\"$environment\",service_name=~\"$service\"}",
+          "expr": "webapp_template_postgres_connections_value{environment=~\"$environment\",service_name=~\"$service\"}",
           "legendFormat": "{{state}} {{instance}}",
           "queryType": "range"
         }
@@ -727,13 +727,13 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "max(skull_postgres_server_connections_value{environment=~\"$environment\",service_name=~\"$service\",kind=\"used\"})",
+          "expr": "max(webapp_template_postgres_server_connections_value{environment=~\"$environment\",service_name=~\"$service\",kind=\"used\"})",
           "legendFormat": "Used",
           "queryType": "range"
         },
         {
           "refId": "B",
-          "expr": "max(skull_postgres_server_connections_value{environment=~\"$environment\",service_name=~\"$service\",kind=\"max\"})",
+          "expr": "max(webapp_template_postgres_server_connections_value{environment=~\"$environment\",service_name=~\"$service\",kind=\"max\"})",
           "legendFormat": "Configured maximum",
           "queryType": "range"
         }
@@ -802,13 +802,13 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "up{job=\"skull-postgres-statements\",environment=~\"$environment\",service_name=~\"$service\"}",
+          "expr": "up{job=\"webapp-template-postgres-statements\",environment=~\"$environment\",service_name=~\"$service\"}",
           "legendFormat": "{{instance}} enabled",
           "queryType": "range"
         },
         {
           "refId": "B",
-          "expr": "skull_postgres_statements_up{environment=~\"$environment\",service_name=~\"$service\"}",
+          "expr": "webapp_template_postgres_statements_up{environment=~\"$environment\",service_name=~\"$service\"}",
           "legendFormat": "{{instance}} up",
           "queryType": "range"
         }
@@ -864,7 +864,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "max by (environment, service_name) (rate(skull_postgres_statements_calls_total{environment=~\"$environment\",service_name=~\"$service\"}[$__rate_interval]) and on (service_name, environment, instance) (skull_postgres_statements_up{environment=~\"$environment\",service_name=~\"$service\"} == 1))",
+          "expr": "max by (environment, service_name) (rate(webapp_template_postgres_statements_calls_total{environment=~\"$environment\",service_name=~\"$service\"}[$__rate_interval]) and on (service_name, environment, instance) (webapp_template_postgres_statements_up{environment=~\"$environment\",service_name=~\"$service\"} == 1))",
           "legendFormat": "SQL executions/s",
           "queryType": "range"
         }
@@ -920,7 +920,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "max by (environment, service_name) (rate(skull_postgres_statements_execution_seconds_total{environment=~\"$environment\",service_name=~\"$service\"}[$__rate_interval]) and on (service_name, environment, instance) (skull_postgres_statements_up{environment=~\"$environment\",service_name=~\"$service\"} == 1)) / (max by (environment, service_name) (rate(skull_postgres_statements_calls_total{environment=~\"$environment\",service_name=~\"$service\"}[$__rate_interval]) and on (service_name, environment, instance) (skull_postgres_statements_up{environment=~\"$environment\",service_name=~\"$service\"} == 1)) > 0)",
+          "expr": "max by (environment, service_name) (rate(webapp_template_postgres_statements_execution_seconds_total{environment=~\"$environment\",service_name=~\"$service\"}[$__rate_interval]) and on (service_name, environment, instance) (webapp_template_postgres_statements_up{environment=~\"$environment\",service_name=~\"$service\"} == 1)) / (max by (environment, service_name) (rate(webapp_template_postgres_statements_calls_total{environment=~\"$environment\",service_name=~\"$service\"}[$__rate_interval]) and on (service_name, environment, instance) (webapp_template_postgres_statements_up{environment=~\"$environment\",service_name=~\"$service\"} == 1)) > 0)",
           "legendFormat": "Mean SQL execution",
           "queryType": "range"
         }
@@ -976,7 +976,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "max by (environment, service_name) (rate(skull_postgres_statements_shared_blocks_hit_total{environment=~\"$environment\",service_name=~\"$service\"}[$__rate_interval]) and on (service_name, environment, instance) (skull_postgres_statements_up{environment=~\"$environment\",service_name=~\"$service\"} == 1)) / ((max by (environment, service_name) (rate(skull_postgres_statements_shared_blocks_hit_total{environment=~\"$environment\",service_name=~\"$service\"}[$__rate_interval]) and on (service_name, environment, instance) (skull_postgres_statements_up{environment=~\"$environment\",service_name=~\"$service\"} == 1)) + max by (environment, service_name) (rate(skull_postgres_statements_shared_blocks_read_total{environment=~\"$environment\",service_name=~\"$service\"}[$__rate_interval]) and on (service_name, environment, instance) (skull_postgres_statements_up{environment=~\"$environment\",service_name=~\"$service\"} == 1))) > 0)",
+          "expr": "max by (environment, service_name) (rate(webapp_template_postgres_statements_shared_blocks_hit_total{environment=~\"$environment\",service_name=~\"$service\"}[$__rate_interval]) and on (service_name, environment, instance) (webapp_template_postgres_statements_up{environment=~\"$environment\",service_name=~\"$service\"} == 1)) / ((max by (environment, service_name) (rate(webapp_template_postgres_statements_shared_blocks_hit_total{environment=~\"$environment\",service_name=~\"$service\"}[$__rate_interval]) and on (service_name, environment, instance) (webapp_template_postgres_statements_up{environment=~\"$environment\",service_name=~\"$service\"} == 1)) + max by (environment, service_name) (rate(webapp_template_postgres_statements_shared_blocks_read_total{environment=~\"$environment\",service_name=~\"$service\"}[$__rate_interval]) and on (service_name, environment, instance) (webapp_template_postgres_statements_up{environment=~\"$environment\",service_name=~\"$service\"} == 1))) > 0)",
           "legendFormat": "Shared-buffer hit ratio",
           "queryType": "range"
         }
@@ -1032,7 +1032,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "max by (environment, service_name) (rate(skull_postgres_statements_temp_blocks_written_total{environment=~\"$environment\",service_name=~\"$service\"}[$__rate_interval]) and on (service_name, environment, instance) (skull_postgres_statements_up{environment=~\"$environment\",service_name=~\"$service\"} == 1))",
+          "expr": "max by (environment, service_name) (rate(webapp_template_postgres_statements_temp_blocks_written_total{environment=~\"$environment\",service_name=~\"$service\"}[$__rate_interval]) and on (service_name, environment, instance) (webapp_template_postgres_statements_up{environment=~\"$environment\",service_name=~\"$service\"} == 1))",
           "legendFormat": "Temporary blocks/s",
           "queryType": "range"
         }
@@ -1088,7 +1088,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "max by (environment, service_name) (skull_postgres_statements_tracked{environment=~\"$environment\",service_name=~\"$service\"} and on (service_name, environment, instance) (skull_postgres_statements_up{environment=~\"$environment\",service_name=~\"$service\"} == 1))",
+          "expr": "max by (environment, service_name) (webapp_template_postgres_statements_tracked{environment=~\"$environment\",service_name=~\"$service\"} and on (service_name, environment, instance) (webapp_template_postgres_statements_up{environment=~\"$environment\",service_name=~\"$service\"} == 1))",
           "legendFormat": "Retained query families",
           "queryType": "range"
         }
@@ -1324,7 +1324,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "up{job=~\"skull-loki|skull-alloy|skull-blackbox\"}",
+          "expr": "up{job=~\"webapp-template-loki|webapp-template-alloy|webapp-template-blackbox\"}",
           "legendFormat": "Observability service scrapes",
           "queryType": "range",
           "instant": true,

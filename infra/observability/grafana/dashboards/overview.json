@@ -1,7 +1,7 @@
 {
-  "uid": "skull-api-overview",
-  "title": "Skull API overview",
-  "description": "Operational signals for Skull API. No data means unknown. See docs/OBSERVABILITY.md for scope, thresholds and runbooks.",
+  "uid": "webapp-template-api-overview",
+  "title": "WebApp Template API overview",
+  "description": "Operational signals for WebApp Template API. No data means unknown. See docs/OBSERVABILITY.md for scope, thresholds and runbooks.",
   "schemaVersion": 41,
   "version": 2,
   "refresh": "15s",
@@ -10,7 +10,7 @@
     "to": "now"
   },
   "timezone": "browser",
-  "tags": ["skull", "observability"],
+  "tags": ["webapp-template", "observability"],
   "editable": false,
   "annotations": {
     "list": [
@@ -36,21 +36,21 @@
     {
       "title": "API routes and logs",
       "type": "link",
-      "url": "/d/skull-api-logs",
+      "url": "/d/webapp-template-api-logs",
       "includeVars": true,
       "keepTime": true
     },
     {
       "title": "API infrastructure",
       "type": "link",
-      "url": "/d/skull-api-infrastructure",
+      "url": "/d/webapp-template-api-infrastructure",
       "includeVars": true,
       "keepTime": true
     },
     {
       "title": "API auth and email",
       "type": "link",
-      "url": "/d/skull-api-auth-email",
+      "url": "/d/webapp-template-api-auth-email",
       "includeVars": true,
       "keepTime": true
     }
@@ -65,7 +65,7 @@
           "type": "prometheus",
           "uid": "prometheus"
         },
-        "query": "label_values(skull_build_info, environment)",
+        "query": "label_values(webapp_template_build_info, environment)",
         "refresh": 1,
         "multi": false,
         "includeAll": false,
@@ -78,10 +78,10 @@
         "name": "service",
         "label": "Service",
         "type": "custom",
-        "query": "skull-api",
+        "query": "webapp-template-api",
         "current": {
-          "text": "skull-api",
-          "value": "skull-api"
+          "text": "webapp-template-api",
+          "value": "webapp-template-api"
         }
       },
       {
@@ -92,7 +92,7 @@
           "type": "prometheus",
           "uid": "prometheus"
         },
-        "query": "label_values(skull_build_info{service_name=~\"$service\",environment=~\"$environment\"}, instance_id)",
+        "query": "label_values(webapp_template_build_info{service_name=~\"$service\",environment=~\"$environment\"}, instance_id)",
         "refresh": 1,
         "multi": true,
         "includeAll": true,
@@ -139,7 +139,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "min(up{job=\"skull-api\",environment=~\"$environment\",service_name=~\"$service\"})",
+          "expr": "min(up{job=\"webapp-template-api\",environment=~\"$environment\",service_name=~\"$service\"})",
           "legendFormat": "Metrics collection",
           "queryType": "range"
         }
@@ -221,7 +221,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "min(probe_success{job=\"skull-api-probe\",environment=~\"$environment\",service_name=~\"$service\"})",
+          "expr": "min(probe_success{job=\"webapp-template-api-probe\",environment=~\"$environment\",service_name=~\"$service\"})",
           "legendFormat": "Readiness probe",
           "queryType": "range"
         }
@@ -303,7 +303,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(rate(skull_http_requests_total{environment=~\"$environment\",service_name=~\"$service\",instance_id=~\"$instance_id\",route!~\"/health/.*\",route=~\"$route\",method=~\"$method\"}[$__rate_interval]))",
+          "expr": "sum(rate(webapp_template_http_requests_total{environment=~\"$environment\",service_name=~\"$service\",instance_id=~\"$instance_id\",route!~\"/health/.*\",route=~\"$route\",method=~\"$method\"}[$__rate_interval]))",
           "legendFormat": "Requests / second",
           "queryType": "range"
         }
@@ -347,7 +347,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "100 * (sum(rate(skull_http_requests_total{environment=~\"$environment\",service_name=~\"$service\",instance_id=~\"$instance_id\",route!~\"/health/.*\",route=~\"$route\",method=~\"$method\",status=~\"5..\"}[$__rate_interval])) or 0 * sum(rate(skull_http_requests_total{environment=~\"$environment\",service_name=~\"$service\",instance_id=~\"$instance_id\",route!~\"/health/.*\",route=~\"$route\",method=~\"$method\"}[$__rate_interval]))) / sum(rate(skull_http_requests_total{environment=~\"$environment\",service_name=~\"$service\",instance_id=~\"$instance_id\",route!~\"/health/.*\",route=~\"$route\",method=~\"$method\"}[$__rate_interval]))",
+          "expr": "100 * (sum(rate(webapp_template_http_requests_total{environment=~\"$environment\",service_name=~\"$service\",instance_id=~\"$instance_id\",route!~\"/health/.*\",route=~\"$route\",method=~\"$method\",status=~\"5..\"}[$__rate_interval])) or 0 * sum(rate(webapp_template_http_requests_total{environment=~\"$environment\",service_name=~\"$service\",instance_id=~\"$instance_id\",route!~\"/health/.*\",route=~\"$route\",method=~\"$method\"}[$__rate_interval]))) / sum(rate(webapp_template_http_requests_total{environment=~\"$environment\",service_name=~\"$service\",instance_id=~\"$instance_id\",route!~\"/health/.*\",route=~\"$route\",method=~\"$method\"}[$__rate_interval]))",
           "legendFormat": "Server error rate",
           "queryType": "range"
         }
@@ -391,7 +391,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "histogram_quantile(.95, sum by (le) (rate(skull_http_request_duration_seconds_bucket{environment=~\"$environment\",service_name=~\"$service\",instance_id=~\"$instance_id\",route!~\"/health/.*\",route=~\"$route\",method=~\"$method\",outcome=\"success\"}[$__rate_interval])))",
+          "expr": "histogram_quantile(.95, sum by (le) (rate(webapp_template_http_request_duration_seconds_bucket{environment=~\"$environment\",service_name=~\"$service\",instance_id=~\"$instance_id\",route!~\"/health/.*\",route=~\"$route\",method=~\"$method\",outcome=\"success\"}[$__rate_interval])))",
           "legendFormat": "Successful p95",
           "queryType": "range"
         }
@@ -435,7 +435,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(skull_http_requests_in_flight{environment=~\"$environment\",service_name=~\"$service\",instance_id=~\"$instance_id\"})",
+          "expr": "sum(webapp_template_http_requests_in_flight{environment=~\"$environment\",service_name=~\"$service\",instance_id=~\"$instance_id\"})",
           "legendFormat": "Requests in flight",
           "queryType": "range"
         }
@@ -479,7 +479,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum by (status) (rate(skull_http_requests_total{environment=~\"$environment\",service_name=~\"$service\",instance_id=~\"$instance_id\",route!~\"/health/.*\",route=~\"$route\",method=~\"$method\"}[$__rate_interval]))",
+          "expr": "sum by (status) (rate(webapp_template_http_requests_total{environment=~\"$environment\",service_name=~\"$service\",instance_id=~\"$instance_id\",route!~\"/health/.*\",route=~\"$route\",method=~\"$method\"}[$__rate_interval]))",
           "legendFormat": "HTTP {{status}}",
           "queryType": "range"
         }
@@ -535,19 +535,19 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "histogram_quantile(.5, sum by (le) (rate(skull_http_request_duration_seconds_bucket{environment=~\"$environment\",service_name=~\"$service\",instance_id=~\"$instance_id\",route!~\"/health/.*\",route=~\"$route\",method=~\"$method\",outcome=\"success\"}[$__rate_interval])))",
+          "expr": "histogram_quantile(.5, sum by (le) (rate(webapp_template_http_request_duration_seconds_bucket{environment=~\"$environment\",service_name=~\"$service\",instance_id=~\"$instance_id\",route!~\"/health/.*\",route=~\"$route\",method=~\"$method\",outcome=\"success\"}[$__rate_interval])))",
           "legendFormat": "p50",
           "queryType": "range"
         },
         {
           "refId": "B",
-          "expr": "histogram_quantile(.95, sum by (le) (rate(skull_http_request_duration_seconds_bucket{environment=~\"$environment\",service_name=~\"$service\",instance_id=~\"$instance_id\",route!~\"/health/.*\",route=~\"$route\",method=~\"$method\",outcome=\"success\"}[$__rate_interval])))",
+          "expr": "histogram_quantile(.95, sum by (le) (rate(webapp_template_http_request_duration_seconds_bucket{environment=~\"$environment\",service_name=~\"$service\",instance_id=~\"$instance_id\",route!~\"/health/.*\",route=~\"$route\",method=~\"$method\",outcome=\"success\"}[$__rate_interval])))",
           "legendFormat": "p95",
           "queryType": "range"
         },
         {
           "refId": "C",
-          "expr": "histogram_quantile(.99, sum by (le) (rate(skull_http_request_duration_seconds_bucket{environment=~\"$environment\",service_name=~\"$service\",instance_id=~\"$instance_id\",route!~\"/health/.*\",route=~\"$route\",method=~\"$method\",outcome=\"success\"}[$__rate_interval])))",
+          "expr": "histogram_quantile(.99, sum by (le) (rate(webapp_template_http_request_duration_seconds_bucket{environment=~\"$environment\",service_name=~\"$service\",instance_id=~\"$instance_id\",route!~\"/health/.*\",route=~\"$route\",method=~\"$method\",outcome=\"success\"}[$__rate_interval])))",
           "legendFormat": "p99",
           "queryType": "range"
         }
@@ -603,13 +603,13 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "histogram_quantile(.95, sum by (le) (rate(skull_http_request_duration_seconds_bucket{environment=~\"$environment\",service_name=~\"$service\",instance_id=~\"$instance_id\",route!~\"/health/.*\",route=~\"$route\",method=~\"$method\",outcome=\"client_error\"}[$__rate_interval])))",
+          "expr": "histogram_quantile(.95, sum by (le) (rate(webapp_template_http_request_duration_seconds_bucket{environment=~\"$environment\",service_name=~\"$service\",instance_id=~\"$instance_id\",route!~\"/health/.*\",route=~\"$route\",method=~\"$method\",outcome=\"client_error\"}[$__rate_interval])))",
           "legendFormat": "client_error",
           "queryType": "range"
         },
         {
           "refId": "B",
-          "expr": "histogram_quantile(.95, sum by (le) (rate(skull_http_request_duration_seconds_bucket{environment=~\"$environment\",service_name=~\"$service\",instance_id=~\"$instance_id\",route!~\"/health/.*\",route=~\"$route\",method=~\"$method\",outcome=\"server_error\"}[$__rate_interval])))",
+          "expr": "histogram_quantile(.95, sum by (le) (rate(webapp_template_http_request_duration_seconds_bucket{environment=~\"$environment\",service_name=~\"$service\",instance_id=~\"$instance_id\",route!~\"/health/.*\",route=~\"$route\",method=~\"$method\",outcome=\"server_error\"}[$__rate_interval])))",
           "legendFormat": "server_error",
           "queryType": "range"
         }
@@ -665,7 +665,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "skull_build_info{environment=~\"$environment\",service_name=~\"$service\",instance_id=~\"$instance_id\"}",
+          "expr": "webapp_template_build_info{environment=~\"$environment\",service_name=~\"$service\",instance_id=~\"$instance_id\"}",
           "legendFormat": "API versions",
           "queryType": "range",
           "instant": true,

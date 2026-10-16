@@ -7,7 +7,7 @@ const suite = process.argv[2]
 if (suite !== "integration" && suite !== "e2e") {
   throw new Error("Usage: test-auth.mjs <integration|e2e>")
 }
-const project = `skull-code004-test-${randomUUID().slice(0, 8)}`
+const project = `webapp-template-code004-test-${randomUUID().slice(0, 8)}`
 const compose = [
   "compose",
   "--env-file",
@@ -42,7 +42,7 @@ try {
     ...process.env,
     APP_ENV: "test",
     AUTH_TEST_OWNED: project,
-    AUTH_TEST_DATABASE_URL: `postgresql://skull_auth_test:isolated-fixture-only@127.0.0.1:${port("postgres", 5432)}/skull_auth_test`,
+    AUTH_TEST_DATABASE_URL: `postgresql://webapp_template_auth_test:isolated-fixture-only@127.0.0.1:${port("postgres", 5432)}/webapp_template_auth_test`,
     AUTH_TEST_SMTP_PORT: port("mailpit", 1025),
     AUTH_TEST_MAILPIT_URL: `http://127.0.0.1:${port("mailpit", 8025)}`,
   }

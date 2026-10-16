@@ -59,7 +59,7 @@ export function createApiLogger(
         level: (severity, numericLevel) => ({ level: numericLevel, severity }),
       },
       base: {
-        service_name: "skull-api",
+        service_name: "webapp-template-api",
         environment,
         instance_id: hostname(),
         version: options.version ?? "unknown",

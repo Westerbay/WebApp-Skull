@@ -14,13 +14,16 @@ import type { INestApplication } from "@nestjs/common"
 const databaseUrl = process.env.AUTH_TEST_DATABASE_URL
 if (
   !databaseUrl ||
-  !process.env.AUTH_TEST_OWNED?.startsWith("skull-code004-test-")
+  !process.env.AUTH_TEST_OWNED?.startsWith("webapp-template-code004-test-")
 )
   throw new Error(
     "Use pnpm test:integration or pnpm test:e2e: isolated owned services required"
   )
 const target = new URL(databaseUrl)
-if (target.hostname !== "127.0.0.1" || target.pathname !== "/skull_auth_test")
+if (
+  target.hostname !== "127.0.0.1" ||
+  target.pathname !== "/webapp_template_auth_test"
+)
   throw new Error("Refusing unverified test database")
 
 async function freePort() {

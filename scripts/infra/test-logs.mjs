@@ -80,7 +80,7 @@ try {
   harness.start()
   const pgAddress = new URL(harness.getServiceUrl("postgres", 5432)).host
   database = createDatabase(
-    `postgresql://skull_auth_test:isolated-fixture-only@${pgAddress}/skull_auth_test`
+    `postgresql://webapp_template_auth_test:isolated-fixture-only@${pgAddress}/webapp_template_auth_test`
   )
   valkey = createValkey(
     harness.getServiceUrl("valkey", 6379).replace("http:", "redis:"),
@@ -152,7 +152,7 @@ try {
   failedEmail.enqueue({ ...email, kind: "reset" })
   await Promise.all([successEmail.close(), failedEmail.close()])
 
-  const query = '{service_name="skull-api",environment="development"}'
+  const query = '{service_name="webapp-template-api",environment="development"}'
   const result = await waitFor(async () => {
     const response = await fetch(
       loki +
@@ -213,14 +213,17 @@ try {
   }
   await waitFor(async () => {
     await fetch(api + "/api/me")
-    const result = await promQuery('probe_success{job="skull-api-probe"}')
+    const result = await promQuery(
+      'probe_success{job="webapp-template-api-probe"}'
+    )
     assert.equal(
       result[0]?.value[1],
       "1",
       "Owned external readiness probe must succeed"
     )
     assert.ok(
-      (await promQuery("rate(skull_http_requests_total[5m])")).length > 0
+      (await promQuery("rate(webapp_template_http_requests_total[5m])"))
+        .length > 0
     )
   })
   const exporter = harness.getServiceUrl("alloy", 12345)
@@ -236,14 +239,14 @@ try {
     assert.ok(!/queryid=|query=|userid=/.test(body))
     return Number(
       body.match(
-        /^skull_postgres_statements_rows_total(?:\{[^\n]*\})? (\S+)/m
+        /^webapp_template_postgres_statements_rows_total(?:\{[^\n]*\})? (\S+)/m
       )?.[1]
     )
   }
   const ownRows = await readStatistics()
   assert.ok(Number.isFinite(ownRows))
   harness.executePostgres(
-    "CREATE ROLE skull_stats_other; SET ROLE skull_stats_other; SELECT * FROM generate_series(1, 10000); RESET ROLE"
+    "CREATE ROLE webapp_template_stats_other; SET ROLE webapp_template_stats_other; SELECT * FROM generate_series(1, 10000); RESET ROLE"
   )
   assert.ok(
     (await readStatistics()) - ownRows < 10000,
@@ -251,13 +254,15 @@ try {
   )
   await waitFor(async () => {
     assert.equal(
-      (await promQuery("skull_postgres_statements_up"))[0]?.value[1],
+      (await promQuery("webapp_template_postgres_statements_up"))[0]?.value[1],
       "1"
     )
-    assert.ok((await promQuery("skull_postgres_connections_value")).length > 0)
+    assert.ok(
+      (await promQuery("webapp_template_postgres_connections_value")).length > 0
+    )
     assert.ok((await promQuery("redis_memory_used_bytes")).length > 0)
     const infrastructure = await promQuery(
-      '{job=~"skull-postgres.*|skull-valkey"}'
+      '{job=~"webapp-template-postgres.*|webapp-template-valkey"}'
     )
     assert.ok(!JSON.stringify(infrastructure).includes("private-"))
     assert.ok(
@@ -270,7 +275,7 @@ try {
     assert.ok(
       (
         await promQuery(
-          "rate(skull_email_dispatch_duration_seconds_bucket[5m])"
+          "rate(webapp_template_email_dispatch_duration_seconds_bucket[5m])"
         )
       ).length > 0,
       "Email histograms need two successful scrapes"
@@ -305,7 +310,7 @@ try {
           .replaceAll("$__interval", "1m")
           .replaceAll("$__range", "5m")
           .replaceAll("$environment", "development")
-          .replaceAll("$service", "skull-api")
+          .replaceAll("$service", "webapp-template-api")
           .replaceAll("$instance_id", ".*")
           .replaceAll("$route", ".*")
           .replaceAll("$method", ".*")
@@ -367,20 +372,21 @@ try {
   harness.executePostgres("DROP EXTENSION pg_stat_statements")
   await waitFor(async () => {
     assert.equal(
-      (await promQuery("skull_postgres_statements_up"))[0]?.value[1],
+      (await promQuery("webapp_template_postgres_statements_up"))[0]?.value[1],
       "0"
     )
     assert.equal(
       (
         await promQuery(
-          "skull_postgres_statements_calls_total and on(service_name, environment, instance) (skull_postgres_statements_up == 1)"
+          "webapp_template_postgres_statements_calls_total and on(service_name, environment, instance) (webapp_template_postgres_statements_up == 1)"
         )
       ).length,
       0
     )
     assert.equal(
-      (await promQuery('skull_dependency_up{dependency="postgres"}'))[0]
-        ?.value[1],
+      (
+        await promQuery('webapp_template_dependency_up{dependency="postgres"}')
+      )[0]?.value[1],
       "1"
     )
   })
@@ -390,7 +396,7 @@ try {
   )
   await waitFor(async () => {
     assert.equal(
-      (await promQuery("skull_postgres_statements_up"))[0]?.value[1],
+      (await promQuery("webapp_template_postgres_statements_up"))[0]?.value[1],
       "1"
     )
   })
@@ -399,13 +405,14 @@ try {
   assert.equal((await fetch(api + "/health/live")).status, 200)
   await waitFor(async () => {
     assert.equal(
-      (await promQuery('probe_success{job="skull-api-probe"}'))[0]?.value[1],
+      (await promQuery('probe_success{job="webapp-template-api-probe"}'))[0]
+        ?.value[1],
       "0"
     )
   })
   await waitFor(async () => {
     assert.equal(
-      (await promQuery('redis_up{job="skull-valkey"}'))[0]?.value[1],
+      (await promQuery('redis_up{job="webapp-template-valkey"}'))[0]?.value[1],
       "0"
     )
   })
@@ -413,7 +420,8 @@ try {
   await waitFor(async () => {
     await valkey.ready()
     assert.equal(
-      (await promQuery('probe_success{job="skull-api-probe"}'))[0]?.value[1],
+      (await promQuery('probe_success{job="webapp-template-api-probe"}'))[0]
+        ?.value[1],
       "1"
     )
   })
@@ -423,13 +431,17 @@ try {
     await metricsServer.close()
     metricsServer = undefined
     await waitFor(async () => {
-      assert.equal((await promQuery('up{job="skull-api"}'))[0]?.value[1], "0")
       assert.equal(
-        (await promQuery('pg_up{job="skull-postgres"}'))[0]?.value[1],
+        (await promQuery('up{job="webapp-template-api"}'))[0]?.value[1],
+        "0"
+      )
+      assert.equal(
+        (await promQuery('pg_up{job="webapp-template-postgres"}'))[0]?.value[1],
         "1"
       )
       assert.equal(
-        (await promQuery('redis_up{job="skull-valkey"}'))[0]?.value[1],
+        (await promQuery('redis_up{job="webapp-template-valkey"}'))[0]
+          ?.value[1],
         "1"
       )
     })
@@ -438,7 +450,7 @@ try {
     `Verified real HTTP logs, email outcomes, PostgreSQL/Valkey observations, external readiness, both Grafana sources and ${checked} dashboard queries.`
   )
   if (preview) {
-    console.log(`PREVIEW_URL=${grafana}/d/skull-api-overview`)
+    console.log(`PREVIEW_URL=${grafana}/d/webapp-template-api-overview`)
     trafficTimer = setInterval(() => {
       void fetch(api + "/api/me").catch(console.error)
     }, 3000)

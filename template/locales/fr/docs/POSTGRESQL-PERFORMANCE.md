@@ -29,7 +29,7 @@ Démarrer l’API avec `pnpm dev:logs` et le collecteur avec `pnpm logs:up`.
 Les valeurs par défaut du DSN local du collecteur correspondent à `.env.example` ;
 exporter `OBS_POSTGRES_DSN` pour utiliser une autre base ou un autre rôle.
 Pour désactiver la collecte, retirer le job de collecte
-`skull-postgres-statements` de la configuration Prometheus. Il n’est pas
+`webapp-template-postgres-statements` de la configuration Prometheus. Il n’est pas
 nécessaire de réinitialiser les statistiques ni de supprimer un volume.
 
 ## Configuration en production

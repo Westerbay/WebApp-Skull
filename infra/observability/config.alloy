@@ -1,8 +1,8 @@
 // Host development: only the API's sanitized JSON file is collected.
 local.file_match "api" {
   path_targets = [{
-    "__path__" = "/var/log/skull/api.jsonl",
-    "service_name" = "skull-api",
+    "__path__" = "/var/log/webapp-template/api.jsonl",
+    "service_name" = "webapp-template-api",
   }]
   sync_period = "1s"
 }

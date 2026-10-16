@@ -12,7 +12,7 @@ pnpm logs:up
 pnpm dev:logs
 ```
 
-Open [Grafana](http://localhost:3002/d/skull-api-overview). The four dashboards
+Open [Grafana](http://localhost:3002/d/webapp-template-api-overview). The four dashboards
 are provisioned from `infra/observability/grafana/dashboards` and edited in Git.
 They link to one another and share environment, service and instance filters.
 The routes dashboard adds route/method/status filters and a literal request-ID
@@ -142,7 +142,7 @@ data sources with UIDs `loki` and `prometheus`. Scrape each API instance private
 The Docker collector in `infra/compose/logs-collector.yml` sends opted-in containers'
 JSON stdout to an externally managed Loki backend. It needs `APP_ENV=staging|production`
 and the full `LOKI_URL`; token-file and tenant settings are optional. Containers
-need `skull.logs=true` and matching `skull.logs.environment` labels. Read-only
+need `webapp-template.logs=true` and matching `webapp-template.logs.environment` labels. Read-only
 Docker-socket access still gives broad host privileges and requires a trusted platform.
 
 Run a probe outside the API process against the deployed service URL. The local

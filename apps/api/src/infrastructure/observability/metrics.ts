@@ -38,43 +38,43 @@ export function createApiMetrics(
 ): ApiMetrics {
   const registry = new Registry()
   registry.setDefaultLabels({
-    service_name: "skull-api",
+    service_name: "webapp-template-api",
     environment,
     instance_id: hostname(),
   })
   collectDefaultMetrics({ register: registry })
   new Gauge({
-    name: "skull_build_info",
+    name: "webapp_template_build_info",
     help: "Deployed application version.",
     labelNames: ["version"],
     registers: [registry],
   }).set({ version }, 1)
   const requests = new Counter({
-    name: "skull_http_requests_total",
+    name: "webapp_template_http_requests_total",
     help: "Completed API requests, including auth and probes.",
     labelNames: ["method", "route", "status"],
     registers: [registry],
   })
   const duration = new Histogram({
-    name: "skull_http_request_duration_seconds",
+    name: "webapp_template_http_request_duration_seconds",
     help: "API response duration in seconds; includes successful and failed responses.",
     labelNames: ["method", "route", "outcome"],
     buckets: httpDurationBucketsSeconds,
     registers: [registry],
   })
   const inFlight = new Gauge({
-    name: "skull_http_requests_in_flight",
+    name: "webapp_template_http_requests_in_flight",
     help: "Requests currently being served by this API instance.",
     registers: [registry],
   })
   inFlight.set(0)
   const aborted = new Counter({
-    name: "skull_http_requests_aborted_total",
+    name: "webapp_template_http_requests_aborted_total",
     help: "Connections closed before a response completed.",
     registers: [registry],
   })
   const emails = new Counter({
-    name: "skull_email_events_total",
+    name: "webapp_template_email_events_total",
     help: "Auth email transport outcomes; accepted does not mean delivered to an inbox.",
     labelNames: ["event", "kind"],
     registers: [registry],
@@ -84,7 +84,7 @@ export function createApiMetrics(
       emails.inc({ event, kind }, 0)
   }
   const emailDuration = new Histogram({
-    name: "skull_email_dispatch_duration_seconds",
+    name: "webapp_template_email_dispatch_duration_seconds",
     help: "Time from enqueue to transport outcome, including rendering.",
     labelNames: ["kind", "outcome"],
     buckets: httpDurationBucketsSeconds,
@@ -132,7 +132,7 @@ export function createApiMetrics(
     }
   }
   const enabled = new Gauge({
-    name: "skull_dependency_enabled",
+    name: "webapp_template_dependency_enabled",
     help: "Whether this API instance uses a dependency.",
     labelNames: ["dependency"],
     registers: [registry],

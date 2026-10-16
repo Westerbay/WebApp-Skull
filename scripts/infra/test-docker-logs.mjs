@@ -17,7 +17,7 @@ try {
   await harness.createLogProbe("production", true)
   await harness.createLogProbe("staging", false)
 
-  const query = '{service_name="skull-api",environment="staging"}'
+  const query = '{service_name="webapp-template-api",environment="staging"}'
   const checkDockerLogs = async () => {
     const response = await fetch(
       loki +

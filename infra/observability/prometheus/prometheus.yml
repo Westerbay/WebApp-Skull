@@ -7,21 +7,21 @@ rule_files:
   - /etc/prometheus/rules.yml
 
 scrape_configs:
-  - job_name: skull-api
+  - job_name: webapp-template-api
     honor_labels: true
     static_configs:
       - targets: [host.docker.internal:9464]
         labels:
-          service_name: skull-api
+          service_name: webapp-template-api
           environment: development
-  - job_name: skull-api-probe
+  - job_name: webapp-template-api-probe
     metrics_path: /probe
     params:
       module: [http_2xx]
     static_configs:
       - targets: [http://host.docker.internal:3001/health/ready]
         labels:
-          service_name: skull-api
+          service_name: webapp-template-api
           environment: development
     relabel_configs:
       - source_labels: [__address__]
@@ -30,57 +30,57 @@ scrape_configs:
         target_label: instance
       - target_label: __address__
         replacement: blackbox:9115
-  - job_name: skull-loki
+  - job_name: webapp-template-loki
     static_configs:
       - targets: [loki:3100]
         labels:
           environment: development
-  - job_name: skull-alloy
+  - job_name: webapp-template-alloy
     static_configs:
       - targets: [alloy:12345]
         labels:
           environment: development
-  - job_name: skull-blackbox
+  - job_name: webapp-template-blackbox
     static_configs:
       - targets: [blackbox:9115]
         labels:
           environment: development
-  - job_name: skull-postgres
+  - job_name: webapp-template-postgres
     metrics_path: /api/v0/component/prometheus.exporter.postgres.database/metrics
     static_configs:
       - targets: [alloy:12345]
         labels:
-          service_name: skull-api
+          service_name: webapp-template-api
           environment: development
     metric_relabel_configs:
       - source_labels: [__name__]
         action: keep
-        regex: "pg_up|pg_exporter_last_scrape_.*|skull_postgres_.*|redis_up|redis_memory_used_bytes|redis_memory_max_bytes|redis_connected_clients|redis_evicted_keys_total|redis_rejected_connections_total|redis_exporter_last_scrape_duration_seconds"
+        regex: "pg_up|pg_exporter_last_scrape_.*|webapp_template_postgres_.*|redis_up|redis_memory_used_bytes|redis_memory_max_bytes|redis_connected_clients|redis_evicted_keys_total|redis_rejected_connections_total|redis_exporter_last_scrape_duration_seconds"
       - action: labeldrop
         regex: server
-  - job_name: skull-postgres-statements
+  - job_name: webapp-template-postgres-statements
     metrics_path: /api/v0/component/prometheus.exporter.postgres.statements/metrics
     static_configs:
       - targets: [alloy:12345]
         labels:
-          service_name: skull-api
+          service_name: webapp-template-api
           environment: development
     metric_relabel_configs:
       - source_labels: [__name__]
         action: keep
-        regex: "pg_up|pg_exporter_last_scrape_.*|skull_postgres_.*|redis_up|redis_memory_used_bytes|redis_memory_max_bytes|redis_connected_clients|redis_evicted_keys_total|redis_rejected_connections_total|redis_exporter_last_scrape_duration_seconds"
+        regex: "pg_up|pg_exporter_last_scrape_.*|webapp_template_postgres_.*|redis_up|redis_memory_used_bytes|redis_memory_max_bytes|redis_connected_clients|redis_evicted_keys_total|redis_rejected_connections_total|redis_exporter_last_scrape_duration_seconds"
       - action: labeldrop
         regex: server
-  - job_name: skull-valkey
+  - job_name: webapp-template-valkey
     metrics_path: /api/v0/component/prometheus.exporter.redis.valkey/metrics
     static_configs:
       - targets: [alloy:12345]
         labels:
-          service_name: skull-api
+          service_name: webapp-template-api
           environment: development
     metric_relabel_configs:
       - source_labels: [__name__]
         action: keep
-        regex: "pg_up|pg_exporter_last_scrape_.*|skull_postgres_.*|redis_up|redis_memory_used_bytes|redis_memory_max_bytes|redis_connected_clients|redis_evicted_keys_total|redis_rejected_connections_total|redis_exporter_last_scrape_duration_seconds"
+        regex: "pg_up|pg_exporter_last_scrape_.*|webapp_template_postgres_.*|redis_up|redis_memory_used_bytes|redis_memory_max_bytes|redis_connected_clients|redis_evicted_keys_total|redis_rejected_connections_total|redis_exporter_last_scrape_duration_seconds"
       - action: labeldrop
         regex: server

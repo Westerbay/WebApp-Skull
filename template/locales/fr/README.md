@@ -50,7 +50,7 @@ pnpm logs:up
 pnpm dev:logs
 ```
 
-Ouvrir [Grafana](http://localhost:3002/d/skull-api-overview). Les statistiques SQL
+Ouvrir [Grafana](http://localhost:3002/d/webapp-template-api-overview). Les statistiques SQL
 PostgreSQL sont activées par défaut dans la stack d’observabilité ; le Compose
 standard de développement précharge `pg_stat_statements` et l’installe dans
 les nouvelles bases. Les volumes existants nécessitent l’installation explicite

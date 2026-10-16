@@ -31,7 +31,9 @@ const { compile } = await import(requireI18n.resolve("@inlang/paraglide-js"))
 
 for (const { id, locales, docsLocale } of templateProfiles) {
   test(`generates the ${id} profile with working translated URLs`, async () => {
-    const temporary = await mkdtemp(join(tmpdir(), "skull-template-test-"))
+    const temporary = await mkdtemp(
+      join(tmpdir(), "webapp-template-template-test-")
+    )
     try {
       const directory = join(temporary, "missing", "nested")
       const output = join(directory, id)
@@ -198,7 +200,9 @@ for (const { id, locales, docsLocale } of templateProfiles) {
 }
 
 test("refuses an unknown profile before creating output", async () => {
-  const temporary = await mkdtemp(join(tmpdir(), "skull-template-invalid-"))
+  const temporary = await mkdtemp(
+    join(tmpdir(), "webapp-template-template-invalid-")
+  )
   try {
     const output = join(temporary, "project")
     await assert.rejects(
@@ -253,7 +257,9 @@ test("rejects a newly added document without a French translation before creatin
 })
 
 test("CLI accepts pnpm's separator and a French profile", async () => {
-  const temporary = await mkdtemp(join(tmpdir(), "skull-template-cli-"))
+  const temporary = await mkdtemp(
+    join(tmpdir(), "webapp-template-template-cli-")
+  )
   try {
     const output = join(temporary, "project")
     execFileSync(process.execPath, [
