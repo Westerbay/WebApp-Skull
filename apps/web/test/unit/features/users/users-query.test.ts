@@ -1,6 +1,6 @@
 import { QueryClient } from "@tanstack/react-query"
 import { expect, it, vi } from "vitest"
-import { usersQueryOptions } from "@/features/users/hooks/use-users"
+import { usersQueryOptions } from "@/features/users/queries/users.queries"
 import { cursorInfiniteQueryOptions } from "@/lib/query/use-cursor-infinite-query"
 
 const { getUsers } = vi.hoisted(() => ({ getUsers: vi.fn() }))

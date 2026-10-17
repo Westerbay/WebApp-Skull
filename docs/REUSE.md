@@ -22,14 +22,17 @@ and a stable owner. Keep feature-specific code and test helpers near their featu
 - `apps/web/src/lib/query/use-cursor-infinite-query.ts` handles cursor parameters
   while retaining native TanStack Query options. Include filters and page size
   in the caller's query key and forward abort signals.
-- `apps/web/src/lib/auth/current-user.ts` provides the identity query, fresh
-  protected-route verification.
+- `apps/web/src/features/auth/queries/current-user.queries.ts` provides the
+  identity query and fresh verification before entering protected routes.
 - `apps/web/src/lib/query/private-cache.ts` cancels and removes private queries
   on identity transitions while preserving public queries. Build private query
   keys with `lib/query/query-keys.ts` so new features participate automatically.
 - `apps/web/src/features/auth/form-context.ts` and `hooks/use-auth-form.ts`
   compose shared TanStack Form contexts. Reuse `AuthInput` and
-  `AuthSubmitButton` for matching auth forms; keep their actions in feature hooks.
+  `AuthSubmitButton` for matching auth forms; keep navigation and form
+  feedback in feature hooks. Auth write options in
+  `features/auth/mutations/auth.mutations.ts` preserve provider results and clear
+  private cache after successful identity writes.
 - `apps/web/src/lib/api/client.ts` is the typed cookie-based HTTP client.
   Use `lib/auth/redirect.ts` for internal redirect validation.
 

@@ -4,8 +4,8 @@ import { useRouter } from "@tanstack/react-router"
 import { useState } from "react"
 import { toast } from "sonner"
 import { network_error, reset_complete } from "@workspace/i18n/messages"
-import { authClient } from "@/lib/auth/auth-client"
-import { clearPrivateCache } from "@/lib/query/private-cache"
+import { useMutation } from "@tanstack/react-query"
+import { resetPasswordMutationOptions } from "../mutations/auth.mutations"
 import { resetPasswordSchema } from "../schemas/auth-form"
 import { authErrorMessage } from "../auth-error"
 
@@ -16,6 +16,9 @@ const RESET_PASSWORD_DEFAULT_VALUES: ResetPasswordFormValues = {
 
 export function useResetPasswordForm(token: string) {
   const router = useRouter()
+  const mutation = useMutation(
+    resetPasswordMutationOptions(router.options.context.queryClient)
+  )
   const [serverError, setServerError] = useState<string>()
   const handleSubmit = async ({
     value,
@@ -24,7 +27,7 @@ export function useResetPasswordForm(token: string) {
   }) => {
     setServerError(undefined)
     try {
-      const result = await authClient.resetPassword({
+      const result = await mutation.mutateAsync({
         token,
         newPassword: value.password,
       })
@@ -32,7 +35,6 @@ export function useResetPasswordForm(token: string) {
         setServerError(authErrorMessage(result.error, "reset-password"))
         return
       }
-      await clearPrivateCache(router.options.context.queryClient)
       await router.navigate({ to: "/sign-in", replace: true })
       toast.success(reset_complete())
     } catch {

@@ -2,7 +2,8 @@ import { useMemo, useState } from "react"
 import { getCoreRowModel, useReactTable } from "@tanstack/react-table"
 import { getUsersColumns } from "../components/users-table.columns"
 import { usersTableConfig } from "../users.config"
-import { useUsers } from "./use-users"
+import { usersQueryOptions } from "../queries/users.queries"
+import { useCursorInfiniteQuery } from "@/lib/query/use-cursor-infinite-query"
 import type { CurrentUser } from "@workspace/contracts/identity"
 import { useDebouncedValue } from "@/lib/hooks/use-debounced-value"
 import type { ChangeEvent } from "react"
@@ -27,7 +28,9 @@ export function useUsersTable() {
     usersTableConfig.searchDebounceMs
   )
   const searchPending = search.trim() !== debouncedSearch
-  const query = useUsers(pageSize, debouncedSearch)
+  const query = useCursorInfiniteQuery(
+    usersQueryOptions(pageSize, debouncedSearch)
+  )
   const [navigation, setNavigation] = useState<UsersNavigation>({
     search: debouncedSearch,
     pageIndex: 0,

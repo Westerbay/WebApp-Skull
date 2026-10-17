@@ -1,9 +1,9 @@
-import { getLocalizedCallbackUrl } from "@workspace/i18n/routing"
 import type { EmailFormValues } from "../schemas/auth-form"
 import { useAuthForm } from "./use-auth-form"
 import { useState } from "react"
 import { network_error } from "@workspace/i18n/messages"
-import { authClient } from "@/lib/auth/auth-client"
+import { useMutation } from "@tanstack/react-query"
+import { emailRequestMutationOptions } from "../mutations/auth.mutations"
 import { emailSchema } from "../schemas/auth-form"
 import { authErrorMessage } from "../auth-error"
 
@@ -12,30 +12,13 @@ const EMAIL_REQUEST_DEFAULT_VALUES: EmailFormValues = { email: "" }
 export function useEmailRequestForm(kind: "verification" | "reset") {
   const [serverError, setServerError] = useState<string>()
   const [received, setReceived] = useState(false)
-  const requestEmail = async (value: EmailFormValues) => {
-    if (kind === "verification") {
-      return authClient.sendVerificationEmail({
-        ...value,
-        callbackURL: getLocalizedCallbackUrl(
-          "/email-verified",
-          window.location.origin
-        ),
-      })
-    }
-    return authClient.requestPasswordReset({
-      ...value,
-      redirectTo: getLocalizedCallbackUrl(
-        "/reset-password",
-        window.location.origin
-      ),
-    })
-  }
+  const mutation = useMutation(emailRequestMutationOptions(kind))
 
   const handleSubmit = async ({ value }: { value: EmailFormValues }) => {
     setServerError(undefined)
     setReceived(false)
     try {
-      const result = await requestEmail(value)
+      const result = await mutation.mutateAsync(value)
       if (result.error) {
         setServerError(authErrorMessage(result.error))
         return

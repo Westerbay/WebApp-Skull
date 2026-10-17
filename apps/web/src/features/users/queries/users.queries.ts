@@ -1,6 +1,5 @@
 import { apiClient } from "@/lib/api/client"
 import { privateQueryKeyPrefix } from "@/lib/query/query-keys"
-import { useCursorInfiniteQuery } from "@/lib/query/use-cursor-infinite-query"
 import { usersTableConfig } from "../users.config"
 import type { CurrentUser } from "@workspace/contracts/identity"
 import type { QueryFunctionContext, QueryKey } from "@tanstack/react-query"
@@ -27,8 +26,4 @@ export function usersQueryOptions(
     queryFn: fetchUsersPage,
     retry: false,
   }
-}
-
-export function useUsers(limit = usersTableConfig.pageSize, search = "") {
-  return useCursorInfiniteQuery(usersQueryOptions(limit, search))
 }

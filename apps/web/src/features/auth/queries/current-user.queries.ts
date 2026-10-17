@@ -1,10 +1,10 @@
 import { queryOptions } from "@tanstack/react-query"
-import { queryConfig } from "../query/query.config"
+import { queryConfig } from "@/lib/query/query.config"
 import { httpStatus } from "@/lib/api/http-status"
 import type { QueryClient } from "@tanstack/react-query"
 
-import { apiClient } from "../api/client"
-import { privateQueryKeyPrefix } from "../query/query-keys"
+import { apiClient } from "@/lib/api/client"
+import { privateQueryKeyPrefix } from "@/lib/query/query-keys"
 
 export class AuthenticationRequiredError extends Error {}
 

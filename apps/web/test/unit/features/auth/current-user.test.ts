@@ -5,7 +5,7 @@ import {
   AuthenticationRequiredError,
   currentUserQueryOptions,
   loadCurrentUserForProtectedRoute,
-} from "@/lib/auth/current-user"
+} from "@/features/auth/queries/current-user.queries"
 
 const { getCurrentUser } = vi.hoisted(() => ({
   getCurrentUser: vi.fn(),
